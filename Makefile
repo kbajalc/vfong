@@ -1,4 +1,4 @@
-.PHONY: build force clean check fextract mamba
+.PHONY: build force debug trace release clean check fextract mamba
 
 build:
 	python setup.py build_ext --inplace
@@ -6,8 +6,36 @@ build:
 force:
 	python setup.py build_ext --inplace -f
 
+# ---------------------------------------------------------------------------
+# Debug builds
+# ---------------------------------------------------------------------------
+
+# debug: compile with -O0 -g and Cython gdb_debug=True.
+# Generates .pyx.gdb XML files alongside the .so files so gdb can map
+# C stack frames back to Cython source lines.
+# Use with:  cygdb . -- --args python extract_one.py -r mitdb/100 -n 0
+# or:        gdb -ex run --args python extract_one.py -r mitdb/100 -n 0
+debug:
+	DEBUG=1 python setup.py build_ext --inplace -f
+
+# trace: compile with -O0 -g and Cython linetrace=True + CYTHON_TRACE=1.
+# Makes every Cython line visible to Python's sys.settrace(), so pdb and
+# IDE debuggers (VS Code / PyCharm) can step through .pyx files line by line.
+# Use with:  python -m pdb extract_one.py -r mitdb/100 -n 0
+# or set a breakpoint in VS Code / PyCharm and run extract_one.py normally.
+trace:
+	CYTHON_TRACE=1 python setup.py build_ext --inplace -f
+
+# release: restore the normal optimised build after a debug/trace session.
+release:
+	python setup.py build_ext --inplace -f
+
+# ---------------------------------------------------------------------------
+
 clean:
-	@echo "TODO: clean build artifacts"
+	find . -maxdepth 2 \( -name '*.so' -o -name '*.pyd' -o -name '*.c' \
+	    -o -name '*.pyx.gdb' \) -not -path './osea20-gcc/*' -delete
+	rm -rf build/
 
 check:
 	python demo_emd.py
