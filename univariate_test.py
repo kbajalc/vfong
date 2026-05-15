@@ -4,7 +4,7 @@ import numpy as np
 from sklearn import preprocessing
 from sklearn import feature_selection
 from sklearn import ensemble
-from sklearn import cross_validation
+from sklearn import model_selection
 from sklearn import svm
 from vf_features import feature_names, load_features
 import multiprocessing as mp
@@ -138,10 +138,10 @@ def main():
     estimator = ensemble.RandomForestRegressor()
     print("Tree-based test for each feature:")
     for i, name in enumerate(feature_names):
-        scores = cross_validation.cross_val_score(estimator,
-                                                  x_data[:, i:i+1], y_data,
-                                                  scoring="r2",
-                                                  cv=cross_validation.ShuffleSplit(len(x_data), 3, .3))
+        scores = model_selection.cross_val_score(estimator,
+                                                x_data[:, i:i+1], y_data,
+                                                scoring="r2",
+                                                cv=model_selection.ShuffleSplit(n_splits=3, test_size=0.3))
         score = np.mean(scores)
         print(name, ":", score)
     print("")

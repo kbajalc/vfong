@@ -9,6 +9,9 @@ import pickle
 import argparse
 import sys
 import threading
+import os
+import glob
+from itertools import groupby
 
 
 def extract_features(idx, segment, resample_rate, update_features, verbose):
@@ -16,7 +19,7 @@ def extract_features(idx, segment, resample_rate, update_features, verbose):
     segment_duration = info.get_duration()
     signals = segment.signals
     # resample to DEFAULT_SAMPLING_RATE as needed
-    if resample_rate and info.resample_rate != resample_rate:
+    if resample_rate and info.sampling_rate != resample_rate:
         signals = signal.resample(signals, int(resample_rate * segment_duration))
         sampling_rate = resample_rate
     else:
@@ -49,6 +52,86 @@ def load_all_segments(args):
     for segment in dataset.get_samples(args.segment_duration):
         yield idx, segment
         idx += 1
+
+
+# --- checkpointing helpers ---
+
+def _ckpt_dir(output_file):
+    return output_file + ".ckpt"
+
+
+def _ckpt_path(ckpt_dir, record_name):
+    safe = record_name.replace("/", "__")
+    return os.path.join(ckpt_dir, safe + ".pkl")
+
+
+def load_done_records(ckpt_dir):
+    """Return set of record_names that already have a checkpoint."""
+    if not os.path.isdir(ckpt_dir):
+        return set()
+    done = set()
+    for path in glob.glob(os.path.join(ckpt_dir, "*.pkl")):
+        safe = os.path.basename(path)[:-4]  # strip .pkl
+        done.add(safe.replace("__", "/"))
+    return done
+
+
+def save_record_checkpoint(ckpt_dir, record_name, results):
+    """Atomically write one record's results to a checkpoint file."""
+    os.makedirs(ckpt_dir, exist_ok=True)
+    path = _ckpt_path(ckpt_dir, record_name)
+    tmp = path + ".tmp"
+    with open(tmp, "wb") as f:
+        pickle.dump(results, f)
+    os.replace(tmp, path)
+
+
+def load_all_checkpoints(ckpt_dir, done_records):
+    """Load and concatenate results from all checkpoint files (preserving order)."""
+    all_results = []
+    for record_name in sorted(done_records):
+        path = _ckpt_path(ckpt_dir, record_name)
+        with open(path, "rb") as f:
+            all_results.extend(pickle.load(f))
+    return all_results
+
+
+def parallel_extract_features_per_record(args, all_segments_iter):
+    """Extract features with per-record checkpointing."""
+    ckpt_dir = _ckpt_dir(args.output) if args.output else None
+    use_checkpoint = ckpt_dir and not getattr(args, "no_checkpoint", False)
+    done_records = load_done_records(ckpt_dir) if use_checkpoint else set()
+
+    if done_records:
+        print(f"Resuming: {len(done_records)} record(s) already done, loading from checkpoints.")
+
+    all_results = load_all_checkpoints(ckpt_dir, done_records) if use_checkpoint else []
+
+    parallel = Parallel(n_jobs=args.jobs, verbose=0, backend="multiprocessing", max_nbytes=2048)
+
+    # Group the flat segment stream by record_name (DataSet.get_samples yields all segments
+    # of one record before moving to the next, so groupby works without sorting).
+    for record_name, group in groupby(all_segments_iter, key=lambda t: t[1].info.record_name):
+        if record_name in done_records:
+            # Skip — already checkpointed; consume the group to keep idx in sync.
+            for _ in group:
+                pass
+            continue
+
+        group_list = list(group)
+        print(f"Processing record {record_name} ({len(group_list)} segments) ...")
+        record_results = parallel(
+            delayed(extract_features)(idx, seg, args.resample_rate, args.update_features, args.verbose)
+            for idx, seg in group_list
+        )
+
+        if use_checkpoint:
+            save_record_checkpoint(ckpt_dir, record_name, record_results)
+            print(f"  Checkpointed {record_name}")
+
+        all_results.extend(record_results)
+
+    return all_results
 
 
 def output_results(output_file, update_features, results):
@@ -138,8 +221,8 @@ def load_all_segments_from_server(master_proxy):
 
 
 def parallel_extract_features(args, data_generator):
-    parellel = Parallel(n_jobs=args.jobs, verbose=0, backend="multiprocessing", max_nbytes=2048)
-    results = parellel(delayed(extract_features)(idx, segment, args.resample_rate, args.update_features, args.verbose) for idx, segment in data_generator)
+    parallel = Parallel(n_jobs=args.jobs, verbose=0, backend="multiprocessing", max_nbytes=2048)
+    results = parallel(delayed(extract_features)(idx, segment, args.resample_rate, args.update_features, args.verbose) for idx, segment in data_generator)
     return results
 
 
@@ -153,6 +236,8 @@ def main():
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("-u", "--update-features", type=str, nargs="+", choices=vf_features.feature_names, default=None)
     parser.add_argument("-c", "--correction-file", type=str, help="Override the incorrect labels of the original dataset.")
+    parser.add_argument("--no-checkpoint", action="store_true",
+                        help="Disable per-record checkpointing (default: enabled when -o is given).")
 
     # for distributed computing using Pyro4
     parser.add_argument("-l", "--listen-port", type=int, help="Launch a distributed computing server to collect the computed features on the port number.")
@@ -180,8 +265,8 @@ def main():
         print("Launch server at", uri)
         pyro_daemon.requestLoop()  # blocked until all data are processed
         results = server.results
-    else:  # do not use distributed computing, parellel on this machine with multi-core only
-        results = parallel_extract_features(args, load_all_segments(args))
+    else:  # do not use distributed computing, parallel on this machine with multi-core only
+        results = parallel_extract_features_per_record(args, load_all_segments(args))
 
     if not args.master_uri and args.output:  # if we're not a computing slave, save the results to disks
         output_results(args.output, args.update_features, results)

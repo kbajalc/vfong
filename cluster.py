@@ -3,9 +3,7 @@ import pyximport; pyximport.install()
 import numpy as np
 from sklearn import preprocessing
 from sklearn import ensemble
-from sklearn import cross_validation
 from sklearn import metrics
-from sklearn import grid_search
 import vf_data
 from vf_features import load_features
 from vf_eval import *
