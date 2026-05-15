@@ -485,7 +485,7 @@ def ap_entropy(X, M, R):
     check whether Em[j] matches with Em[i]. Denote the number of Em[j],
     which is in the range of Em[i], as k[i], which is the i-th element of the
     vector k. The probability that a random row in Em matches Em[i] is
-    \simga_1^{N-M+1} k[i] / (N - M + 1), thus sum(k)/ (N - M + 1),
+    \\simga_1^{N-M+1} k[i] / (N - M + 1), thus sum(k)/ (N - M + 1),
     denoted as Cm[i].
 
     We repeat the same process on Emp and obtained Cmp[i], but here 0<i<N-M
@@ -611,7 +611,7 @@ def dfa(X, Ave=None, L=None):
     series be X= [x(1), x(2), ..., x(N)].
 
     The integrated signal Y = [y(1), y(2), ..., y(N)] is obtained as follows
-    y(k) = \sum_{i=1}^{k}{x(i)-Ave} where Ave is the mean of X.
+    y(k) = \\sum_{i=1}^{k}{x(i)-Ave} where Ave is the mean of X.
 
     The second step is to partition/slice/segment the integrated sequence Y
     into boxes. At least two boxes are needed for computing DFA. Box sizes are
@@ -629,8 +629,8 @@ def dfa(X, Ave=None, L=None):
 
     F(n) denotes the square root of average total residue in all boxes when box
     length is n, thus
-    Total_Residue = \sum_{k=1}^{N}{(y(k)-yn(k))}
-    F(n) = \sqrt(Total_Residue/N)
+    Total_Residue = \\sum_{k=1}^{N}{(y(k)-yn(k))}
+    F(n) = \\sqrt(Total_Residue/N)
 
     The computing to F(n) is carried out for every box length n. Therefore, a
     relationship between n and F(n) can be obtained. In general, F(n) increases

@@ -1,44 +1,50 @@
 #!/bin/bash
 
-. /usr/bin/setwfdb
+. /usr/local/bin/setwfdb
 
 # test with all database
 HOST=`hostname`
 n_jobs=-1
-case $HOST in
-"csbb01")
-    models="svc_linear svc_poly"
-	;;
-"csbb02")
-    models="adaboost"
-    ;;
-"csbb03")
-    models="random_forest"
-	;;
-"csbb04")
-    models="mlp1"
-    ;;
-"csbb05")
-    models="mlp2"
-    ;;
-"csbb06")
-    models="gradient_boosting"
-    # xgboost already uses all available CPU threads so let's avoid multi-processing here.
-    # n_jobs=1
-	;;
-#"csbb23")
-#    models="mlp2"
-#	;;
-#"csbb23")
-#    models="mlp2"
-#	;;
-"csbb25")
-    models="svc_rbf"
-	;;
-"arch-pc")
-    models="logistic_regression"
-	;;
-esac
+models="${MODELS:-}"
+if [ -z "$models" ]; then
+    case $HOST in
+    "csbb01")
+        models="svc_linear svc_poly"
+	    ;;
+    "csbb02")
+        models="adaboost"
+        ;;
+    "csbb03")
+        models="random_forest"
+	    ;;
+    "csbb04")
+        models="mlp1"
+        ;;
+    "csbb05")
+        models="mlp2"
+        ;;
+    "csbb06")
+        models="gradient_boosting"
+        # xgboost already uses all available CPU threads so let's avoid multi-processing here.
+        # n_jobs=1
+	    ;;
+    #"csbb23")
+    #    models="mlp2"
+    #	;;
+    #"csbb23")
+    #    models="mlp2"
+    #	;;
+    "csbb25")
+        models="svc_rbf"
+	    ;;
+    "arch-pc")
+        models="logistic_regression"
+	    ;;
+    *)
+        models="logistic_regression"
+        ;;
+    esac
+fi
 
 mkdir -p aha
 

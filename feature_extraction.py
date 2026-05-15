@@ -4,7 +4,6 @@ import vf_data
 import vf_features
 import numpy as np
 from joblib import Parallel, delayed
-from joblib.pool import has_shareable_memory
 import scipy.signal as signal
 import pickle
 import argparse

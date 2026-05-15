@@ -81,7 +81,7 @@ cdef double threshold_crossing_sample_counts(np.ndarray[double, ndim=1] samples,
 
         # multiply by a cosine window (Tukey window)
         # window *= tcsc_cosine_window(window_size, sampling_rate)
-        window *= signal.tukey(window_size, alpha=(0.5 / window_duration))
+        window *= signal.windows.tukey(window_size, alpha=(0.5 / window_duration))
 
         # use absolute values for analysis
         window = np.abs(window)
@@ -335,7 +335,9 @@ cdef double vf_leak(np.ndarray[double, ndim=1] samples, np.ndarray[double comple
         cycle = (1.0 / peak_freq)  # in terms of samples
     else:
         cycle = len(samples)
-    cdef double half_cycle = int(cycle/2)
+    cdef int half_cycle = int(cycle / 2)
+    if half_cycle <= 0 or half_cycle >= len(samples):
+        return 0.0
     cdef np.ndarray[double, ndim=1] original = samples[half_cycle:]
     cdef np.ndarray[double, ndim=1] shifted = samples[:-half_cycle]
     return np.sum(np.abs(original + shifted)) / np.sum(np.abs(original) + np.abs(shifted))
@@ -637,7 +639,7 @@ cpdef extract_features(np.ndarray[double, ndim=1] src_samples, int sampling_rate
         # apply a hamming window here for side lobe suppression.
         # (the original VF leak paper does not seem to do this).
         # http://www.ni.com/white-paper/4844/en/
-        fft = np.fft.fft(samples * signal.hamming(n_samples))
+        fft = np.fft.fft(samples * signal.windows.hamming(n_samples))
         fft_freq = np.fft.fftfreq(n_samples)
         # We only need the left half of the FFT result (with frequency > 0)
         n_fft = <int>(np.ceil(n_samples / 2))

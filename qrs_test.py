@@ -41,7 +41,8 @@ def main():
     signals = record.signals[begin_sig:begin_sig + n_sig]
 
     # resmaple to 200
-    signals = sp.signal.resample(signals, (len(signals) / record.sampling_rate) * 200)
+    n_resampled = int(round((len(signals) / record.sampling_rate) * 200))
+    signals = sp.signal.resample(signals, n_resampled)
     beats = qrs_detect.qrs_detect(signals, sampling_rate=200)
     for beat_sample, beat_type in beats:
         time_str = str(datetime.timedelta(seconds=(beat_sample / 200)))

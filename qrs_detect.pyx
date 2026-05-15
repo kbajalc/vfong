@@ -27,12 +27,14 @@ _lock = threading.Lock()
 # Before calling this function, the signals should be converted to mV and with ADC zero subtracted
 cpdef list qrs_detect(np.ndarray[double, ndim=1] src_signals, int sampling_rate):
     cdef list beats = []
+    cdef int n_resampled
     # resample to 200Hz if needed
     if sampling_rate != 200:
-        src_signals = sp.signal.resample(src_signals, (len(src_signals) / sampling_rate) * 200)
+        n_resampled = int(round((len(src_signals) / sampling_rate) * 200))
+        src_signals = sp.signal.resample(src_signals, n_resampled)
 
     # Set baseline to 0 and resolution to 5 mV/lsb (200 units/mV)
-    cdef np.ndarray[np.int_t, ndim=1] signals = (src_signals * 200).astype("int")
+    cdef np.ndarray[int, ndim=1] signals = (src_signals * 200).astype(np.int32)
 
     _lock.acquire()
     ResetBDAC()  # reset the QRS detector

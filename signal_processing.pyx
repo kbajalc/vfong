@@ -58,8 +58,8 @@ cpdef double get_amplitude(np.ndarray[double, ndim=1] samples, int sampling_rate
     # find all local maximum and minimum
     cdef double max_amplitude = 0.0
     cdef int half_peak_width = int(np.round(0.05 * sampling_rate))
-    cdef np.ndarray[np.int_t, ndim=1] peak_indices = signal.argrelmax(samples, order=half_peak_width)[0]
-    cdef np.ndarray[np.int_t, ndim=1] valley_indices = signal.argrelmin(samples, order=half_peak_width)[0]
+    cdef np.ndarray[np.int64_t, ndim=1] peak_indices = signal.argrelmax(samples, order=half_peak_width)[0].astype(np.int64)
+    cdef np.ndarray[np.int64_t, ndim=1] valley_indices = signal.argrelmin(samples, order=half_peak_width)[0].astype(np.int64)
     peak_iter = iter(peak_indices)
     valley_iter = iter(valley_indices)
 

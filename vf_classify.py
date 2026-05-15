@@ -3,7 +3,7 @@ import pyximport; pyximport.install()
 import numpy as np
 from sklearn import preprocessing
 from sklearn import ensemble
-from sklearn import grid_search
+from sklearn import model_selection
 from sklearn import metrics
 import vf_eval
 
@@ -245,7 +245,7 @@ class VfClassifier:
             }
 
         n_features = x_train.shape[1]
-        selected_features_mask = np.ones(n_features, dtype=np.bool)
+        selected_features_mask = np.ones(n_features, dtype=bool)
         # number of iterations
         if self.n_rfe_iters:
             n_iters = self.n_rfe_iters
@@ -255,13 +255,12 @@ class VfClassifier:
             n_iters = 1
 
         # find best parameters using grid search + cross validation
-        grid = grid_search.GridSearchCV(self.estimator,
-                                        self.param_grid,
-                                        fit_params=fit_params,
-                                        scoring=self.scorer,
-                                        n_jobs=self.n_jobs,
-                                        cv=self.n_cv_folds,
-                                        verbose=0)
+        grid = model_selection.GridSearchCV(self.estimator,
+                            self.param_grid,
+                            scoring=self.scorer,
+                            n_jobs=self.n_jobs,
+                            cv=self.n_cv_folds,
+                            verbose=0)
         best_score = 0.0
         # Because of a bug in joblib, we see a lot of warnings here.
         # https://github.com/scikit-learn/scikit-learn/issues/6370
@@ -277,7 +276,10 @@ class VfClassifier:
             data_scaler = preprocessing.MinMaxScaler(feature_range=(-1, 1), copy=True)
             x_train_selected = data_scaler.fit_transform(x_train_selected)
             self.data_scalers.append(data_scaler)
-            grid.fit(x_train_selected, y_train)  # training the model
+            if fit_params:
+                grid.fit(x_train_selected, y_train, **fit_params)  # training the model
+            else:
+                grid.fit(x_train_selected, y_train)  # training the model
             estimator = grid.best_estimator_
             self.estimators.append(estimator)
             self.cv_scores.append(grid.best_score_)

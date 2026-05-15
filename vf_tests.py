@@ -2,8 +2,7 @@
 import pyximport; pyximport.install()
 import numpy as np
 from sklearn import preprocessing
-from sklearn import cross_validation
-from sklearn import grid_search
+from sklearn import model_selection
 from sklearn.base import clone
 from vf_features import load_features, feature_names
 import vf_eval
@@ -298,10 +297,10 @@ def main(args):
             # generate test for this iteration
             # Here we split the indicies of the rows rather than the data array itself.
             x_indicies = list(range(len(x_data)))
-            x_train_idx, x_test_idx, y_train, y_test = cross_validation.train_test_split(x_indicies,
-                                                                                         aha_y_data,
-                                                                                         test_size=test_size,
-                                                                                         stratify=aha_y_data)  # stratify=x_rhythm_types does not work due to low number of some classes. :-(
+            x_train_idx, x_test_idx, y_train, y_test = model_selection.train_test_split(x_indicies,
+                                                                                        aha_y_data,
+                                                                                        test_size=test_size,
+                                                                                        stratify=aha_y_data)  # stratify=x_rhythm_types does not work due to low number of some classes. :-(
             # training dataset
             x_train = x_data[x_train_idx]
             x_train_info = x_data_info[x_train_idx]

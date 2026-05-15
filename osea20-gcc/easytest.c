@@ -125,7 +125,7 @@ MAINTYPE main()
 		if(isigopen(record,s,2) < 1)
 			{
 			printf("Couldn't open %s\n",record) ;
-			return ;
+			return 0;
 			}
 
 		ADCZero = s[0].adczero ;
@@ -137,7 +137,7 @@ MAINTYPE main()
 		a[0].name = "atest"; a[0].stat = WFDB_WRITE ;
 
 		if(annopen(record, a, 1) < 0)
-			return ;
+			return 0;
 
 		// Initialize sampling frequency adjustment.
 

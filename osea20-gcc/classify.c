@@ -773,7 +773,7 @@ void CombineDomData(int oldType, int newType)
 	in a row.
 ***********************************************************************/
 
-GetRunCount()
+int GetRunCount()
 	{
 	int i ;
 	for(i = 1; (i < 8) && (RecentTypes[0] == RecentTypes[i]); ++i) ;

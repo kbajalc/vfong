@@ -4,6 +4,6 @@ def make_ext(modname, pyxfilename):
     return Extension(name=modname,
                      extra_compile_args=["-Wimplicit-function-declaration", "-O3"],
                      sources=[pyxfilename,
-                     "vf_features.c"
+                     "vf_features_native.c"
                      ],
                      libraries=["m"])
