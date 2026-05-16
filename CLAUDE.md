@@ -20,8 +20,9 @@ sudo apt-get install libwfdb-dev
 
 **Python packages:**
 ```bash
-pip install Cython numpy scipy matplotlib joblib scikit-learn
+pip install Cython numpy scipy matplotlib joblib scikit-learn wfdb
 # Pyro4 only needed for distributed mode
+# wfdb required for algo/ pure-Python feature extraction (xqrs detector)
 ```
 
 ### Makefile targets
@@ -118,6 +119,23 @@ No parallelism, no joblib. Set a breakpoint on the `vf_features.extract_features
 - `pyeeg/__init__.py` — bundled PyEEG library (sample entropy `samp_entropy`)
 - `ptsa/` — bundled PTSA library (empirical mode decomposition `emd`)
 
+### `algo/` — pure-Python feature extraction package
+
+A clean reimplementation of all 27 features with no Cython or C dependencies.
+The Cython extensions are kept intact as the reference; `algo/` is a parallel implementation.
+
+| Module | Role |
+|---|---|
+| `algo/types.py` | `SegmentConfig`, `PreprocessedSignal`, `Features` (all 27 fields), `QRSDetector` protocol |
+| `algo/preprocessing.py` | 5-step signal conditioning pipeline |
+| `algo/extract.py` | `extract_features(signal_mv, cfg, qrs_detector?)` — main entry point |
+| `algo/wfdb_detector.py` | `WfdbXqrsDetector` — concrete `QRSDetector` using `wfdb.processing.xqrs_detect`; all beats typed `'N'` (UR=VR=0) |
+| `algo/<feature>.py` | One file per feature or natural group (`imf_lz.py` for IMF1–5, `qrs_features.py` for RR/UR/VR) |
+| `algo/_count_helpers.py` | Shared IIR bandpass filter for Count1–3 |
+| `algo/PLAN.md` | Implementation plan, difficulty assessment, known gotchas |
+
+Dependencies: `numpy`, `scipy`, `wfdb` (xqrs detector), `ptsa/` (bundled, EMD for IMF features).
+
 ### Key data structures
 
 **`SegmentInfo`** (defined in `vf_data.pyx`): `db_name`, `record_name`, `begin_time` (samples), `end_time`, `sampling_rate`, `rhythm` (WFDB annotation string e.g. `"(VF"`, `"(N"`). After extraction, two fields are added dynamically: `detected_beats` (`list[(sample, beat_type_str)]`) and `amplitude` (`float64`, peak-to-peak mV).
@@ -138,16 +156,25 @@ mghdb records are hardcoded in `vf_data.pyx` (7 records: mgh040, mgh041, mgh229,
 
 ### `extract_features()` preprocessing pipeline
 
-Inside `vf_features.pyx:extract_features()`:
-1. Convert ADC units → mV (subtract ADC zero, divide by gain)
-2. Drift suppression (high-pass at 0.5 Hz)
-3. Normalise by standard deviation
-4. Butterworth low-pass at 30 Hz
-5. Moving-average smoothing (order 5)
+ADC→mV conversion (subtract ADC zero, divide by gain) happens before this function is called.
+Inside `vf_features.pyx:extract_features()` the pipeline is (in order):
 
-Amplitude is computed separately on the raw mV signal (before normalisation) as `(max − min) / 2`.
+1. **Mean subtraction** — `x − mean(x)`
+2. **Min-max normalisation** → [0, 1]: `(x − min) / (max − min)`
+3. **Moving-average smoothing** — order 5, via convolution
+4. **Drift suppression** — 1 Hz high-pass using a custom 1-pole bilinear IIR (`filtfilt`)
+5. **Butterworth low-pass** — 30 Hz, order 5 (`filtfilt`)
 
-QRS detection runs twice: a warm-up pass over the first 5 seconds (results discarded) then a full pass — this compensates for the OSEA detector's initialisation latency.
+After step 4 the signal is zero-mean (the high-pass removes DC).
+
+**Amplitude** [16] is computed on the raw mV signal via a separate call to
+`signal_processing.pyx:get_amplitude()`, which applies the same steps 3–5 then finds
+the largest peak-to-valley difference using `argrelmax`/`argrelmin`.
+It is **not** simply `(max − min) / 2`.
+
+**QRS detection** (Cython pipeline only) runs twice on the raw mV signal: a 5-second
+warm-up pass (results discarded) then a full pass — this compensates for OSEA's
+initialisation latency.  The `algo/` package uses `WfdbXqrsDetector` instead.
 
 ---
 
@@ -173,7 +200,7 @@ VS Code `launch.json` already has three configurations for `extract_one.py` and 
 | `develop` | Documentation additions (`docs/`) — frozen |
 | `codex` | Active development: bug fixes, modernisation, documentation |
 
-Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation. See `docs/HISTORY.md` for the full narrative.
+Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation; `algo/` pure-Python feature extraction package (all 27 features). See `docs/HISTORY.md` for the full narrative.
 
 ---
 
