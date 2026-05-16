@@ -324,8 +324,10 @@ reference anchors, 99 inline citation links, bold reference numbers.
 
 ## Branch summary
 
-| Branch | Status | Purpose |
-|--------|--------|---------|
-| `master` | frozen | Hong's original thesis code, last touched July 2016 |
-| `develop` | frozen | Documentation additions, May 2026 |
-| `codex` | active | Bug fixes, modernisation, documentation quality |
+| Branch | Status | Tip commit | Purpose |
+|--------|--------|------------|---------|
+| `master` | frozen | `e497922` | Hong's original thesis code, last touched July 2016 |
+| `claude/analyze-executables-TmsVD` | frozen | `e497922` | Auto-created by a Claude Code session from `master`; identical content, no additional commits |
+| `develop` | frozen | `deeb5fa` | Documentation additions (executables reference, feature internals, debugging guide, `extract_one.py`), May 2026 |
+| `fixes` | frozen (remote only) | `2b88a84` | Former active branch; local copy renamed to `codex`, remote could not be deleted (403). One commit behind `codex` — missing only the CLAUDE.md branch-name update |
+| `codex` | active | `cddeddb` | All `develop` work plus bug fixes, THESIS.md restoration, docs reorganisation, CLAUDE.md, HISTORY.md, SUMMARY.md |
