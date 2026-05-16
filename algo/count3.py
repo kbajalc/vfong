@@ -1,19 +1,18 @@
 """
-Feature [15] — Count3: Samples within mean ± mean-deviation band.
+Feature [15] — Count3: samples within per-second mean ± mean-deviation.
 
-Reference: vf_features.pyx:count_features() — index 2
+Reference: vf_features.pyx:auxiliary_counts() — third returned value.
 
-Algorithm summary:
-  Resample signal to 250 Hz if needed.  Compute the mean absolute value μ and
-  the mean absolute deviation σ.  Count samples whose absolute value falls
-  within [μ - σ, μ + σ].  Normalise by segment length.
+Algorithm:
+  Resample to 250 Hz if needed.  Apply IIR bandpass:
+    FS[i] = (14·FS[i-1] − 7·FS[i-2] + (S[i] − S[i-2]) / 2) / 8
+  For each 1-second window: md = mean(|FS - mean(FS)|);
+  count samples in [mean − md, mean + md].
+  Return total count across all windows (raw integer, not fraction).
 """
 
-from __future__ import annotations
-
-import numpy as np
-
 from algo.types import PreprocessedSignal, SegmentConfig
+from algo._count_helpers import _aux_counts
 
 
 def compute_count3(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
@@ -24,13 +23,6 @@ def compute_count3(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.complexity.resample_rate`` and
-        ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        Fraction of samples within the mean ± mean-deviation band.
+        Uses ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    return float(_aux_counts(sig, cfg)[2])

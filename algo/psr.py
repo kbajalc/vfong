@@ -3,13 +3,11 @@ Feature [4] — PSR: Phase Space Reconstruction.
 
 Reference: vf_features.pyx:phase_space_reconstruction()
 
-Algorithm summary:
-  Form a 2-D delay-embedded signal: x(t) vs x(t + delay) where delay = 0.5 s.
-  Project the trajectory onto a 40×40 grid spanning [min, max] × [min, max].
-  PSR is the proportion of grid cells visited (occupied cells / total cells).
+Algorithm:
+  Form a 2-D delay-embedded trajectory: x(t) vs x(t + delay) where delay = 0.5 s.
+  Both axes share the same range [min(samples), max(samples)].
+  Project onto a 40×40 occupancy grid; PSR = occupied cells / 1600.
 """
-
-from __future__ import annotations
 
 import numpy as np
 
@@ -24,13 +22,23 @@ def compute_psr(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.phase_space`` and
-        ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        Fraction of 40×40 grid cells visited by the phase-space trajectory.
+        Uses ``cfg.phase_space`` and ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    samples = sig.processed
+    ps = cfg.phase_space
+    n_delay = int(ps.delay_sec * sig.sampling_rate)
+    g = ps.grid_size  # 40
+
+    x = samples[:-n_delay]
+    y = samples[n_delay:]
+
+    # single axis range for both dimensions (reference code uses global min/max)
+    offset = np.min(samples)
+    axis_range = np.max(samples) - offset
+
+    grid_x = ((x - offset) * (g - 1) / axis_range).astype(np.int8)
+    grid_y = ((y - offset) * (g - 1) / axis_range).astype(np.int8)
+
+    grid = np.zeros((g, g), dtype=np.int8)
+    grid[grid_y, grid_x] = 1
+    return float(np.sum(grid)) / float(g * g)

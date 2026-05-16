@@ -1,19 +1,17 @@
 """
-Feature [13] — Count1: Samples in 50–100 % of peak amplitude range.
+Feature [13] — Count1: samples >= 50 % of per-second bandpass maximum.
 
-Reference: vf_features.pyx:count_features() — index 0
+Reference: vf_features.pyx:auxiliary_counts() — first returned value.
 
-Algorithm summary:
-  Resample signal to 250 Hz if needed.  Count samples whose absolute value
-  falls in the upper half of the peak-to-peak amplitude range (above 50 % of
-  the maximum absolute value).  Normalise by segment length.
+Algorithm:
+  Resample to 250 Hz if needed.  Apply IIR bandpass:
+    FS[i] = (14·FS[i-1] − 7·FS[i-2] + (S[i] − S[i-2]) / 2) / 8
+  For each 1-second window count samples FS[i] >= 0.5 · max(FS_window).
+  Return total count across all windows (raw integer, not fraction).
 """
 
-from __future__ import annotations
-
-import numpy as np
-
 from algo.types import PreprocessedSignal, SegmentConfig
+from algo._count_helpers import _aux_counts
 
 
 def compute_count1(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
@@ -24,13 +22,6 @@ def compute_count1(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.complexity.resample_rate`` and
-        ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        Fraction of samples in the 50–100 % amplitude range.
+        Uses ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    return float(_aux_counts(sig, cfg)[0])

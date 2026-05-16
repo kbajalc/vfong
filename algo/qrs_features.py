@@ -3,18 +3,20 @@ Features [22–26] — RR, RR_Std, RR_CV, UR, VR: QRS-derived features.
 
 Reference: vf_features.pyx:beat_statistics()
 
-Algorithm summary:
-  Run QRS detection on the RAW mV signal (not the processed signal — the detector
-  has its own internal bandpass filter).  The OSEA detector requires a 5-second
-  warm-up pass (discarded) before the full 8-second pass to overcome initialisation
-  latency.  Beat classification: 'N' normal, 'V' VPC, 'Q' unknown.
+Algorithm:
+  Run QRS detection on the RAW mV signal (the detector has its own bandpass).
+  From detected beat list (skipping beat index 0 — often misclassified):
+    RR     = mean inter-beat interval (seconds at sig.sampling_rate)
+    RR_Std = std of inter-beat intervals
+    RR_CV  = RR_Std / RR
+    UR     = fraction of 'Q' (unknown) beats
+    VR     = fraction of 'V' (VPC) beats
 
-  From the detected beat list (skipping beat index 0 — often misclassified):
-    RR     = mean RR interval in milliseconds
-    RR_Std = standard deviation of RR intervals
-    RR_CV  = RR_Std / RR  (coefficient of variation)
-    UR     = unknown-beat ratio  = count('Q') / (len(beats) - 1)
-    VR     = VPC-beat ratio      = count('V') / (len(beats) - 1)
+NOTE on sampling rate: the reference OSEA detector resamples to 200 Hz
+internally and returns sample indices at 200 Hz.  If using an OSEA-compatible
+detector wrapper, divide beat intervals by 200 rather than sig.sampling_rate.
+For detectors that return indices in the signal's native sampling rate, no
+adjustment is needed.  This implementation divides by sig.sampling_rate.
 """
 
 from __future__ import annotations
@@ -34,9 +36,9 @@ def compute_qrs_features(
     Parameters
     ----------
     sig:
-        Preprocessed signal — uses ``sig.raw_mv`` (detector needs raw signal).
+        Uses ``sig.raw_mv`` (detector needs raw un-normalised signal).
     cfg:
-        Extraction configuration — uses ``cfg.signal.sampling_rate``.
+        Uses ``cfg.signal.sampling_rate``.
     detector:
         Any object satisfying the ``QRSDetector`` protocol.
 
@@ -45,5 +47,30 @@ def compute_qrs_features(
     tuple of five floats
         ``(rr, rr_std, rr_cv, ur, vr)``
     """
-    # --- STUB ---
-    return 0.0, 0.0, 0.0, 0.0, 0.0
+    beats = detector.detect(sig.raw_mv, sig.sampling_rate)
+    if len(beats) < 2:
+        return 0.0, 0.0, 0.0, 0.0, 0.0
+
+    sr = sig.sampling_rate
+    rr_intervals: list[float] = []
+    unknown = 0
+    vpc = 0
+
+    for i in range(1, len(beats)):
+        prev_time, _ = beats[i - 1]
+        beat_time, beat_type = beats[i]
+        rr_intervals.append((beat_time - prev_time) / sr)
+        if beat_type == "Q":
+            unknown += 1
+        elif beat_type == "V":
+            vpc += 1
+
+    rr = float(np.mean(rr_intervals)) if rr_intervals else 0.0
+    rr_std = float(np.std(rr_intervals)) if rr_intervals else 0.0
+    rr_cv = rr_std / rr if rr != 0.0 else 0.0
+
+    n_classified = len(beats) - 1  # skip first beat (index 0)
+    ur = unknown / n_classified if n_classified > 0 else 0.0
+    vr = vpc / n_classified if n_classified > 0 else 0.0
+
+    return rr, rr_std, rr_cv, ur, vr

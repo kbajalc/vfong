@@ -1,15 +1,14 @@
 """
-Feature [2] — STE: Short-Time Energy.
+Feature [2] — STE: Standard Exponential (crossing count).
 
-Reference: vf_features.pyx:modified_exponential_algorithm() (global-peak variant)
+Reference: vf_features.pyx:standard_exponential()
 
-Algorithm summary:
-  Weight each sample by an exponential decay anchored at the global signal peak,
-  time constant τ = 3 s.  STE is the sum of squared weighted samples, normalised
-  by segment length.
+Algorithm:
+  Fit an exponential envelope E(t) = M·exp(−|t−t_m| / τ) anchored at the
+  global maximum M at time t_m (τ = 3 s × sampling_rate samples).  Count the
+  number of times the signal crosses this envelope (from t=1 to len−2).
+  Return the crossing rate in crossings per second.
 """
-
-from __future__ import annotations
 
 import numpy as np
 
@@ -17,20 +16,40 @@ from algo.types import PreprocessedSignal, SegmentConfig
 
 
 def compute_ste(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
-    """Return the Short-Time Energy feature.
+    """Return the Standard Exponential crossing-rate feature.
 
     Parameters
     ----------
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.energy.ste_tau_sec`` and
-        ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        STE value.
+        Uses ``cfg.energy.ste_tau_sec`` and ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    samples = sig.processed
+    sr = sig.sampling_rate
+    tau = cfg.energy.ste_tau_sec * sr  # time constant in samples
+
+    max_time = int(np.argmax(samples))
+    max_amp = samples[max_time]
+
+    t = np.arange(len(samples), dtype=np.float64)
+    envelope = max_amp * np.exp(-np.abs(t - max_time) / tau)
+
+    # detect sign changes of (samples - envelope), skipping first and last sample
+    diff = samples[1:-1] - envelope[1:-1]
+    prev = samples[0] - envelope[0]
+    higher = prev > 0.0
+
+    n_crosses = 0.0
+    for d in diff:
+        if higher:
+            if d < 0.0:
+                higher = False
+                n_crosses += 1
+        else:
+            if d > 0.0:
+                higher = True
+                n_crosses += 1
+
+    duration = len(samples) / sr
+    return n_crosses / duration

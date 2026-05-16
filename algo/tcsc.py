@@ -1,18 +1,17 @@
 """
 Feature [0] — TCSC: Threshold Crossing Sample Count.
 
-Reference: vf_features.pyx:threshold_crossing_sample_count()
+Reference: vf_features.pyx:threshold_crossing_sample_counts()
 
-Algorithm summary:
-  Apply a Tukey (tapered cosine) window to overlapping 3-second sub-windows
-  (step 1 second).  In each window count samples that cross BOTH the +20 % and
-  -20 % thresholds of the peak-to-peak amplitude.  Average the count across all
-  windows and normalise by window length.
+Algorithm:
+  Slide a 3-second Tukey-windowed sub-window over the segment in 1-second steps.
+  In each window: apply Tukey window, take absolute value, normalise by max,
+  count fraction of samples exceeding 20 % (threshold_ratio), express as
+  percentage of window length.  Return the average across all sub-windows.
 """
 
-from __future__ import annotations
-
 import numpy as np
+import scipy.signal as ss
 
 from algo.types import PreprocessedSignal, SegmentConfig
 
@@ -25,13 +24,29 @@ def compute_tcsc(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.threshold`` and
-        ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        TCSC value.
+        Uses ``cfg.threshold.tcsc_*`` and ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    samples = sig.processed
+    sr = int(sig.sampling_rate)
+    tc = cfg.threshold
+    n_samples = len(samples)
+
+    window_size = int(tc.tcsc_window_sec * sr)
+    step = sr  # 1-second step
+    if window_size > n_samples:
+        window_size = n_samples
+
+    tukey_win = ss.windows.tukey(window_size, alpha=0.5 / tc.tcsc_window_sec)
+    counts: list[float] = []
+    w_begin = 0
+    w_end = window_size
+    while w_end <= n_samples:
+        window = samples[w_begin:w_end].copy()
+        window *= tukey_win
+        window = np.abs(window)
+        window /= np.max(window)
+        counts.append(float(np.sum(window > tc.tcsc_threshold_pct)) * 100.0 / window_size)
+        w_begin += step
+        w_end += step
+
+    return float(np.mean(counts)) if counts else 0.0

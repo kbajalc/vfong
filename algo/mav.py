@@ -3,12 +3,11 @@ Feature [12] — MAV: Mean Absolute Value.
 
 Reference: vf_features.pyx:mean_absolute_value()
 
-Algorithm summary:
-  Compute the mean of |signal| over a sliding 2-second window, then average
-  the per-window MAV values across the segment.
+Algorithm:
+  Slide a 2-second window in 1-second steps.  In each window take the absolute
+  value, normalise by the window's max, compute the mean.  Return the mean of
+  all per-window means.
 """
-
-from __future__ import annotations
 
 import numpy as np
 
@@ -23,13 +22,24 @@ def compute_mav(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.energy.mav_window_sec`` and
-        ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        MAV averaged over 2-second sliding windows.
+        Uses ``cfg.energy.mav_window_sec`` and ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    samples = sig.processed
+    sr = int(sig.sampling_rate)
+    n_samples = len(samples)
+    window_size = int(cfg.energy.mav_window_sec * sr)
+    step = sr
+
+    mavs: list[float] = []
+    w_begin = 0
+    w_end = window_size
+    while w_end <= n_samples:
+        w = np.abs(samples[w_begin:w_end])
+        w_max = np.max(w)
+        if w_max > 0.0:
+            w = w / w_max
+        mavs.append(float(np.mean(w)))
+        w_begin += step
+        w_end += step
+
+    return float(np.mean(mavs)) if mavs else 0.0

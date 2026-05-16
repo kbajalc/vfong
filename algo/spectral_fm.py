@@ -1,34 +1,43 @@
 """
-Feature [9] — FM: Central frequency / spectral mass centre (Dzwonczyk 1990).
+Feature [9] — FM: Central Frequency (spectral centroid).
 
-Reference: vf_features.pyx:spec_fm()
+Reference: vf_features.pyx:central_frequency()
 
-Algorithm summary:
-  Hamming-windowed FFT.  FM is the median frequency: the frequency below which
-  half the total spectral power lies (spectral mass centre).
+Algorithm:
+  Hamming-windowed FFT (positive frequencies only).
+  FM = Σ(f_i · P_i) / Σ(P_i),  P_i = |FFT[i]|²
+  Multiply by sampling_rate to convert from normalised units to Hz.
 """
 
-from __future__ import annotations
-
 import numpy as np
+import scipy.signal as ss
 
 from algo.types import PreprocessedSignal, SegmentConfig
 
 
 def compute_spectral_fm(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
-    """Return the central frequency FM feature.
+    """Return the spectral centroid frequency FM in Hz.
 
     Parameters
     ----------
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration — uses ``cfg.signal.sampling_rate``.
-
-    Returns
-    -------
-    float
-        Spectral mass centre frequency in Hz.
+        Uses ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    samples = sig.processed
+    sr = sig.sampling_rate
+    n = len(samples)
+    n_fft = int(np.ceil(n / 2))
+
+    fft = np.fft.fft(samples * ss.windows.hamming(n))
+    fft_freq = np.fft.fftfreq(n)
+
+    fft = fft[:n_fft]
+    fft_freq = fft_freq[:n_fft]
+
+    power = np.abs(fft) ** 2
+    total = np.sum(power)
+    if total == 0.0:
+        return 0.0
+    return float(np.dot(fft_freq, power) / total * sr)

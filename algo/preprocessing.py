@@ -1,26 +1,33 @@
 """
 Signal preprocessing pipeline.
 
-Reference implementation: signal_processing.pyx + vf_features.pyx:extract_features()
+Reference: signal_processing.pyx + vf_features.pyx:extract_features()
 
 Pipeline (applied in order):
   1. Mean subtraction
-  2. Drift suppression  — 1 Hz high-pass Butterworth (zero-phase)
-  3. Normalisation      — divide by standard deviation
-  4. Low-pass filter    — 30 Hz zero-phase Butterworth, order 5
-  5. Moving average     — order-5 smoothing
+  2. Min-max normalisation  → [0, 1]
+  3. Moving-average smoothing (order 5, convolution)
+  4. Drift suppression      — 1 Hz high-pass, custom bilinear IIR, zero-phase
+  5. Butterworth low-pass   — 30 Hz, order 5, zero-phase
 
-Amplitude (feature [16]) is computed on the raw mV signal BEFORE step 3.
-
-The caller is responsible for ADC→mV conversion (subtract adc_zero, divide by
-gain) before calling preprocess().  algo/ never sees raw ADC counts.
+Amplitude (feature [16]) is computed on the raw mV signal BEFORE this pipeline.
+The caller is responsible for ADC→mV conversion before calling preprocess().
 """
 
-from __future__ import annotations
-
 import numpy as np
+import scipy.signal as ss
 
 from algo.types import PreprocessedSignal, SegmentConfig
+
+
+def _drift_suppression(data: np.ndarray, cutoff_hz: float, fs: float) -> np.ndarray:
+    T = 1.0 / fs
+    tan_val = np.tan(cutoff_hz * np.pi * T)
+    c1 = 1.0 / (1.0 + tan_val)
+    c2 = (1.0 - tan_val) / (1.0 + tan_val)
+    b = [c1, -c1]
+    a = [1.0, -c2]
+    return ss.filtfilt(b, a, data)
 
 
 def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
@@ -29,27 +36,41 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
     Parameters
     ----------
     signal_mv:
-        1-D float64 array of signal samples already converted to millivolts.
-        Length should be ``cfg.sampling_rate * 8`` for an 8-second segment.
+        1-D float64 array already converted to millivolts.
     cfg:
-        Extraction configuration — uses ``cfg.signal``.
+        Uses ``cfg.signal``.
 
     Returns
     -------
     PreprocessedSignal
-        Carries both the raw mV signal (for amplitude) and the fully processed
-        signal (for all other features).
+        ``raw_mv`` is the input unchanged; ``processed`` is the fully
+        conditioned signal used by all features except amplitude and QRS.
     """
-    # --- STUB ---
-    # TODO: implement the five-step pipeline using scipy.signal
-    #   Step 1: signal_mv - signal_mv.mean()
-    #   Step 2: scipy.signal.butter + filtfilt (highpass at cfg.signal.highpass_hz)
-    #   Step 3: / np.std(...)
-    #   Step 4: scipy.signal.butter + filtfilt (lowpass at cfg.signal.lowpass_hz)
-    #   Step 5: np.convolve with ones(cfg.signal.moving_avg_order) / order
-    processed = np.zeros_like(signal_mv)
+    sc = cfg.signal
+    s = signal_mv.astype(np.float64)
+
+    # 1. mean subtraction
+    s = s - np.mean(s)
+
+    # 2. min-max normalisation → [0, 1]
+    s_min, s_max = np.min(s), np.max(s)
+    if s_max != s_min:
+        s = (s - s_min) / (s_max - s_min)
+
+    # 3. moving-average smoothing
+    order = sc.moving_avg_order
+    s = np.convolve(s, np.ones(order) / order, mode="same")
+
+    # 4. drift suppression (1 Hz high-pass)
+    s = _drift_suppression(s, sc.highpass_hz, sc.sampling_rate)
+
+    # 5. Butterworth low-pass
+    nyq = 0.5 * sc.sampling_rate
+    b, a = ss.butter(5, sc.lowpass_hz / nyq, btype="lowpass")
+    s = ss.filtfilt(b, a, s)
+
     return PreprocessedSignal(
-        raw_mv=signal_mv.copy(),
-        processed=processed,
-        sampling_rate=cfg.signal.sampling_rate,
+        raw_mv=signal_mv.astype(np.float64),
+        processed=s,
+        sampling_rate=sc.sampling_rate,
     )

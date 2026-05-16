@@ -1,20 +1,20 @@
 """
-Feature [16] — Amplitude: Peak-to-peak amplitude in millivolts.
+Feature [16] — Amplitude: peak-to-peak mV.
 
-Reference: vf_features.pyx:extract_features() — computed on raw_mv before normalisation,
-           using scipy.signal.argrelmax / argrelmin for local extrema detection.
+Reference: signal_processing.pyx:get_amplitude()
 
-Algorithm summary:
-  On the raw (un-normalised) mV signal, find all local maxima and local minima
-  using a neighbourhood comparison.  Amplitude = (mean of maxima - mean of minima) / 2.
-  This is NOT simply np.ptp(); it uses local extrema to be robust to outlier spikes.
+Algorithm:
+  Apply 5-order moving average, 1 Hz drift suppression, 30 Hz low-pass to raw_mv.
+  Find local maxima and minima using argrelmax/argrelmin (order = 0.05 s).
+  Iterate interleaved peak/valley pairs keeping track of running extrema;
+  return the largest peak-to-valley difference found.
 """
 
-from __future__ import annotations
-
 import numpy as np
+import scipy.signal as ss
 
 from algo.types import PreprocessedSignal, SegmentConfig
+from algo.preprocessing import _drift_suppression
 
 
 def compute_amplitude(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
@@ -23,14 +23,60 @@ def compute_amplitude(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     Parameters
     ----------
     sig:
-        Preprocessed signal — uses ``sig.raw_mv`` (pre-normalisation).
+        Uses ``sig.raw_mv`` — amplitude is measured on the un-normalised signal.
     cfg:
-        Extraction configuration.
-
-    Returns
-    -------
-    float
-        Peak-to-peak amplitude in mV.
+        Uses ``cfg.signal.sampling_rate``.
     """
-    # --- STUB ---
-    return 0.0
+    sc = cfg.signal
+    sr = sc.sampling_rate
+    s = sig.raw_mv.copy()
+
+    # same mini-pipeline as signal_processing.pyx:get_amplitude()
+    order = 5
+    s = np.convolve(s, np.ones(order) / order, mode="same")
+    s = _drift_suppression(s, 1.0, sr)
+    nyq = 0.5 * sr
+    b, a = ss.butter(5, 30.0 / nyq, btype="lowpass")
+    s = ss.filtfilt(b, a, s)
+
+    half_peak_width = int(np.round(0.05 * sr))
+    peak_idx = ss.argrelmax(s, order=half_peak_width)[0].tolist()
+    valley_idx = ss.argrelmin(s, order=half_peak_width)[0].tolist()
+
+    if not peak_idx or not valley_idx:
+        return 0.0
+
+    peak_iter = iter(peak_idx)
+    valley_iter = iter(valley_idx)
+
+    next_peak = next(peak_iter, -1)
+    next_valley = next(valley_iter, -1)
+    p_idx = next_peak
+    v_idx = next_valley
+    max_amplitude = 0.0
+
+    while p_idx != -1 and v_idx != -1:
+        peak_val = s[p_idx]
+        valley_val = s[v_idx]
+
+        if p_idx < v_idx:
+            # at a peak; advance to the next valley, skipping adjacent peaks
+            while next_peak < next_valley and next_peak != -1:
+                next_peak = next(peak_iter, -1)
+                if next_peak != -1 and s[next_peak] > peak_val:
+                    peak_val = s[next_peak]
+        else:
+            # at a valley; advance to the next peak, skipping adjacent valleys
+            while next_valley < next_peak and next_valley != -1:
+                next_valley = next(valley_iter, -1)
+                if next_valley != -1 and s[next_valley] < valley_val:
+                    valley_val = s[next_valley]
+
+        amplitude = abs(peak_val - valley_val)
+        if amplitude > max_amplitude:
+            max_amplitude = amplitude
+
+        p_idx = next_peak
+        v_idx = next_valley
+
+    return float(max_amplitude)
