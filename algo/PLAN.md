@@ -334,13 +334,29 @@ All 27 features are implemented across three difficulty groups:
    so **UR and VR are always 0.0** with this detector.
 
 4. **IMF normalisation uses `/ max`, not `/ range` — this is a reference-code bug we
-   replicate** — `imf_lz.py` uses `(s − min(s)) / max(s)`.  After the main preprocessing
-   pipeline the signal is zero-mean (drift suppression removes DC), so `max(s) ≈ 0.4` and
-   `min(s) ≈ −0.4`.  Dividing by `max` (not `max − min ≈ 0.8`) stretches the normalised
-   result to roughly [0, 2] instead of [0, 1].  The downstream `× 2^12` then produces
-   uint16 values up to ~8192 (13-bit range), not 4096.  The reference comment says
-   "normalize to 0−1" but the code doesn't achieve that.  We match the code, not the
-   comment.
+   replicate.**  `imf_lz.py` uses `(s − min(s)) / max(s)`, matching the reference exactly.
+
+   **Why it matters:** `emd_features()` receives the signal *after* the full preprocessing
+   pipeline.  The drift-suppression step (high-pass filter) removes the DC component, so
+   the signal is **zero-mean** at that point — typically `min(s) ≈ −0.4`, `max(s) ≈ +0.4`.
+
+   The reference code:
+   ```python
+   normalized = (samples - np.min(samples)) / np.max(samples)
+   # = (samples + 0.4) / 0.4  →  range ≈ [0, 2]   ← NOT [0, 1]
+   ```
+
+   The standard min-max formula would be:
+   ```python
+   normalized = (samples - np.min(samples)) / (np.max(samples) - np.min(samples))
+   # = (samples + 0.4) / 0.8  →  range ≈ [0, 1]   ← correct
+   ```
+
+   Because the reference divides by `max` (≈ 0.4) instead of the range (≈ 0.8), the
+   normalised values stretch to roughly **[0, 2]**, and the subsequent `× 2^12` step
+   produces `uint16` values up to ≈ 8192 — a 13-bit range, not the intended 12-bit range
+   of 4096.  The reference comment says `"normalize to 0 - 1"` but the code does not
+   achieve that.  We match the code, not the comment.
 
 5. **Count1–3 loop step stays at original `sampling_rate` after resampling to 250 Hz** —
    faithful replication of the reference quirk; irrelevant when input is already 250 Hz.
