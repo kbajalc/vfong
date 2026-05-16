@@ -179,8 +179,9 @@ Active fixes on `fixes` branch: `info.resample_rate` → `info.sampling_rate` At
 
 ## Docs
 
-- `docs/README.md` — full executable reference with usage examples
-- `docs/EXTRACT.md` — detailed `feature_extraction.py` execution flow
-- `docs/FEATURES.md` — all 27 feature functions with algorithms and call tree
-- `docs/DEBUG.md` — debugging guide (pdb, gdb, VS Code)
-- `docs/THESIS.md` / `docs/THESIS.pdf` — original 2016 NTU thesis
+- `docs/SUMMARY.md` — thesis summary: AHA class definitions, dataset details, all 27 features with indices, thesis→code mapping table
+- `docs/EXECUTABLES.md` — every runnable script with CLI flags and usage examples
+- `docs/FEATURE_EXTRACTION.md` — detailed `feature_extraction.py` execution flow and all CLI flags
+- `docs/FEATURE_INTERNALS.md` — all 27 feature functions: algorithms, call tree, preprocessing pipeline, `.dat` file format
+- `docs/DEBUG.md` — debugging guide (pdb, gdb, VS Code, `make trace`/`debug`/`release`)
+- `docs/THESIS.md` / `docs/THESIS.pdf` — full 2016 NTU thesis with figures, tables, formulas, clickable ToC and references
