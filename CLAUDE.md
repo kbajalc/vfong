@@ -169,11 +169,11 @@ VS Code `launch.json` already has three configurations for `extract_one.py` and 
 
 | Branch | Purpose |
 |---|---|
-| `master` | Original thesis code |
-| `develop` | Documentation additions (`docs/`) |
-| `fixes` | Bug fixes and modernisation (active) |
+| `master` | Original thesis code — frozen at Hong's last commit (July 2016) |
+| `develop` | Documentation additions (`docs/`) — frozen |
+| `codex` | Active development: bug fixes, modernisation, documentation |
 
-Active fixes on `fixes` branch: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`).
+Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation. See `docs/HISTORY.md` for the full narrative.
 
 ---
 
