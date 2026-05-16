@@ -327,14 +327,20 @@ All 27 features are implemented across three difficulty groups:
    all-zeros if the import fails.  `ptsa.emd` and `PyEMD` may produce slightly different IMFs
    (different sifting stopping criteria); test against the reference to confirm agreement.
 
-3. **QRS features assume native-SR sample indices** — `sig.sampling_rate` is used as the
-   divisor.  The reference OSEA detector resamples to 200 Hz internally and returns indices
-   at that rate (divides by 200 hardcoded).  An `OseaDetector` wrapper must convert beat
-   indices back to native SR before returning, or a 200 Hz override is needed.
+3. **QRS features — sample indices at native SR** — `WfdbXqrsDetector` returns indices in
+   the signal's native sampling rate, which is what `qrs_features.py` expects (divides by
+   `sig.sampling_rate`).  An `OseaDetector` wrapper must convert its 200 Hz internal indices
+   back to native SR before returning.  `WfdbXqrsDetector` classifies all beats as `'N'`,
+   so **UR and VR are always 0.0** with this detector.
 
-4. **IMF normalisation uses `/max`, not `/range`** — `imf_lz.py` normalises as
-   `(s − min(s)) / max(s)`, matching the reference exactly (division by max, not
-   `max − min`).  This differs from the main preprocessing normalisation.
+4. **IMF normalisation uses `/ max`, not `/ range` — this is a reference-code bug we
+   replicate** — `imf_lz.py` uses `(s − min(s)) / max(s)`.  After the main preprocessing
+   pipeline the signal is zero-mean (drift suppression removes DC), so `max(s) ≈ 0.4` and
+   `min(s) ≈ −0.4`.  Dividing by `max` (not `max − min ≈ 0.8`) stretches the normalised
+   result to roughly [0, 2] instead of [0, 1].  The downstream `× 2^12` then produces
+   uint16 values up to ~8192 (13-bit range), not 4096.  The reference comment says
+   "normalize to 0−1" but the code doesn't achieve that.  We match the code, not the
+   comment.
 
 5. **Count1–3 loop step stays at original `sampling_rate` after resampling to 250 Hz** —
    faithful replication of the reference quirk; irrelevant when input is already 250 Hz.
@@ -383,8 +389,9 @@ Candidates for follow-up:
       matches the reference.  PyEMD is a drop-in fallback if PTSA proves inaccurate.
 - [x] **Sample entropy**: replicated **pyeeg** directly in `sample_entropy.py` — no
       `antropy` dependency; exact match with the reference is guaranteed.
-- [ ] **QRS detector**: still open.  `neurokit2` gives beat positions but not N/V/Q labels.
-      `wfdb.processing.xqrs_detect` is WFDB-native.  Neither replicates OSEA's
-      classification scheme.  Validate against OSEA reference before deciding.
-- [ ] **LZ speed**: pure-Python implementation is correct but slow (~seconds/segment).
-      Profile on the full dataset before deciding whether a C/Cython port is needed.
+- [x] **QRS detector**: **`wfdb.processing.xqrs_detect`** via `algo/wfdb_detector.py`.
+      All beats returned as `'N'`; UR and VR are always 0.0 until a beat classifier is
+      added.  OSEA also only distinguishes N vs V (with Q for unclassified); xqrs omits
+      that distinction entirely for now.
+- [ ] **LZ speed**: pure-Python O(n²) implementation — optimisation **deferred**.
+      Correct results are more important than speed at this stage.

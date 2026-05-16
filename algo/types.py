@@ -192,9 +192,10 @@ class Features:
 class QRSDetector(Protocol):
     """Interface for any QRS detector used by qrs_features.py.
 
-    Concrete implementations (not in this package):
-    - ``OseaDetector``      — wraps the C OSEA library; used as reference
-    - ``NeuroKitDetector``  — pure Python via neurokit2; production replacement
+    Concrete implementations in this package:
+    - ``WfdbXqrsDetector``  — wfdb.processing.xqrs_detect; all beats typed 'N'
+    Other wrappers (outside this package):
+    - ``OseaDetector``      — wraps the C OSEA library; N/V/Q classification
     """
 
     def detect(
