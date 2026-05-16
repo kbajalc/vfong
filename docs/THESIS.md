@@ -26,51 +26,46 @@ Keywords: Arrhythmia, Ventricular fibrillation, Automatic external defibrillator
 
 # Contents
 
-|                                              |           |
-|----------------------------------------------|-----------|
-| Acknowledgements                             | v         |
-| Abstract                                     | ix        |
-| <b>1 Introduction</b>                        | <b>1</b>  |
-| 1.1 Background . . . . .                     | 1         |
-| 1.2 Motivation . . . . .                     | 8         |
-| 1.3 Organization of the Thesis . . . . .     | 10        |
-| <b>2 Methodology</b>                         | <b>11</b> |
-| 2.1 Datasets Collection . . . . .            | 12        |
-| 2.1.1 Segmentation . . . . .                 | 13        |
-| 2.2 Preprocessing . . . . .                  | 13        |
-| 2.2.1 Measure Amplitudes . . . . .           | 14        |
-| 2.2.2 Asystole Detection . . . . .           | 15        |
-| 2.2.3 Labelling . . . . .                    | 15        |
-| 2.2.4 Data Cleaning and Correction . . . . . | 16        |
-| 2.3 Feature Extraction . . . . .             | 16        |
-| 2.3.1 Time-Domain Features . . . . .         | 20        |
-| 2.3.2 QRS Detector-Based Features . . . . .  | 25        |
-
-|          |                                                          |           |
-|----------|----------------------------------------------------------|-----------|
-| 2.3.3    | Frequency-Domain Features . . . . .                      | 27        |
-| 2.3.4    | Complexity Measure-Based Features . . . . .              | 30        |
-| 2.3.5    | Phase Space Reconstruction . . . . .                     | 35        |
-| 2.4      | Machine Learning Algorithms for Classification . . . . . | 36        |
-| 2.4.1    | Soft Margin Support Vector Machine (SVM) . . . . .       | 38        |
-| 2.4.2    | Multiclass Support Vector Machine . . . . .              | 41        |
-| 2.5      | Performance Evaluation . . . . .                         | 42        |
-| 2.5.1    | AHA Recommendations for Reporting Performance . . . . .  | 43        |
-| 2.6      | Parameter Tuning for Performance Optimization . . . . .  | 44        |
-| 2.7      | Testing the Machine Learning Classifier . . . . .        | 44        |
-| 2.8      | Implementation of the System . . . . .                   | 44        |
-| <b>3</b> | <b>Results</b> . . . . .                                 | <b>47</b> |
-| 3.1      | Dataset Composition . . . . .                            | 47        |
-| 3.2      | Performance of Classifiers . . . . .                     | 49        |
-| <b>4</b> | <b>Discussions</b> . . . . .                             | <b>53</b> |
-| 4.1      | Error Analysis . . . . .                                 | 53        |
-| 4.1.1    | Common Causes of Errors . . . . .                        | 55        |
-| 4.1.2    | Special Cases . . . . .                                  | 61        |
-| 4.2      | Potential Roles of Linear Models . . . . .               | 62        |
-| 4.3      | Importance of Features . . . . .                         | 62        |
-| 4.4      | Limitations of the Study . . . . .                       | 63        |
-| <b>5</b> | <b>Conclusion</b> . . . . .                              | <b>67</b> |
-|          | <b>References</b> . . . . .                              | <b>71</b> |
+- [Acknowledgements](#acknowledgements) *(p. v)*
+- [Abstract](#abstract) *(p. ix)*
+- **[1 Introduction](#introduction)** *(p. 1)*
+  - [1.1 Background](#11-background) *(p. 1)*
+  - [1.2 Motivation](#12-motivation) *(p. 8)*
+  - [1.3 Organization of the Thesis](#13-organization-of-the-thesis) *(p. 10)*
+- **[2 Methodology](#methodology)** *(p. 11)*
+  - [2.1 Datasets Collection](#21-datasets-collection) *(p. 12)*
+    - [2.1.1 Segmentation](#211-segmentation) *(p. 13)*
+  - [2.2 Preprocessing](#22-preprocessing) *(p. 13)*
+    - [2.2.1 Measure Amplitudes](#221-measure-amplitudes) *(p. 14)*
+    - [2.2.2 Asystole Detection](#222-asystole-detection) *(p. 15)*
+    - [2.2.3 Labelling](#223-labelling) *(p. 15)*
+    - [2.2.4 Data Cleaning and Correction](#224-data-cleaning-and-correction) *(p. 16)*
+  - [2.3 Feature Extraction](#23-feature-extraction) *(p. 16)*
+    - [2.3.1 Time-Domain Features](#231-time-domain-features) *(p. 20)*
+    - [2.3.2 QRS Detector-Based Features](#232-qrs-detector-based-features) *(p. 25)*
+    - [2.3.3 Frequency-Domain Features](#233-frequency-domain-features) *(p. 27)*
+    - [2.3.4 Complexity Measure-Based Features](#234-complexity-measure-based-features) *(p. 30)*
+    - [2.3.5 Phase Space Reconstruction](#235-phase-space-reconstruction) *(p. 35)*
+  - [2.4 Machine Learning Algorithms for Classification](#24-machine-learning-algorithms-for-classification) *(p. 36)*
+    - [2.4.1 Soft Margin Support Vector Machine (SVM)](#241-soft-margin-support-vector-machine-svm) *(p. 38)*
+    - [2.4.2 Multiclass Support Vector Machine](#242-multiclass-support-vector-machine) *(p. 41)*
+  - [2.5 Performance Evaluation](#25-performance-evaluation) *(p. 42)*
+    - [2.5.1 AHA Recommendations for Reporting Performance](#251-aha-recommendations-for-reporting-performance) *(p. 43)*
+  - [2.6 Parameter Tuning for Performance Optimization](#26-parameter-tuning-for-performance-optimization) *(p. 44)*
+  - [2.7 Testing the Machine Learning Classifier](#27-testing-the-machine-learning-classifier) *(p. 44)*
+  - [2.8 Implementation of the System](#28-implementation-of-the-system) *(p. 44)*
+- **[3 Results](#results)** *(p. 47)*
+  - [3.1 Dataset Composition](#31-dataset-composition) *(p. 47)*
+  - [3.2 Performance of Classifiers](#32-performance-of-classifiers) *(p. 49)*
+- **[4 Discussions](#discussions)** *(p. 53)*
+  - [4.1 Error Analysis](#41-error-analysis) *(p. 53)*
+    - [4.1.1 Common Causes of Errors](#411-common-causes-of-errors) *(p. 55)*
+    - [4.1.2 Special Cases](#412-special-cases) *(p. 61)*
+  - [4.2 Potential Roles of Linear Models](#42-potential-roles-of-linear-models) *(p. 62)*
+  - [4.3 Importance of Features](#43-importance-of-features) *(p. 62)*
+  - [4.4 Limitations of the Study](#44-limitations-of-the-study) *(p. 63)*
+- **[5 Conclusion](#conclusion)** *(p. 67)*
+- **[References](#references)** *(p. 71)*
 
 # List of Figures
 
