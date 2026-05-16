@@ -28,9 +28,7 @@ Keywords: Arrhythmia, Ventricular fibrillation, Automatic external defibrillator
 
 |                                              |           |
 |----------------------------------------------|-----------|
-| 誌謝                                           | iii       |
 | Acknowledgements                             | v         |
-| 中文摘要                                         | vii       |
 | Abstract                                     | ix        |
 | <b>1 Introduction</b>                        | <b>1</b>  |
 | 1.1 Background . . . . .                     | 1         |
