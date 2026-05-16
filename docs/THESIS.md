@@ -31,7 +31,6 @@ July 2016
 
 # 誌謝
 
-
 # Acknowledgements
 
 First, I would like to thank my supervisor, Dr. Yen-Jen Oyang for all the guidance throughout the whole study process and the revisions of the thesis. Also, thank Dr. Hsieh-Cheng Han, Dr. Fei Pei Lai, and Dr. Wei-Zen Sun for giving me important and constructive opinions to improve my work. Their generous help made this master thesis more complete. Special thanks to Dr. Hsuan-Tien Lin for the excellent machine learning courses which helped me understand the basics of machine learning techniques used in this research. Last, but not the least, thank the development teams and the open source communities of the python, numpy, and sklearn projects for providing such high-quality pieces of software. This research is not possible without their contributions.
@@ -47,8 +46,6 @@ First, I would like to thank my supervisor, Dr. Yen-Jen Oyang for all the guidan
 Sudden out-of-hospital cardiac arrest, one of the leading causes of death among adults, is frequently caused by ventricular fibrillation (VF). Prompt recognition of these life-threatening arrhythmias and early defibrillation treatment using an automated external defibrillator (AED) are crucial. Previous researchers proposed various VF detection algorithms, but most of them did not comply with the existing medical standards for AED development set by the American Heart Association (AHA). This thesis presents a machine-learning AED algorithm based on support vector machine. The development and evaluation processes of the algorithm carefully followed the AHA medical standards. With an overall sensitivity of 93.21 %, specificity 99.88 %, and precision of 89.28 %, the proposed algorithm satisfied all of the performance goals required by the AHA guideline. In addition, the dataset used in our study was more comprehensive than that used in previous studies and was reviewed by a physician to ensure its correctness. Therefore, it might be a better benchmark for future researches of AED algorithms.
 
 Keywords: Arrhythmia, Ventricular fibrillation, Automatic external defibrillator, Electrocardiography, Signal processing, Machine learning
-
-
 
 # Contents
 
@@ -99,8 +96,6 @@ Keywords: Arrhythmia, Ventricular fibrillation, Automatic external defibrillator
 | 4.4      | Limitations of the Study . . . . .                       | 63        |
 | <b>5</b> | <b>Conclusion</b> . . . . .                              | <b>67</b> |
 |          | <b>References</b> . . . . .                              | <b>71</b> |
-
-
 
 # List of Figures
 
@@ -154,11 +149,7 @@ Normal activation of cardiac rhythms starts from the sino-atrial node in the rig
 
 ![Diagram of a typical ECG waveform showing P, QRS, and T waves, with labels for PR and QT intervals and segments.](images/b2d16e07bfa79d67a8adabf7e26c7764_img.jpg)
 
-The diagram illustrates a single cardiac cycle on an ECG. It features a small upward P wave, a sharp and narrow QRS complex consisting of a small downward Q wave, a tall upward R wave, and a small downward S wave, followed by a broader upward T wave. Key intervals and segments are highlighted: the PR Interval (orange line) from the start of the P wave to the start of the QRS complex; the PR Segment (green line) from the end of the P wave to the start of the QRS complex; the QRS Complex (red line) encompassing the Q, R, and S waves; the ST Segment (purple line) from the end of the QRS complex to the start of the T wave; and the QT Interval (blue line) from the start of the QRS complex to the end of the T wave.
-
-Diagram of a typical ECG waveform showing P, QRS, and T waves, with labels for PR and QT intervals and segments.
-
-Figure 1.1: Typical ECG Waveform of a Heartbeat  
+**Figure 1.1: Typical ECG Waveform of a Heartbeat**  
  The public domain ECG image is created by Anthony Atkielski.
 
 inate in the ventricles below the bundle of His. Because of the activation through an abnormal pathway rather than the efficient cardiac conduction system, the conduction time is prolonged, causing a widened QRS complex on the ECG. In addition, since it originates in the ventricles, atrial depolarization does not occur and thus P wave is absent [13].
@@ -167,11 +158,7 @@ Three or more consecutive premature ventricular contractions (PVC or VPC) with a
 
 ![ECG strip showing Ventricular Tachycardia (VT).](images/93587f920736a2fdcefeba94b29f302a_img.jpg)
 
-This figure shows a continuous ECG strip on a standard grid. It displays a rapid, regular rhythm with wide, monomorphic QRS complexes. There are no discernible P waves or T waves, which is characteristic of ventricular tachycardia. The heart rate appears to be between 150 and 250 BPM.
-
-ECG strip showing Ventricular Tachycardia (VT).
-
-Figure 1.2: An ECG Strip of Ventricular Tachycardia  
+**Figure 1.2: An ECG Strip of Ventricular Tachycardia**  
  Taken from record 421 of the MIT-BIH Malignant Ventricular Ectopy Database (VFDB)
 
 The atrial rhythm and rate cannot be determined. The ventricular rhythm is mostly regular or slightly irregular, with a rapid rate between 100 – 250 BPM. The P wave is
@@ -184,9 +171,7 @@ Ventricular fibrillation (VF) is caused by disorganized electrical activities ar
 
 ![An ECG strip showing Ventricular Fibrillation (VF). The waveform is highly irregular and chaotic, with no discernible P waves, QRS complexes, or T waves. The amplitude and frequency vary continuously, characteristic of the lack of coordinated ventricular contraction seen in VF.](images/9260ae281f6b6470331f4a0f82dbc2b1_img.jpg)
 
-An ECG strip showing Ventricular Fibrillation (VF). The waveform is highly irregular and chaotic, with no discernible P waves, QRS complexes, or T waves. The amplitude and frequency vary continuously, characteristic of the lack of coordinated ventricular contraction seen in VF.
-
-Figure 1.3: An ECG Strip of Ventricular Fibrillation
+**Figure 1.3: An ECG Strip of Ventricular Fibrillation**
 
 Taken from record cu01 of the Creighton University Ventricular Tachyarrhythmia Database (CUDB)
 
@@ -197,7 +182,6 @@ Currently, AED manufacturers follow some existing standards such as the ones pub
 The AHA guideline classifies all cardiac rhythms into three broad categories which
 
 AED algorithms should recognize and then decide whether it should deliver a defibrillation shock or not [28].
-
 
 - Shockable rhythms: This group is composed of coarse VF and rapid VT. Rapid VT refers to VT with a heart rate more than 180 BPM. Patients with these rhythms are the ones for whom defibrillation can bring the greatest benefit with nearly no risks. Therefore when an AED algorithm sees these rhythms, a decision to deliver a shock should be made. Coarse VF means VF with larger amplitude. The AHA statement refers to VF with an amplitude more than 0.2 millivolts (mV) as coarse VF while some other ECG text books use a threshold of 0.3 mV instead [1].
   - Intermediate rhythms: This group contains fine VF and slower VT, for which the benefit of delivering a shock is uncertain.
@@ -213,10 +197,6 @@ AED algorithms should recognize and then decide whether it should deliver a defi
     - Asystole
 
 For the shockable rhythms, a high sensitivity is required while for the non-shockable ones a high specificity is desired since patient without VF or rapid VT should not receive any defibrillation treatment. The requirements for all rhythm classes were listed in Table 1.1.
-
-
-
-
 
 Table 1.1: AHA Performance Specifications for Arrhythmia Analysis Algorithms
 
@@ -253,7 +233,6 @@ To address the issues mentioned above, we compiled a more diverse dataset based 
 
 This thesis is organized as follows. Chapter 2 describes the detailed description about each step of this study, including, but not limited to data collection, feature extraction methods, and the classification algorithms. Chapter 3 presents the experiment results and performance evaluation of the proposed system. A discussion regarding the results is provided in chapter 4. Finally, chapter 5 concludes the current study.
 
-
 # Chapter 2
 
 # Methodology
@@ -266,11 +245,7 @@ The workflow of the study was summarized in Figure 2.1.
 graph TD; A[Dataset Collection] --> B[Segmentation and Labeling]; B --> C[8-s ECG signal segments]; B --> D[Exclude noises/artifacts]; B --> E[Exclude asystole]; E --> F[< 0.15 mV]; C --> G[High pass filter for trend removal<br/>Low pass filter for noises]; G --> H[QRS detection]; G --> I[Normalize]; G --> J[Calculate amplitude]; H --> K[Calculate RR statistics]; I --> L[Feature extraction]; J --> M[> 0.15 mV]; M --> L; K --> L; L --> N[Machine learning classifier<br/>(5-fold cross-validation)]; N --> O[Shockable]; N --> P[Intermediate]; N --> Q[Non-shockable];
 ```
 
-The flowchart illustrates the methodology for ventricular arrhythmia classification. It begins with 'Dataset Collection', followed by 'Segmentation and Labeling'. From this stage, two exclusion criteria are applied: 'Exclude noises/artifacts' and 'Exclude asystole'. The 'Exclude asystole' path leads to a condition '< 0.15 mV', which loops back to the 'Segmentation and Labeling' stage. The remaining '8-s ECG signal segments' are processed through a 'High pass filter for trend removal' and a 'Low pass filter for noises'. This is followed by three parallel paths: 'QRS detection', 'Normalize', and 'Calculate amplitude'. 'QRS detection' leads to 'Calculate RR statistics', which then feeds into 'Feature extraction'. 'Normalize' also feeds into 'Feature extraction'. 'Calculate amplitude' leads to a condition '> 0.15 mV', which also feeds into 'Feature extraction'. The 'Feature extraction' stage leads to a 'Machine learning classifier (5-fold cross-validation)', which finally outputs three classification results: 'Shockable', 'Intermediate', and 'Non-shockable'.
-
-Flowchart of the Ventricular Arrhythmia Classification Process
-
-Figure 2.1: Flowchart of the Ventricular Arrhythmia Classification Process
+**Figure 2.1: Flowchart of the Ventricular Arrhythmia Classification Process**
 
 ## 2.1 Datasets Collection
 
@@ -300,19 +275,15 @@ ous studies [3].
 4. Drift suppression with a cutoff frequency of 1 Hz (high-pass filtering) [14].
 5. Lowpass filtering with a Butterworth filter using a cutoff frequency of 30 Hz. To prevent phase distortion, we used a zero-phase filter here.
 
-
-
 In some articles, resampling all ECG signal from different databases to the same sampling rate was suggested. Since most of the features we used in the study already performed normalization based on the length of the data sequence, resampling to the same sequence length might not be necessary. Thus we only performed resampling when the feature explicitly required a specific sampling rate, which will be described in later sections.
 
 ### 2.2.1 Measure Amplitudes
 
 When measuring the amplitude of ECG signals, we used the peak-to-peak amplitude. A simple derivative-based method implemented by the scipy Python package (argrelmax() and argrelmin() functions) was used to find the peaks and valleys. Then, we calculate peak-to-peak amplitude for every pair of adjacent peaks and valleys. The global maximum of all peak-to-peak amplitude values was regarded as the overall amplitude of the whole ECG segment. The process was demonstrated in Figure 2.2. Before calculating the amplitude, we processed the ECG segments with the same denoising and drift suppression preprocessing mentioned earlier. However, the normalization step was not performed since we needed the raw amplitude values of the ECG signals.
 
-![Figure 2.2: Two side-by-side plots of ECG signals. The left plot shows a signal with four distinct peaks marked by blue dots and valleys marked by green dots. The right plot shows a more complex signal with multiple peaks and valleys, also marked with blue dots for peaks and green dots for valleys. A circular logo is visible on the far right of the figure.](images/bafe3665fa89ba09857af5a2532c79fe_img.jpg)
+![Detecting peaks in ECG signal for estimating peak-to-peak amplitudes.](images/bafe3665fa89ba09857af5a2532c79fe_img.jpg)
 
-Figure 2.2: Two side-by-side plots of ECG signals. The left plot shows a signal with four distinct peaks marked by blue dots and valleys marked by green dots. The right plot shows a more complex signal with multiple peaks and valleys, also marked with blue dots for peaks and green dots for valleys. A circular logo is visible on the far right of the figure.
-
-Figure 2.2: Detecting Peaks in ECG Signal for Estimating Peak-to-Peak Amplitudes  
+**Figure 2.2: Detecting Peaks in ECG Signal for Estimating Peak-to-Peak Amplitudes**  
  The blue dots in the figure are the peaks and the green ones mark the valleys.
 
 ### 2.2.2 Asystole Detection
@@ -327,8 +298,6 @@ Based on the classification scheme suggested by the AHA, we needed to solve a mu
 
 - Intermediate: fine VF (VF with a peak-to-peak amplitude less than 0.2 mV), and slow VT.
 - Non-shockable: all other rhythm types.
-
-
 
 ### 2.2.4 Data Cleaning and Correction
 
@@ -384,15 +353,11 @@ TCI: threshold crossing interval; TCSC: threshold crossing sample count; STE: st
 
 ### 2.3.1 Time-Domain Features
 
-Since the ECG signal is a quasi-periodic waveform, the amplitude of the signal varies along with time. When its amplitude exceeds a threshold defined by us, this is called threshold-crossing. Many time-domain features were based on some threshold crossing related statistics. By definition, VF and VT are tachycardias with wide QRS complexes. With a rapid heart rate, if the amplitude of the signal is large enough, it will cross an amplitude threshold for more times than normal rhythms. Not only the counts of threshold crossing will increase, but the numbers of the samples with values above the threshold might also increase due to the widened QRS wave. This explained the basic ideas behind this kind of features. Several variations of this idea were proposed by different authors, but most of them mainly differed in the threshold chosen. Figure 2.3.1 summarized the comparison of some threshold crossing-based methods.
+Since the ECG signal is a quasi-periodic waveform, the amplitude of the signal varies along with time. When its amplitude exceeds a threshold defined by us, this is called threshold-crossing. Many time-domain features were based on some threshold crossing related statistics. By definition, VF and VT are tachycardias with wide QRS complexes. With a rapid heart rate, if the amplitude of the signal is large enough, it will cross an amplitude threshold for more times than normal rhythms. Not only the counts of threshold crossing will increase, but the numbers of the samples with values above the threshold might also increase due to the widened QRS wave. This explained the basic ideas behind this kind of features. Several variations of this idea were proposed by different authors, but most of them mainly differed in the threshold chosen. Figure 2.3 summarized the comparison of some threshold crossing-based methods.
 
-![Figure 2.3: Comparison of Threshold Crossing-Based Methods. The figure shows an ECG signal waveform on a grid. A horizontal red line represents the mean=0 baseline. A horizontal blue line represents the TCSC threshold. A horizontal green line represents the TCI & TCSC threshold. A green curve labeled STE represents the standard exponential method threshold, which starts at a peak and decays exponentially. The observed window is indicated by two vertical dashed lines.](images/fe655d77258397f7242c2df72b965b56_img.jpg)
+![Comparison of threshold crossing-based methods showing TCI, TCSC, and STE thresholds on an ECG segment.](images/fe655d77258397f7242c2df72b965b56_img.jpg)
 
-The figure illustrates an ECG signal waveform plotted on a grid. A horizontal red line represents the mean=0 baseline. A horizontal blue line represents the TCSC threshold. A horizontal green line represents the TCI & TCSC threshold. A green curve labeled STE represents the standard exponential method threshold, which starts at a peak and decays exponentially. The observed window is indicated by two vertical dashed lines.
-
-Figure 2.3: Comparison of Threshold Crossing-Based Methods. The figure shows an ECG signal waveform on a grid. A horizontal red line represents the mean=0 baseline. A horizontal blue line represents the TCSC threshold. A horizontal green line represents the TCI & TCSC threshold. A green curve labeled STE represents the standard exponential method threshold, which starts at a peak and decays exponentially. The observed window is indicated by two vertical dashed lines.
-
-Figure 2.3: Comparison of Threshold Crossing-Based Methods
+**Figure 2.3: Comparison of Threshold Crossing-Based Methods**
 
 Various threshold-crossing-based algorithms were different mainly in the threshold values chosen. For example, TCI used a positive 20 % threshold, TCSC considered both the positive and negative 20 % thresholds. STE, the standard exponential methods, used a time-varying threshold value based on an exponential curve arising from the maximum peak in the observed window.
 
@@ -406,11 +371,9 @@ $$TCI = \frac{1000}{(N - 1) + \frac{t2}{(t1+t2)} + \frac{t3}{(t3+t4)}}$$
 
 Where N signifies the number of threshold crossing pulses in the one-second segment, and the meaning of t1, t2, t3, and t4 are depicted in Figure 2.4. The number 1000 means 1000 milliseconds (one-second segment). According to previous studies, we set the threshold value to 20 % of the maximum value within the one-second segment. From the equation, one can see that if you have a more rapid heart rate and most your QRS complexes are taller than the 20 % threshold, you will have more threshold crossing pulses in the same time period, which leads to a lower TCI value. Hence, this feature might be able to capture rapid heart beats with larger amplitudes. A TCI value more than 400 ms was used to exclude VF in previous study [44].
 
-![Figure 2.4: Threshold Crossing Interval (TCI) Calculation. The figure shows an ECG signal over a 1-second time interval. A horizontal dashed line represents the 20% threshold. Two QRS complexes are shown crossing this threshold. The first crossing is labeled 't1' (time from the start of the segment to the first crossing) and 't2' (time between the first and second crossings). The second crossing is labeled 't3' (time between the second and third crossings) and 't4' (time from the third crossing to the end of the segment). The number of pulses (N) is indicated as 2.](images/a0fdaf0b566e05f53f0085cf41e2dbad_img.jpg)
+![Threshold Crossing Interval (TCI) calculation diagram showing t1, t2, t3, t4 intervals and N=2 pulses over a 1-second ECG segment with 20% threshold.](images/a0fdaf0b566e05f53f0085cf41e2dbad_img.jpg)
 
-Figure 2.4: Threshold Crossing Interval (TCI) Calculation. The figure shows an ECG signal over a 1-second time interval. A horizontal dashed line represents the 20% threshold. Two QRS complexes are shown crossing this threshold. The first crossing is labeled 't1' (time from the start of the segment to the first crossing) and 't2' (time between the first and second crossings). The second crossing is labeled 't3' (time between the second and third crossings) and 't4' (time from the third crossing to the end of the segment). The number of pulses (N) is indicated as 2.
-
-Figure 2.4: Threshold Crossing Interval (TCI) Calculation
+**Figure 2.4: Threshold Crossing Interval (TCI) Calculation**
 
 #### Threshold-Crossing Sample Count (TCSC)
 
@@ -453,8 +416,6 @@ Where  $AbsFS = \{|FS_1|, |FS_2|, |FS_3|, \dots\}$  and  $\max(AbsFS)$ ,  $\text
 
 #### Standard Exponential (STE) and Modified Exponential (MEA)
 
-
-
 Standard exponential and modified exponential, documented by Amann et al. in 2005 [6], are another two threshold-crossing based measures in the time domain. Instead of using a fixed threshold value, as the names imply, their thresholds change over time as exponential curves. For the standard exponential method, first, identify the largest peak in the ECG segment. Then, use the peak as the starting point to draw a declining exponential curve and calculate the number of intersections of the curve and the ECG waveform. The exponential function is defined as follows.
 
 $$E_s(t) = M \exp\left(-\frac{|t - t_m|}{\tau}\right)$$
@@ -489,8 +450,6 @@ Using simple threshold crossing methods to reflect a rapid heart rate might not 
 
 specificity reported in the literature [16]. One of the popular and freely available solutions was the open-source software package provided by Patrick S. Hamilton which can be downloaded from the website of E.P. Limited (<http://www.eplimited.com/>) [19]. We used it directly in this study.
 
-
-
 #### RR Interval Statistics
 
 In ECG reading, RR interval refers to the duration between two adjacent R peaks (the unit is often millisecond). The more rapid the heart rate, the closer the R waves of the adjacent heartbeats. Shorter RR intervals imply a more rapid heart rate. Besides, a normal sinus rhythm has a nearly regular period and hence fewer variations in its RR intervals. Arrhythmias, by definition, are irregular and have variable RR intervals. So variability of RR interval might be an indicator of arrhythmias. For these reasons, we made two features out of the average and standard deviation of RR intervals derived from the results of QRS detection (denoted by RR and RR\_Std in later sections). The value of the standard deviation, however, is affected by the lengths of the RR intervals as well. With the same degree of variability, larger RR intervals results in larger standard deviation of RR. To overcome the problem, we also calculated the coefficient of variation of RR intervals (referred to as RR\_CV later), which is calculated by  $RR\_CV = \frac{\text{standard deviation of RR}}{\text{mean RR}}$ . Note that in some cases, such as when the amplitude of the signals is too low, the QRS beat detector can fail and we cannot derive these values. In this case, we arbitrarily set RR, RR\_Std, and RR\_CV to zero.
@@ -509,19 +468,13 @@ $$VR = \frac{\text{number of VPC beats detected}}{\text{number of all beats dete
 
 In addition to morphology and other time-domain statistics, it is also possible to analyze the power spectrum of the ECG signal in the frequency domain using Fourier transform. Compared with normal sinus rhythm, ventricular fibrillation and tachycardias generally have faster heart rates, so the main frequencies of them might be higher in the power spectrum. Furthermore, the shape of VT and VF are closer to a sine wave than normal sinus rhythms. This could result in narrower frequency bands in the power spectrum. That is to say, Fourier transform of these ventricular arrhythmias might have different shapes and distributions from that of other non-shockable rhythms. So we have a chance to separate them in the frequency domain. Figure 2.5 demonstrated an example of Fourier transforms of normal sinus rhythm compared with VF, showing their differences.
 
-![Two side-by-side plots showing the Fourier Transform of ECG segments. The left plot (Normal Sinus Rhythm) shows a broad, decaying spectrum with a peak around 0.05 Hz. The right plot (Ventricular Fibrillation) shows a very narrow, sharp peak at a low frequency, indicating a more periodic signal.](images/4f90ddf705239c0ca535c91179212420_img.jpg)
+![Fourier Transform comparison: NSR shows a broad spectrum, VF shows a narrow peak at low frequency.](images/4f90ddf705239c0ca535c91179212420_img.jpg)
 
-Two side-by-side plots showing the Fourier Transform of ECG segments. The left plot (Normal Sinus Rhythm) shows a broad, decaying spectrum with a peak around 0.05 Hz. The right plot (Ventricular Fibrillation) shows a very narrow, sharp peak at a low frequency, indicating a more periodic signal.
-
-Figure 2.5: Fourier Transform of Normal Sinus Rhythm and VF
+**Figure 2.5: Fourier Transform of Normal Sinus Rhythm and VF**
 
 The amplitude spectrum on the left side is the Fourier transform of an ECG segment containing NSR. The one on the right side is from a segment with VF. The spectrum of NSR is more broadband.
 
 #### VF filter (VF)
-
-#### VF filter (VF)
-
-
 
 VF filter, or VF leaks, was introduced in 1978 by S Kuo and R Dillman [29]. The technique is based on the assumption that the shape of VF and VT are close to sine waves. If you shift a sine wave by half of its period, and then add it to the original wave, the whole sine wave will be eliminated because after the phase shift, the peaks of the new sine wave are located in the valleys of the original sine wave, and vice versa. That means, if you have a waveform very similar to a sine wave, and you shift it by half of its period and add the shifted waveform to itself, most of the original waveform will be eliminated. On the contrary, if a waveform is not a sine wave like, which is the case of a normal sinus rhythm, after this procedure, most of the original waveform cannot be eliminated and will "leak". This technique is used to achieve the effect of central band elimination. The detailed steps of calculating VF leak are hence as follows.
 
@@ -620,11 +573,9 @@ To achieve better multiclass classification, we needed some features to distingu
 
 2014 [48], this might be achieved by calculating the Lempel-Ziv complexity on the results of empirical mode decomposition (EMD) instead of on the original ECG signals. Empirical mode decomposition was proposed by Huang et al. in 1998 [21]. It can decompose the original signal into a set of intrinsic mode functions (IMFs). An IMF is a function that satisfies two conditions. 1. In the whole data set, the number of extrema and the number of zero crossings must either equal or differ at most by one 2. At any point, the mean value of the envelope defined by the local maxima and the envelope defined by the local minima is zero [21]. Figure 2.6 provided a simplified depiction of EMD calculation.
 
-![Figure 2.6: Steps of Empirical Mode Decomposition. The figure consists of four vertically stacked plots. The top plot is labeled 'Original Signal' and shows a complex, irregular waveform. The second plot is labeled 'Calculate Mean of Upper and Lower Envelopes' and shows the original signal (black) with its upper envelope (red), lower envelope (green), and the mean of the envelopes (blue). The third plot is labeled 'Intrinsic Mode Function (IMF) = Original Signal - Mean' and shows the resulting IMF, which is a more regular oscillating signal. The bottom plot is labeled 'Residual = Original Signal - IMF' and shows the residual signal, which is a smoother, lower-frequency component of the original signal. All plots have a y-axis ranging from -2 to 2 and an x-axis from 0 to 100.](images/4203d38ddc712f22bd4d88ca28c7a2af_img.jpg)
+![EMD steps: original signal, upper/lower envelopes and mean, IMF, and residual — four stacked plots.](images/4203d38ddc712f22bd4d88ca28c7a2af_img.jpg)
 
-Figure 2.6: Steps of Empirical Mode Decomposition. The figure consists of four vertically stacked plots. The top plot is labeled 'Original Signal' and shows a complex, irregular waveform. The second plot is labeled 'Calculate Mean of Upper and Lower Envelopes' and shows the original signal (black) with its upper envelope (red), lower envelope (green), and the mean of the envelopes (blue). The third plot is labeled 'Intrinsic Mode Function (IMF) = Original Signal - Mean' and shows the resulting IMF, which is a more regular oscillating signal. The bottom plot is labeled 'Residual = Original Signal - IMF' and shows the residual signal, which is a smoother, lower-frequency component of the original signal. All plots have a y-axis ranging from -2 to 2 and an x-axis from 0 to 100.
-
-Figure 2.6: Steps of Empirical Mode Decomposition
+**Figure 2.6: Steps of Empirical Mode Decomposition**
 
 The first figure is the original signal. In the second step, the upper and lower envelopes and their mean were calculated. In the next step, the first intrinsic mode function (IMF) was obtained by subtracting the mean of envelopes from the original signal. Then, in the last step, the IMF was removed from the original signal and the remaining part was called residual. Repeating these steps for several iterations, the original signal could be decomposed into a set of IMFs.
 
@@ -652,8 +603,6 @@ Sample entropy measures the rate of information production. It is based on the c
 
 1. Select a pattern length  $m$  to construct  $m$ -dimensional vectors:  $X(1), X(2), \dots, X(N - m + 1)$  Where  $X(i) = \{u(i), u(i + 1), \dots, u(i + m)\}$ . This essentially generates  $N - m + 1$  overlapping subsequences of the original ECG segment using a sliding window of size  $m$  and a step size of one sample point.
 
-
-
 2. Define the distance measure between  $X(i)$  and  $X(j)$ :
 
 $$d[X(i), X(j)] = \max_{k=0 \sim m-1} |u(i + k) - u(j + k)|.$$
@@ -678,7 +627,7 @@ $\phi^m(r)$  basically estimates the probability that any pairs of the  $N - m +
 
 5.  $m \rightarrow m + 1$ , repeat above process to get  $\phi^{m+1}(r)$
 
-##### 6. Sample entropy:
+**6. Sample entropy:**
 
 $$SampEn(N, m, r) = \lim_{n \rightarrow \infty} \left\{ -\ln \frac{\phi^{m+1}(r)}{\phi^m(r)} \right\}$$
 
@@ -698,11 +647,9 @@ The time-delayed method generates a shifted version of the original signal by de
 
 two phase space plots generated for normal sinus rhythm and VF with the time-delayed method.
 
-![Figure 2.7: Phase Space Reconstruction for NSR and VF. The figure contains two scatter plots. The left plot, representing Normal Sinus Rhythm (NSR), shows a dense vertical column of points around x=8, with a few scattered points along the x-axis. The right plot, representing Ventricular Fibrillation (VF), shows a complex, chaotic, and irregular pattern of points. A circular watermark of the National Taiwan University of Science and Technology is visible in the top right corner.](images/a387e0c81bfc615ececcd1b55dbf5de4_img.jpg)
+![Phase space reconstruction: NSR shows a tight column of points; VF shows a chaotic scattered pattern.](images/a387e0c81bfc615ececcd1b55dbf5de4_img.jpg)
 
-Figure 2.7: Phase Space Reconstruction for NSR and VF. The figure contains two scatter plots. The left plot, representing Normal Sinus Rhythm (NSR), shows a dense vertical column of points around x=8, with a few scattered points along the x-axis. The right plot, representing Ventricular Fibrillation (VF), shows a complex, chaotic, and irregular pattern of points. A circular watermark of the National Taiwan University of Science and Technology is visible in the top right corner.
-
-Figure 2.7: Phase Space Reconstruction for NSR and VF
+**Figure 2.7: Phase Space Reconstruction for NSR and VF**
 
 The phase space plot on the left side is generated from an NSR ECG segment, and the other one is from VF.
 
@@ -722,19 +669,15 @@ works.
 
 Originally named support vector network and proposed by Cortes and Vapnik in 1995 [12], the support vector machine algorithm is a machine learning model with high generalization ability. It features mapping the input vectors to a very high-dimensional space in which a linear decision surface is constructed [12, 20]. Figure 2.8 demonstrated the basic idea behind SVM. For better noise tolerance, SVM tries to find an optimal separating hyperplane between two different classes with the largest margin. As depicted in the figure, the margin in SVM refers to the minimal distance from all of the sample points to the hyperplane. We only need the vectors which are closest to the hyperplane, the support vectors, to define an optimal separating hyperplane with a large margin.
 
-![Figure 2.8: An Example for Support Vector Machine. The diagram shows a 2D coordinate system with x and y axes. A solid line, labeled 'Separating hyperplane', diagonally separates two classes of data points: triangles (bottom-left) and circles (top-right). Two dashed lines parallel to the hyperplane pass through the closest triangle and circle. A double-headed arrow between these dashed lines is labeled 'Margin', representing the minimum distance from the hyperplane to the nearest data points (the support vectors). Three specific points are highlighted with boxes: one circle and two triangles, which are the support vectors.](images/fe6af03ab7804980cff28a06241be192_img.jpg)
+![SVM example: separating hyperplane between triangles and circles, with margin and support vectors indicated.](images/fe6af03ab7804980cff28a06241be192_img.jpg)
 
-Figure 2.8: An Example for Support Vector Machine. The diagram shows a 2D coordinate system with x and y axes. A solid line, labeled 'Separating hyperplane', diagonally separates two classes of data points: triangles (bottom-left) and circles (top-right). Two dashed lines parallel to the hyperplane pass through the closest triangle and circle. A double-headed arrow between these dashed lines is labeled 'Margin', representing the minimum distance from the hyperplane to the nearest data points (the support vectors). Three specific points are highlighted with boxes: one circle and two triangles, which are the support vectors.
-
-Figure 2.8: An Example for Support Vector Machine
+**Figure 2.8: An Example for Support Vector Machine**
 
 In the real world, not all of the classification problems are natively linearly-separable. Performing non-linear transformation on the features to map them into a higher dimensional space might help in this case. Figure 2.9 is a simple example showing the effect of non-linear transformation. The original problem on the left panel was not linearly-separable. Find a straight line separating the data points of these two different classes in the original space was not possible. However, after transforming the  $x$  and  $y$  to  $x^2$  and  $y^2$ ,
 
-![Figure 2.9: Two plots illustrating the effect of non-linear transformation. The left plot shows a 2D coordinate system with x and y axes. A circle of radius r is centered at the origin, defined by the equation x^2 + y^2 = r^2. Inside the circle, there are several black dots, and outside the circle, there are several black triangles. The text 'Not linearly separable' is written below the plot. The right plot shows a 2D coordinate system with x^2 on the horizontal axis and y^2 on the vertical axis. The same black dots and triangles from the left plot are now separated by a straight line with a negative slope. The text 'Linearly separable' is written below this plot. In the top right corner, there is a circular logo of National Taiwan University of Science and Technology (NTUST) with the text '學大業 臺立國' and '人愛國愛 學勤品敬'.](images/64aba6d3bacc69b7b90f08e02f2d5efe_img.jpg)
+![Non-linear SVM transformation: left plot not linearly separable in x/y space; right plot linearly separable after mapping to x²/y² space.](images/64aba6d3bacc69b7b90f08e02f2d5efe_img.jpg)
 
-Figure 2.9: Two plots illustrating the effect of non-linear transformation. The left plot shows a 2D coordinate system with x and y axes. A circle of radius r is centered at the origin, defined by the equation x^2 + y^2 = r^2. Inside the circle, there are several black dots, and outside the circle, there are several black triangles. The text 'Not linearly separable' is written below the plot. The right plot shows a 2D coordinate system with x^2 on the horizontal axis and y^2 on the vertical axis. The same black dots and triangles from the left plot are now separated by a straight line with a negative slope. The text 'Linearly separable' is written below this plot. In the top right corner, there is a circular logo of National Taiwan University of Science and Technology (NTUST) with the text '學大業 臺立國' and '人愛國愛 學勤品敬'.
-
-Figure 2.9: An Example of the Effect of Non-linear Transformation
+**Figure 2.9: An Example of the Effect of Non-linear Transformation**
 
 the binary classification problem became linear-separable.
 
@@ -775,8 +718,6 @@ The original SVM is intended to solve binary classification problems. To extend 
 ## 2.5 Performance Evaluation
 
 Several performance metrics were frequently used when evaluating classification performance [36].
-
-
 
 - Sensitivity (also named recall, or true positive rate):
 
@@ -830,15 +771,13 @@ Our system was mainly implemented using Python 3.5.1 x86-64. The numerical calcu
 
 package and its library provided by Pysionet.org were used to read the ECG signals and annotations from the databases. To speed up preprocessing and feature extraction, this part was written entirely using Cython, an extension to Python which facilitates the building of C language-based Python extensions. The Lempel-Ziv complexity algorithm was written in plain C language for performance reasons. Also, joblib and Pyro4 Python packages were used to build distributed and paralleled feature extraction. Last, the machine learning classifiers were provided by the sklearn python package whose SVM support is based on libsvm. The experiments in this study were carried out in Arch Linux system (kernel 4.5.1 x86-64) on a personal computer with an Intel Core i7-3770 CPU (3.40GHz) and 16 gigabytes of memory. All of the source code associated with the study was released under GNU General Public License (GPL) v3.0 and can be freely downloaded from the URL [http://github.com/PCMan/vf\\_classifier](http://github.com/PCMan/vf_classifier). Reusing the code in other related researches is welcomed and any citations to our work are appreciated.
 
-
-
 # Chapter 3
 
 # Results
 
 ## 3.1 Dataset Composition
 
-Information about the datasets included in this study was summarized in Table ??. A total of 84027 non-overlapping ECG segments of 8-second duration from 296 different records were enrolled in our study. The MITDB did not contain any sample of VF. The VFDB had several cases of VF and VT, but as mentioned in section 2, we excluded its VT samples because of lack of beat annotations. The CUDB mainly contained cases of atrial fibrillation (AF), NSR, and VF. Most of the non-shockable rhythms in our dataset came from the EDB. Though the EDB is originally collected for testing the algorithms analyzing ST-T segment changes, it included various types of non-shockable rhythms with complete beat and rhythm annotations, which was also suitable for our application. Last, 86 segments of coarse VF and 47 segments of fine VF along with 11 rapid VT segments were taken from the lead II signal of MGHDB, making our test dataset more diverse. All rhythm types required by the AHA are covered by the dataset we compiled. Other types of non-shockable rhythms not explicitly required by the guideline were also included for completeness.
+Information about the datasets included in this study was summarized in Table 3.1. A total of 84027 non-overlapping ECG segments of 8-second duration from 296 different records were enrolled in our study. The MITDB did not contain any sample of VF. The VFDB had several cases of VF and VT, but as mentioned in section 2, we excluded its VT samples because of lack of beat annotations. The CUDB mainly contained cases of atrial fibrillation (AF), NSR, and VF. Most of the non-shockable rhythms in our dataset came from the EDB. Though the EDB is originally collected for testing the algorithms analyzing ST-T segment changes, it included various types of non-shockable rhythms with complete beat and rhythm annotations, which was also suitable for our application. Last, 86 segments of coarse VF and 47 segments of fine VF along with 11 rapid VT segments were taken from the lead II signal of MGHDB, making our test dataset more diverse. All rhythm types required by the AHA are covered by the dataset we compiled. Other types of non-shockable rhythms not explicitly required by the guideline were also included for completeness.
 
 Table 3.1: Statistics of the Datasets Included in the Study
 
@@ -872,8 +811,6 @@ Table 3.1: Statistics of the Datasets Included in the Study
 Each sample here refers to an 8-second ECG segment. As stated in section 2.1, the VT rhythms in VFDB without heart rate information were excluded. Besides, all NSR rhythms from CUDB were also excluded. The one slow VT sample of VFDB and three NSR samples in CUDB shown here are generated during our manual correction of labels.
 
 As mentioned in section 2.2.4, we tried to manually correct some obvious errors found in the original datasets. Overall, the labels of 747 samples were modified and 87 samples were excluded because of severe artifacts causing difficulty in recognizing their actual rhythm classes. All of the details about the correction were available from the open-source software package we provided (file name: corrections\_s8.txt).
-
-
 
 ## 3.2 Performance of Classifiers
 
@@ -937,8 +874,6 @@ Table 3.3: Detailed Performance Report of the Multiclass Classification Tests
 
 SVM-RBF is SVM classifier with RBF (or Gaussian) kernel. SVM-linear is SVM classifier using a linear kernel function. The numbers presented in this table are all percentages.
 
-
-
 # Chapter 4
 
 # Discussions
@@ -1000,29 +935,22 @@ Table 4.1: Detailed Analysis for the ECG Samples with Most Frequent Prediction E
 
 From the above detailed error analysis, we summarized the common causes of classification errors in Table 4.2.
 
-
 Table 4.2: Common Causes of Classification Errors
 
----
-
-Low frequency noise or severe baseline wanders  
-Large variations in amplitudes  
-High frequency noise  
-Borderline cases  
-Labelling errors  
-Non-shockable wide-QRS tachycardia
-
----
-
-
+| Cause |
+|-------|
+| Low frequency noise or severe baseline wanders |
+| Large variations in amplitudes |
+| High frequency noise |
+| Borderline cases |
+| Labelling errors |
+| Non-shockable wide-QRS tachycardia |
 
 Low-frequency noise or severe baseline wanders could break frequency-domain features. Although we applied a high-pass filter during preprocessing, it was not perfect and some severe low-frequency noise and baseline wander could not be removed. In this case, after Fourier transform, the spectrum in the frequency domain might have large amplitude in low frequency components, changing the distribution of the power spectrum. Features relying on the characteristics of the spectrum, such as the spectral parameters M and A2, and VF leak were quite vulnerable to this kind of noise. Since they tried to identify the frequency at which the amplitude is largest, they could easily find the wrong peak in this case. Figure 4.1 demonstrated this kind of error.
 
-![Figure 4.1: Severe Baseline Wander Could Break Frequency Domain Features. The figure consists of four subplots: 1. 'before preprocessing': A plot of amplitude (mV) vs. samples (0 to 2000) showing a noisy ECG signal with significant baseline drift. 2. 'DFT After Preprocessing (for Spectral Parameters Calculation)': A plot of amplitude vs. frequency (0 to 140 Hz) showing a large peak at a very low frequency (near 0 Hz) and a smaller peak around 40 Hz. 3. 'After preprocessing': A plot of normalized amplitude vs. samples (0 to 2000) showing the ECG signal after baseline wander correction, with the signal centered around zero. 4. 'Phase Space Plot (Time-Delayed Method)': A scatter plot showing the relationship between two time-delayed versions of the signal, forming a characteristic heart shape.](images/d8ae429dbbb83bc00403ffa8630df1ff_img.jpg)
+![Four-panel ECG analysis: before preprocessing (severe baseline drift), DFT spectrum (low-freq dominant peak), after preprocessing (centered), and phase space (heart-shaped cluster).](images/d8ae429dbbb83bc00403ffa8630df1ff_img.jpg)
 
-Figure 4.1: Severe Baseline Wander Could Break Frequency Domain Features. The figure consists of four subplots: 1. 'before preprocessing': A plot of amplitude (mV) vs. samples (0 to 2000) showing a noisy ECG signal with significant baseline drift. 2. 'DFT After Preprocessing (for Spectral Parameters Calculation)': A plot of amplitude vs. frequency (0 to 140 Hz) showing a large peak at a very low frequency (near 0 Hz) and a smaller peak around 40 Hz. 3. 'After preprocessing': A plot of normalized amplitude vs. samples (0 to 2000) showing the ECG signal after baseline wander correction, with the signal centered around zero. 4. 'Phase Space Plot (Time-Delayed Method)': A scatter plot showing the relationship between two time-delayed versions of the signal, forming a characteristic heart shape.
-
-Figure 4.1: Severe Baseline Wander Could Break Frequency Domain Features
+**Figure 4.1: Severe Baseline Wander Could Break Frequency Domain Features**
 
 Large variations in amplitudes happened when the ECG segment contained several PVCs at different points or some high spikes of artifacts. Severe baseline wander with imperfect filtering might also cause this condition. Methods relying on threshold crossing were affected by large variations in amplitudes since the threshold was either determined by a fixed percentage of the maximum or by some statistics based on the mean and standard
 
@@ -1030,25 +958,15 @@ deviation, like the auxiliary counts. To overcome this problem, when calculating
 
 Different from the case in low-frequency noise, high-frequency noise mainly affected complexity measures. When the ECG segments contained irregular high-frequency noise that could not be fully removed by the low-pass filter, both the Lempel-Ziv complexity and sample entropy might increase rapidly as these saw-tooth like noise greatly increased the irregularity of the original ECG waveform. In addition, this also affected frequency domain based methods since high-frequency noise from various sources mixed together could make the signal broad-band, mimicking the characteristics of the normal ECG signal in the frequency domain. Figure 4.2 was an example of this case.
 
-![Figure 4.2: Four plots showing ECG signal processing. Top-left: 'before preprocessing' shows a noisy ECG waveform. Top-right: 'DFT After Preprocessing (for Spectral Parameters Calculation)' shows a frequency spectrum with a prominent peak around 45 Hz. Bottom-left: 'After processing' shows a cleaner ECG waveform. Bottom-right: 'Phase Space Plot (Time-Delayed Method)' shows a chaotic, irregular pattern of points.](images/4af0349328e735d480210fe9a3e595cb_img.jpg)
+![Four-panel: high-frequency noisy ECG before preprocessing, DFT with peak at 45 Hz, cleaned ECG, and chaotic phase space plot.](images/4af0349328e735d480210fe9a3e595cb_img.jpg)
 
-The figure consists of four subplots arranged in a 2x2 grid. The top-left plot, titled 'before preprocessing', shows an ECG signal with significant high-frequency noise. The y-axis is labeled 'amplitude (mV)' and ranges from -1.0 to 0.4, with the x-axis labeled 'samples' ranging from 0 to 2000. The top-right plot, titled 'DFT After Preprocessing (for Spectral Parameters Calculation)', shows the frequency spectrum of the signal. The y-axis is labeled 'amplitude' and ranges from 0 to 100, with the x-axis labeled 'frequency' ranging from 0 to 140. A prominent peak is visible around 45 Hz. The bottom-left plot, titled 'After processing', shows the ECG signal after noise reduction. The y-axis is labeled 'normalized amplitude' and ranges from -0.5 to 0.4, with the x-axis labeled 'samples' ranging from 0 to 2000. The bottom-right plot, titled 'Phase Space Plot (Time-Delayed Method)', shows a chaotic, irregular pattern of points, indicating high-frequency noise. The y-axis ranges from -10 to 50, and the x-axis ranges from -10 to 50.
-
-Figure 4.2: Four plots showing ECG signal processing. Top-left: 'before preprocessing' shows a noisy ECG waveform. Top-right: 'DFT After Preprocessing (for Spectral Parameters Calculation)' shows a frequency spectrum with a prominent peak around 45 Hz. Bottom-left: 'After processing' shows a cleaner ECG waveform. Bottom-right: 'Phase Space Plot (Time-Delayed Method)' shows a chaotic, irregular pattern of points.
-
-Figure 4.2: High-Frequency Noises Increased Randomness of the Signal and Could Make Non-shockable Rhythms Look Like VF
+**Figure 4.2: High-Frequency Noises Increased Randomness of the Signal and Could Make Non-shockable Rhythms Look Like VF**
 
 On the contrary, severe high-frequency noise might also make VF mimicking NSR in the frequency domain by making it a broad-band signal as shown in Figure 4.3.
 
+![Four-panel: noisy VF ECG, broad DFT spectrum with 80 Hz peak, normalized ECG, and elliptical phase space plot — VF mimicking NSR due to high-freq noise.](images/c772a48faa2cb17e1bf2a86ad057b4c9_img.jpg)
 
-
-![Figure 4.3: Four plots showing ECG signal processing. Top-left: 'before preprocessing' shows a noisy ECG signal. Top-right: 'DFT After Preprocessing (for Spectral Parameters Calculation)' shows the frequency spectrum with a peak around 80 Hz. Bottom-left: 'After preprocessing' shows a normalized ECG signal. Bottom-right: 'Phase Space Plot (Time-Delayed Method)' shows a scatter plot of the signal's phase space.](images/c772a48faa2cb17e1bf2a86ad057b4c9_img.jpg)
-
-Figure 4.3 consists of four subplots arranged in a 2x2 grid. The top-left plot, titled 'before preprocessing', shows an ECG signal with significant high-frequency noise. The y-axis is labeled 'amplitude (mV)' and ranges from -6 to 6, while the x-axis is labeled 'samples' and ranges from 0 to 2000. The top-right plot, titled 'DFT After Preprocessing (for Spectral Parameters Calculation)', shows the frequency spectrum of the signal. The y-axis is labeled 'amplitude' and ranges from 0 to 14, while the x-axis is labeled 'frequency' and ranges from 0 to 140. A prominent peak is visible at approximately 80 Hz. The bottom-left plot, titled 'After preprocessing', shows the normalized ECG signal. The y-axis is labeled 'normalized amplitude' and ranges from -0.4 to 0.5, while the x-axis is labeled 'samples' and ranges from 0 to 2000. The bottom-right plot, titled 'Phase Space Plot (Time-Delayed Method)', shows a scatter plot of the signal's phase space. The y-axis ranges from -10 to 50, and the x-axis ranges from -10 to 50. The points form a dense, roughly elliptical cloud centered around (20, 20).
-
-Figure 4.3: Four plots showing ECG signal processing. Top-left: 'before preprocessing' shows a noisy ECG signal. Top-right: 'DFT After Preprocessing (for Spectral Parameters Calculation)' shows the frequency spectrum with a peak around 80 Hz. Bottom-left: 'After preprocessing' shows a normalized ECG signal. Bottom-right: 'Phase Space Plot (Time-Delayed Method)' shows a scatter plot of the signal's phase space.
-
-Figure 4.3: High-Frequency Noises and Artifacts Might Make a VF Rhythms Broad-band, Mimicking NSR in the Frequency Domain
+**Figure 4.3: High-Frequency Noises and Artifacts Might Make a VF Rhythm Broad-band, Mimicking NSR in the Frequency Domain**
 
 Though belonging to different classes, coarse VF and fine VF were merely different in their amplitudes. After normalization of the signal, there was no way to distinguish them based solely on morphology. We have included the amplitude in the feature set to capture this difference, but in some borderline cases whose amplitude were around the 0.2 mV cut-off, it could either be classified as shockable or as intermediate.
 
@@ -1056,26 +974,17 @@ The ECG databases used in this study were also widely used in previous researche
 
 example, the record 429 in VFDB and some segments in record cu09 of CUDB had this kind of problems. Moreover, some ECG segments annotated as non-shockable rhythms actually contained VT or VF. For instance, the records 418 and 419 in VFDB were known to have errors. Figure 4.4 was an ECG segment with suspected ventricular arrhythmia from record 418 of VFDB which was annotated as NSR.
 
+![Four-panel: ECG from VFDB record 418 annotated as NSR but showing ventricular arrhythmia morphology — before/after preprocessing, DFT, and phase space.](images/33d66c42e2c44378aaab641502989484_img.jpg)
 
-![Figure 4.4: Four plots showing ECG signal processing. Top-left: 'before preprocessing' plot of amplitude (mV) vs samples (0-2000). Top-right: 'DFT After Preprocessing (for Spectral Parameters Calculation)' plot of amplitude vs frequency (0-140). Bottom-left: 'After preprocessing' plot of normalized amplitude vs samples (0-2000). Bottom-right: 'Phase Space Plot (Time-Delayed Method)' plot of phase space coordinates (-10 to 50).](images/33d66c42e2c44378aaab641502989484_img.jpg)
-
-Figure 4.4: Four plots showing ECG signal processing. Top-left: 'before preprocessing' plot of amplitude (mV) vs samples (0-2000). Top-right: 'DFT After Preprocessing (for Spectral Parameters Calculation)' plot of amplitude vs frequency (0-140). Bottom-left: 'After preprocessing' plot of normalized amplitude vs samples (0-2000). Bottom-right: 'Phase Space Plot (Time-Delayed Method)' plot of phase space coordinates (-10 to 50).
-
-Figure 4.4: An ECG Segment with Ventricular Arrhythmia was Wrongly Marked as NSR in the Original Dataset
+**Figure 4.4: An ECG Segment with Ventricular Arrhythmia was Wrongly Marked as NSR in the Original Dataset**
 
 Moreover, there were some rhythms which natively have a VF/VT-like morphology. For instance, supraventricular tachycardia (SVT) and atrial fibrillation (AF) are arrhythmias with rapid heart rates. When they coexisted with widened QRS complexes due to aberrancy of conduction, as shown in Figure 4.5, it could be hard even for human eyes to distinguish them from VT [1]. This kind of error was inevitable sometimes.
 
-![ECG trace showing Atrial Fibrillation with Pre-existing Left Bundle Branch Block Mimic VT.](images/a4cb63f5debf833e6069e99143a2b624_img.jpg)
+![ECG trace: Atrial Fibrillation with pre-existing Left Bundle Branch Block, mimicking VT morphology.](images/a4cb63f5debf833e6069e99143a2b624_img.jpg)
 
-An ECG trace showing a series of irregularly spaced, narrow QRS complexes. The rhythm is irregularly irregular, characteristic of atrial fibrillation. The QRS complexes are narrow, but the irregular spacing and the presence of a pre-existing left bundle branch block can make them appear to mimic ventricular tachycardia (VT).
-
-ECG trace showing Atrial Fibrillation with Pre-existing Left Bundle Branch Block Mimic VT.
-
-Figure 4.5: Atrial Fibrillation with Pre-existing Left Bundle Branch Block Might Mimic VT
+**Figure 4.5: Atrial Fibrillation with Pre-existing Left Bundle Branch Block Might Mimic VT**
 
 The ECG image was by courtesy of Dean Jenkins and Stephen Gerred (<http://www.ecglibrary.com/>).
-
-
 
 ### 4.1.2 Special Cases
 
@@ -1129,8 +1038,6 @@ Last, we only tested the performance of the algorithms against artifact-free ECG
 
 The above problems, however, were nearly inevitable in similar academic researches in this field because of the difficulty in collecting such large number of distinct patients with so many different types of arrhythmia along with high-quality manual annotations reviewed by cardiologists.
 
-
-
 # Chapter 5
 
 # Conclusion
@@ -1148,10 +1055,6 @@ From the perspective of a physician, the machine learning algorithm seemed to pe
 As discussed in previous sections, the freely available ECG datasets widely used in ECG researches were not diverse enough and contained inadequate patient numbers for some rhythm types, had unbalanced distributions, and the quality of annotations varied. Also, the demographic data of the patients included, such as their age, gender, underlying diseases, ...etc., were not available in these databases, but the information is important when examining whether the testing environment is close to clinical setting or not. A more standard compliant ECG database recorded from actual AED devices in various clinical settings might greatly help the advances of the researches in this field. At the time of this
 
 writing, however, such a database does not exist. Therefore the author of this thesis tried to collect the best parts of existing free public ECG databases and carefully corrected some of the errors in them. We hope that our hard work could approximate a slightly more standard-compliant testing environment which might be used in future researches as a benchmark for AED algorithms, helping other researchers in this field.
-
-
-
-
 
 # References
 
@@ -1191,8 +1094,6 @@ writing, however, such a database does not exist. Therefore the author of this t
 [25] S. JS and M. WH. Recalls and safety alerts affecting automated external defibrillators. *JAMA*, 296(6):655–660, 2006.
 
 [26] V. Kalidas and L. S. Tamil. Enhancing accuracy of arrhythmia classification by combining logical and machine learning techniques. In *2015 Computing in Cardiology Conference (CinC)*, pages 733–736, Sept 2015.
-
-
 
 - [27] J. S. Karthika, J. M. Thomas, and J. J. Kizhakkekkottam. Detection of life-threatening arrhythmias using temporal, spectral and wavelet features. In *2015 IEEE International Conference on Computational Intelligence and Computing Research (ICCIC)*, pages 1–4, Dec 2015.
 - [28] R. E. Kerber, L. B. Becker, J. D. Bourland, R. O. Cummins, A. P. Hallstrom, M. B. Michos, G. Nichol, J. P. Ornato, W. H. Thies, R. D. White, B. D. Zuckerman, and M. E. by the Board of Trustees of the American College of Cardiology. Automatic external defibrillators for public access defibrillation: Recommendations for specifying and reporting arrhythmia analysis algorithm performance, incorporating new waveforms, and enhancing safety: A statement for health professionals from the american heart association task force on automatic external defibrillation, subcommittee on aed safety and efficacy. *Circulation*, 95(6):1677–1682, 1997.
