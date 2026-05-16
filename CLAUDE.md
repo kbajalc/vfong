@@ -179,6 +179,7 @@ Active fixes on `fixes` branch: `info.resample_rate` → `info.sampling_rate` At
 
 ## Docs
 
+- `docs/HISTORY.md` — project history: original author background, phase-by-phase narrative of all commits from May 2016 to present
 - `docs/SUMMARY.md` — thesis summary: AHA class definitions, dataset details, all 27 features with indices, thesis→code mapping table
 - `docs/EXECUTABLES.md` — every runnable script with CLI flags and usage examples
 - `docs/FEATURE_EXTRACTION.md` — detailed `feature_extraction.py` execution flow and all CLI flags
