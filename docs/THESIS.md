@@ -69,39 +69,35 @@ Keywords: Arrhythmia, Ventricular fibrillation, Automatic external defibrillator
 
 # List of Figures
 
-|     |                                                                                                                             |    |
-|-----|-----------------------------------------------------------------------------------------------------------------------------|----|
-| 1.1 | Typical ECG Waveform of a Heartbeat . . . . .                                                                               | 3  |
-| 1.2 | An ECG Strip of Ventricular Tachycardia . . . . .                                                                           | 3  |
-| 1.3 | An ECG Strip of Ventricular Fibrillation . . . . .                                                                          | 4  |
-| 2.1 | Flowchart of the Ventricular Arrhythmia Classification Process . . . . .                                                    | 11 |
-| 2.2 | Detecting Peaks in ECG Signal for Estimating Peak-to-Peak Amplitudes . . . . .                                              | 15 |
-| 2.3 | Comparison of Threshold Crossing-Based Methods . . . . .                                                                    | 20 |
-| 2.4 | Threshold Crossing Interval (TCI) Calculation . . . . .                                                                     | 21 |
-| 2.5 | Fourier Transform of Normal Sinus Rhythm and VF . . . . .                                                                   | 27 |
-| 2.6 | Steps of Empirical Mode Decomposition . . . . .                                                                             | 32 |
-| 2.7 | Phase Space Reconstruction for NSR and VF . . . . .                                                                         | 36 |
-| 2.8 | An Example for Support Vector Machine . . . . .                                                                             | 38 |
-| 2.9 | An Example of the Effect of Non-linear Transformation . . . . .                                                             | 39 |
-| 4.1 | Severe Baseline Wander Could Break Frequency Domain Features . . . . .                                                      | 57 |
-| 4.2 | High-Frequency Noises Increased Randomness of the Signal and Could<br>Make Non-shockable Rhythms Look Like VF . . . . .     | 58 |
-| 4.3 | High-Frequency Noises and Artifacts Might Make a VF Rhythms Broad-<br>band, Mimicking NSR in the Frequency Domain . . . . . | 59 |
-| 4.4 | An ECG Segment with Ventricular Arrhythmia was Wrongly Marked as<br>NSR in the Original Dataset . . . . .                   | 60 |
-| 4.5 | Atrial Fibrillation with Pre-existing Left Bundle Branch Block Might Mimic<br>VT . . . . .                                  | 61 |
+- [Figure 1.1 — Typical ECG Waveform of a Heartbeat](#figure-11) *(p. 3)*
+- [Figure 1.2 — An ECG Strip of Ventricular Tachycardia](#figure-12) *(p. 3)*
+- [Figure 1.3 — An ECG Strip of Ventricular Fibrillation](#figure-13) *(p. 4)*
+- [Figure 2.1 — Flowchart of the Ventricular Arrhythmia Classification Process](#figure-21) *(p. 11)*
+- [Figure 2.2 — Detecting Peaks in ECG Signal for Estimating Peak-to-Peak Amplitudes](#figure-22) *(p. 15)*
+- [Figure 2.3 — Comparison of Threshold Crossing-Based Methods](#figure-23) *(p. 20)*
+- [Figure 2.4 — Threshold Crossing Interval (TCI) Calculation](#figure-24) *(p. 21)*
+- [Figure 2.5 — Fourier Transform of Normal Sinus Rhythm and VF](#figure-25) *(p. 27)*
+- [Figure 2.6 — Steps of Empirical Mode Decomposition](#figure-26) *(p. 32)*
+- [Figure 2.7 — Phase Space Reconstruction for NSR and VF](#figure-27) *(p. 36)*
+- [Figure 2.8 — An Example for Support Vector Machine](#figure-28) *(p. 38)*
+- [Figure 2.9 — An Example of the Effect of Non-linear Transformation](#figure-29) *(p. 39)*
+- [Figure 4.1 — Severe Baseline Wander Could Break Frequency Domain Features](#figure-41) *(p. 57)*
+- [Figure 4.2 — High-Frequency Noises Increased Randomness of the Signal and Could Make Non-shockable Rhythms Look Like VF](#figure-42) *(p. 58)*
+- [Figure 4.3 — High-Frequency Noises and Artifacts Might Make a VF Rhythm Broad-band, Mimicking NSR in the Frequency Domain](#figure-43) *(p. 59)*
+- [Figure 4.4 — An ECG Segment with Ventricular Arrhythmia was Wrongly Marked as NSR in the Original Dataset](#figure-44) *(p. 60)*
+- [Figure 4.5 — Atrial Fibrillation with Pre-existing Left Bundle Branch Block Might Mimic VT](#figure-45) *(p. 61)*
 
 # List of Tables
 
-|     |                                                                                                      |    |
-|-----|------------------------------------------------------------------------------------------------------|----|
-| 1.1 | AHA Performance Specifications for Arrhythmia Analysis Algorithms . . .                              | 7  |
-| 2.1 | Features of Different Categories Used in Previous VF Detection Researches                            | 17 |
-| 2.2 | Features Extracted from Each ECG Segment . . . . .                                                   | 19 |
-| 3.1 | Statistics of the Datasets Included in the Study . . . . .                                           | 48 |
-| 3.2 | Performance for Making the Shock/No-shock Decision Based on the Recommendations of the AHA . . . . . | 50 |
-| 3.3 | Detailed Performance Report of the Multiclass Classification Tests . . . .                           | 51 |
-| 4.1 | Detailed Analysis for the ECG Samples with Most Frequent Prediction Errors . . . . .                 | 54 |
-| 4.2 | Common Causes of Classification Errors . . . . .                                                     | 56 |
-| 4.3 | Insufficient Patient Numbers . . . . .                                                               | 64 |
+- [Table 1.1 — AHA Performance Specifications for Arrhythmia Analysis Algorithms](#table-11) *(p. 7)*
+- [Table 2.1 — Features of Different Categories Used in Previous VF Detection Researches](#table-21) *(p. 17)*
+- [Table 2.2 — Features Extracted from Each ECG Segment](#table-22) *(p. 19)*
+- [Table 3.1 — Statistics of the Datasets Included in the Study](#table-31) *(p. 48)*
+- [Table 3.2 — Performance for Making the Shock/No-shock Decision Based on the Recommendations of the AHA](#table-32) *(p. 50)*
+- [Table 3.3 — Detailed Performance Report of the Multiclass Classification Tests](#table-33) *(p. 51)*
+- [Table 4.1 — Detailed Analysis for the ECG Samples with Most Frequent Prediction Errors](#table-41) *(p. 54)*
+- [Table 4.2 — Common Causes of Classification Errors](#table-42) *(p. 56)*
+- [Table 4.3 — Insufficient Patient Numbers](#table-43) *(p. 64)*
 
 # Chapter 1
 
@@ -117,6 +113,7 @@ Normal activation of cardiac rhythms starts from the sino-atrial node in the rig
 
 ![Diagram of a typical ECG waveform showing P, QRS, and T waves, with labels for PR and QT intervals and segments.](images/b2d16e07bfa79d67a8adabf7e26c7764_img.jpg)
 
+<a id="figure-11"></a>
 **Figure 1.1: Typical ECG Waveform of a Heartbeat**  
  The public domain ECG image is created by Anthony Atkielski. Because of the activation through an abnormal pathway rather than the efficient cardiac conduction system, the conduction time is prolonged, causing a widened QRS complex on the ECG. In addition, since it originates in the ventricles, atrial depolarization does not occur and thus P wave is absent [13].
 
@@ -124,6 +121,7 @@ Three or more consecutive premature ventricular contractions (PVC or VPC) with a
 
 ![ECG strip showing Ventricular Tachycardia (VT).](images/93587f920736a2fdcefeba94b29f302a_img.jpg)
 
+<a id="figure-12"></a>
 **Figure 1.2: An ECG Strip of Ventricular Tachycardia**  
  Taken from record 421 of the MIT-BIH Malignant Ventricular Ectopy Database (VFDB)
 
@@ -135,6 +133,7 @@ Ventricular fibrillation (VF) is caused by disorganized electrical activities ar
 
 ![An ECG strip showing Ventricular Fibrillation (VF). The waveform is highly irregular and chaotic, with no discernible P waves, QRS complexes, or T waves. The amplitude and frequency vary continuously, characteristic of the lack of coordinated ventricular contraction seen in VF.](images/9260ae281f6b6470331f4a0f82dbc2b1_img.jpg)
 
+<a id="figure-13"></a>
 **Figure 1.3: An ECG Strip of Ventricular Fibrillation**
 
 Taken from record cu01 of the Creighton University Ventricular Tachyarrhythmia Database (CUDB)
@@ -162,6 +161,7 @@ AED algorithms should recognize and then decide whether it should deliver a defi
 
 For the shockable rhythms, a high sensitivity is required while for the non-shockable ones a high specificity is desired since patient without VF or rapid VT should not receive any defibrillation treatment. The requirements for all rhythm classes were listed in Table 1.1.
 
+<a id="table-11"></a>
 Table 1.1: AHA Performance Specifications for Arrhythmia Analysis Algorithms
 
 | Rhythms                             | Minimum Test Sample Size | Performance Goal  |
@@ -207,6 +207,7 @@ The workflow of the study was summarized in Figure 2.1.
 graph TD; A[Dataset Collection] --> B[Segmentation and Labeling]; B --> C[8-s ECG signal segments]; B --> D[Exclude noises/artifacts]; B --> E[Exclude asystole]; E --> F[< 0.15 mV]; C --> G[High pass filter for trend removal<br/>Low pass filter for noises]; G --> H[QRS detection]; G --> I[Normalize]; G --> J[Calculate amplitude]; H --> K[Calculate RR statistics]; I --> L[Feature extraction]; J --> M[> 0.15 mV]; M --> L; K --> L; L --> N[Machine learning classifier<br/>(5-fold cross-validation)]; N --> O[Shockable]; N --> P[Intermediate]; N --> Q[Non-shockable];
 ```
 
+<a id="figure-21"></a>
 **Figure 2.1: Flowchart of the Ventricular Arrhythmia Classification Process**
 
 ## 2.1 Datasets Collection
@@ -243,6 +244,7 @@ When measuring the amplitude of ECG signals, we used the peak-to-peak amplitude.
 
 ![Detecting peaks in ECG signal for estimating peak-to-peak amplitudes.](images/bafe3665fa89ba09857af5a2532c79fe_img.jpg)
 
+<a id="figure-22"></a>
 **Figure 2.2: Detecting Peaks in ECG Signal for Estimating Peak-to-Peak Amplitudes**  
  The blue dots in the figure are the peaks and the green ones mark the valleys.
 
@@ -267,6 +269,7 @@ During the experiments, we noted that some of the annotations in the original da
 
 Various techniques to recognize ventricular arrhythmias were proposed in existing literature. They could roughly be classified into time-domain features, frequency domain features, spectral analysis features, complexity measure-based features, etc. Table 2.1 summarized the feature sets of different domains adopted in previous similar VF detection researches we have reviewed. Among these features, time domain features and spectral analysis-based features were most frequently used.
 
+<a id="table-21"></a>
 Table 2.1: Features of Different Categories Used in Previous VF Detection Researches
 
 | Year | Authors                   | time domin | frequency domain | complexity | EMD | phase space | others | Total |
@@ -298,6 +301,7 @@ Table 2.1: Features of Different Categories Used in Previous VF Detection Resear
 
 Amann et al. did a review of many well-known features in 2005 [6]. They concluded that among the various features they tested, the best ones worked in the time domain. The spectral parameters utilized the information about energy distribution from within the frequency domain, but did not use phase information. The complexity-based algorithms had a poor performance in the region where specificity  $> 80\%$ . From the viewpoint of a physician, features of different categories had different clinical implications. For example, a high threshold-crossing count in the time domain or a higher peak frequency in the power spectrum actually implied a rapid heart rate. The complexity-based methods, on the other hand, captures the irregularity of VF rhythms, which was also part of the ECG interpretation process of a cardiologist. As different features excelled in various aspects of VF detection, aggregating their results with a machine learning classifier might improve the overall performance. Furthermore, many existing studies focused on binary classification problems which recognized VF only and the simple feature sets they proposed might not be sufficient for a multiclass problem we tried to solve. Therefore, in this study, we extracted 27 features of different domains from each 8-second ECG segment. The extracted features and their characteristics were summarized in Table 2.2.
 
+<a id="table-22"></a>
 Table 2.2: Features Extracted from Each ECG Segment
 
 | Category            | Features                                       | Characteristics                                            | Number |
@@ -317,6 +321,7 @@ Since the ECG signal is a quasi-periodic waveform, the amplitude of the signal v
 
 ![Comparison of threshold crossing-based methods showing TCI, TCSC, and STE thresholds on an ECG segment.](images/fe655d77258397f7242c2df72b965b56_img.jpg)
 
+<a id="figure-23"></a>
 **Figure 2.3: Comparison of Threshold Crossing-Based Methods**
 
 Various threshold-crossing-based algorithms were different mainly in the threshold values chosen. For example, TCI used a positive 20 % threshold, TCSC considered both the positive and negative 20 % thresholds. STE, the standard exponential methods, used a time-varying threshold value based on an exponential curve arising from the maximum peak in the observed window.
@@ -331,6 +336,7 @@ Where N signifies the number of threshold crossing pulses in the one-second segm
 
 ![Threshold Crossing Interval (TCI) calculation diagram showing t1, t2, t3, t4 intervals and N=2 pulses over a 1-second ECG segment with 20% threshold.](images/a0fdaf0b566e05f53f0085cf41e2dbad_img.jpg)
 
+<a id="figure-24"></a>
 **Figure 2.4: Threshold Crossing Interval (TCI) Calculation**
 
 #### Threshold-Crossing Sample Count (TCSC)
@@ -424,6 +430,7 @@ In addition to morphology and other time-domain statistics, it is also possible 
 
 ![Fourier Transform comparison: NSR shows a broad spectrum, VF shows a narrow peak at low frequency.](images/4f90ddf705239c0ca535c91179212420_img.jpg)
 
+<a id="figure-25"></a>
 **Figure 2.5: Fourier Transform of Normal Sinus Rhythm and VF**
 
 The amplitude spectrum on the left side is the Fourier transform of an ECG segment containing NSR. The one on the right side is from a segment with VF. The spectrum of NSR is more broadband.
@@ -529,6 +536,7 @@ To achieve better multiclass classification, we needed some features to distingu
 
 ![EMD steps: original signal, upper/lower envelopes and mean, IMF, and residual — four stacked plots.](images/4203d38ddc712f22bd4d88ca28c7a2af_img.jpg)
 
+<a id="figure-26"></a>
 **Figure 2.6: Steps of Empirical Mode Decomposition**
 
 The first figure is the original signal. In the second step, the upper and lower envelopes and their mean were calculated. In the next step, the first intrinsic mode function (IMF) was obtained by subtracting the mean of envelopes from the original signal. Then, in the last step, the IMF was removed from the original signal and the remaining part was called residual. Repeating these steps for several iterations, the original signal could be decomposed into a set of IMFs.
@@ -601,6 +609,7 @@ The time-delayed method generates a shifted version of the original signal by de
 
 ![Phase space reconstruction: NSR shows a tight column of points; VF shows a chaotic scattered pattern.](images/a387e0c81bfc615ececcd1b55dbf5de4_img.jpg)
 
+<a id="figure-27"></a>
 **Figure 2.7: Phase Space Reconstruction for NSR and VF**
 
 The phase space plot on the left side is generated from an NSR ECG segment, and the other one is from VF.
@@ -621,12 +630,14 @@ Originally named support vector network and proposed by Cortes and Vapnik in 199
 
 ![SVM example: separating hyperplane between triangles and circles, with margin and support vectors indicated.](images/fe6af03ab7804980cff28a06241be192_img.jpg)
 
+<a id="figure-28"></a>
 **Figure 2.8: An Example for Support Vector Machine**
 
 In the real world, not all of the classification problems are natively linearly-separable. Performing non-linear transformation on the features to map them into a higher dimensional space might help in this case. Figure 2.9 is a simple example showing the effect of non-linear transformation. The original problem on the left panel was not linearly-separable. Find a straight line separating the data points of these two different classes in the original space was not possible. However, after transforming the  $x$  and  $y$  to  $x^2$  and  $y^2$ ,
 
 ![Non-linear SVM transformation: left plot not linearly separable in x/y space; right plot linearly separable after mapping to x²/y² space.](images/64aba6d3bacc69b7b90f08e02f2d5efe_img.jpg)
 
+<a id="figure-29"></a>
 **Figure 2.9: An Example of the Effect of Non-linear Transformation**
 
 the binary classification problem became linear-separable.
@@ -723,6 +734,7 @@ Our system was mainly implemented using Python 3.5.1 x86-64. The numerical calcu
 
 Information about the datasets included in this study was summarized in Table 3.1. A total of 84027 non-overlapping ECG segments of 8-second duration from 296 different records were enrolled in our study. The MITDB did not contain any sample of VF. The VFDB had several cases of VF and VT, but as mentioned in section 2, we excluded its VT samples because of lack of beat annotations. The CUDB mainly contained cases of atrial fibrillation (AF), NSR, and VF. Most of the non-shockable rhythms in our dataset came from the EDB. Though the EDB is originally collected for testing the algorithms analyzing ST-T segment changes, it included various types of non-shockable rhythms with complete beat and rhythm annotations, which was also suitable for our application. Last, 86 segments of coarse VF and 47 segments of fine VF along with 11 rapid VT segments were taken from the lead II signal of MGHDB, making our test dataset more diverse. All rhythm types required by the AHA are covered by the dataset we compiled. Other types of non-shockable rhythms not explicitly required by the guideline were also included for completeness.
 
+<a id="table-31"></a>
 Table 3.1: Statistics of the Datasets Included in the Study
 
 | Rhythm type                             | mitdb   |         | vfdb    |         | cudb    |         | edb     |         | mghdb   |         | total   |         |
@@ -760,6 +772,7 @@ As mentioned in section 2.2.4, we tried to manually correct some obvious errors 
 
 In addition to SVM with RBF kernel, we also tested other two linear classifiers linear SVM and the traditional logistic regression, for comparison. Based on the performance metrics suggested by AHA recommendations for AED, the average performance of 100 testing iterations of our machine learning approach was summarized in Table 3.2. A high sensitivity up to 93.21 % for detecting the shockable rhythms, namely VF and rapid VT, was achieved while preserving good precision (89.28 %). That means, out of all the shock decisions made by the algorithm, about 90 % were correct. As summarized in Table 1.1, the AHA guideline for AED set up minimal requirements for the sensitivity of coarse VF and rapid VT rhythms, which were at least 90 % and 75 %, respectively. Also, for patient safety, a high specificity was required for the non-shockable rhythms. In our tests, the performance of our machine learning approaches exceeded these requirements. There were no performance goals for the intermediate rhythms. We reported them along with the detailed performance metrics of the multiclass classification in Table 3.3.
 
+<a id="table-32"></a>
 Table 3.2: Performance for Making the Shock/No-shock Decision Based on the Recommendations of the AHA
 
 |                                         | SVM-RBF, % | SVM-linear, % | Logistic regression, % | AHA Requirement, % |
@@ -792,6 +805,7 @@ Table 3.2: Performance for Making the Shock/No-shock Decision Based on the Recom
 
 SVM-RBF is SVM classifier with RBF (or Gaussian) kernel. SVM-linear is SVM classifier using a linear kernel function. The numbers presented in this table are all percentages.
 
+<a id="table-33"></a>
 Table 3.3: Detailed Performance Report of the Multiclass Classification Tests
 
 |                          | SVM-RBF, % | SVM-linear, % | Logistic Regression, % |
@@ -828,6 +842,7 @@ The results in Table 3.2 and Table 3.3 revealed that most of the instances of sh
 
 During the 100 testing iterations, 39 out of the all 83204 samples were always wrongly classified by our algorithm every time. We herein focused on the analysis of these cases. The detailed results were presented in Table 4.1.
 
+<a id="table-41"></a>
 Table 4.1: Detailed Analysis for the ECG Samples with Most Frequent Prediction Errors
 
 | Record               | Time     | Rhythm       | Predicted     | Possibly Reasons for the Error                                                         |
@@ -879,6 +894,7 @@ Table 4.1: Detailed Analysis for the ECG Samples with Most Frequent Prediction E
 
 From the above detailed error analysis, we summarized the common causes of classification errors in Table 4.2.
 
+<a id="table-42"></a>
 Table 4.2: Common Causes of Classification Errors
 
 | Cause |
@@ -894,6 +910,7 @@ Low-frequency noise or severe baseline wanders could break frequency-domain feat
 
 ![Four-panel ECG analysis: before preprocessing (severe baseline drift), DFT spectrum (low-freq dominant peak), after preprocessing (centered), and phase space (heart-shaped cluster).](images/d8ae429dbbb83bc00403ffa8630df1ff_img.jpg)
 
+<a id="figure-41"></a>
 **Figure 4.1: Severe Baseline Wander Could Break Frequency Domain Features**
 
 Large variations in amplitudes happened when the ECG segment contained several PVCs at different points or some high spikes of artifacts. Severe baseline wander with imperfect filtering might also cause this condition. Methods relying on threshold crossing were affected by large variations in amplitudes since the threshold was either determined by a fixed percentage of the maximum or by some statistics based on the mean and standard deviation, like the auxiliary counts. To overcome this problem, when calculating these features, the average of multiple values calculated using a moving window was used, but this could not eliminate all of the errors. The Lempel-Ziv complexity feature might also be affected since the procedure converting the ECG signal to a binary sequence also relied on a threshold crossing mechanism.
@@ -902,12 +919,14 @@ Different from the case in low-frequency noise, high-frequency noise mainly affe
 
 ![Four-panel: high-frequency noisy ECG before preprocessing, DFT with peak at 45 Hz, cleaned ECG, and chaotic phase space plot.](images/4af0349328e735d480210fe9a3e595cb_img.jpg)
 
+<a id="figure-42"></a>
 **Figure 4.2: High-Frequency Noises Increased Randomness of the Signal and Could Make Non-shockable Rhythms Look Like VF**
 
 On the contrary, severe high-frequency noise might also make VF mimicking NSR in the frequency domain by making it a broad-band signal as shown in Figure 4.3.
 
 ![Four-panel: noisy VF ECG, broad DFT spectrum with 80 Hz peak, normalized ECG, and elliptical phase space plot — VF mimicking NSR due to high-freq noise.](images/c772a48faa2cb17e1bf2a86ad057b4c9_img.jpg)
 
+<a id="figure-43"></a>
 **Figure 4.3: High-Frequency Noises and Artifacts Might Make a VF Rhythm Broad-band, Mimicking NSR in the Frequency Domain**
 
 Though belonging to different classes, coarse VF and fine VF were merely different in their amplitudes. After normalization of the signal, there was no way to distinguish them based solely on morphology. We have included the amplitude in the feature set to capture this difference, but in some borderline cases whose amplitude were around the 0.2 mV cut-off, it could either be classified as shockable or as intermediate.
@@ -916,12 +935,14 @@ The ECG databases used in this study were also widely used in previous researche
 
 ![Four-panel: ECG from VFDB record 418 annotated as NSR but showing ventricular arrhythmia morphology — before/after preprocessing, DFT, and phase space.](images/33d66c42e2c44378aaab641502989484_img.jpg)
 
+<a id="figure-44"></a>
 **Figure 4.4: An ECG Segment with Ventricular Arrhythmia was Wrongly Marked as NSR in the Original Dataset**
 
 Moreover, there were some rhythms which natively have a VF/VT-like morphology. For instance, supraventricular tachycardia (SVT) and atrial fibrillation (AF) are arrhythmias with rapid heart rates. When they coexisted with widened QRS complexes due to aberrancy of conduction, as shown in Figure 4.5, it could be hard even for human eyes to distinguish them from VT [1]. This kind of error was inevitable sometimes.
 
 ![ECG trace: Atrial Fibrillation with pre-existing Left Bundle Branch Block, mimicking VT morphology.](images/a4cb63f5debf833e6069e99143a2b624_img.jpg)
 
+<a id="figure-45"></a>
 **Figure 4.5: Atrial Fibrillation with Pre-existing Left Bundle Branch Block Might Mimic VT**
 
 The ECG image was by courtesy of Dean Jenkins and Stephen Gerred (<http://www.ecglibrary.com/>).
@@ -952,6 +973,7 @@ The author of this thesis already tried hard to improve the correctness of the d
 
 Furthermore, the AHA guideline had minimal requirements for sample numbers of some important rhythm types when testing the algorithms using an ECG dataset. Table 4.3 summarized the sample numbers and patient numbers of each rhythm class in our study.
 
+<a id="table-43"></a>
 Table 4.3: Insufficient Patient Numbers
 
 |                                                 | Samples | Patients | AHA requirement |
