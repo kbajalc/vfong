@@ -69,7 +69,7 @@ algo/
 
 ---
 
-## Phase 1 — API definition and stub implementations  *(current)*
+## Phase 1 — API definition and stub implementations  *(complete)*
 
 **Deliverables:**
 - `types.py` fully defined: `SegmentConfig`, `PreprocessedSignal`, `Features` (all 27
@@ -94,7 +94,7 @@ assert len(f.to_array()) == 27
 
 ---
 
-## Phase 2 — Difficulty assessment and library selection  *(current)*
+## Phase 2 — Difficulty assessment and library selection  *(complete)*
 
 ### Critical corrections to earlier documentation
 
@@ -308,7 +308,40 @@ The algo/ package follows the **code**, not the docs.
 
 ---
 
-## Phase 3 — Testing strategy
+## Phase 3 — Feature implementation  *(complete)*
+
+All 27 features are implemented across three difficulty groups:
+
+| Group | Files | Key implementation notes |
+|-------|-------|--------------------------|
+| Easy | `preprocessing.py`, `tcsc.py`, `ste.py`, `psr.py`, `hilbert.py`, `spectral_fm.py`, `mav.py` | Pure numpy/scipy, direct translations |
+| Medium | `amplitude.py`, `tci.py`, `mea.py`, `vf_leak.py`, `spectral_m.py`, `spectral_a2.py`, `lz.py`, `sample_entropy.py`, `_count_helpers.py`, `count1.py`, `count2.py`, `count3.py` | Custom IIR, adaptive LZ threshold, pyeeg SpEn replicated exactly |
+| Hard | `imf_lz.py`, `qrs_features.py` | ptsa EMD + 12-bit MSB-first LZ encoding; QRS detector protocol |
+
+### Known limitations and gotchas for testing
+
+1. **LZ is pure Python** — O(n²) substring search; expect ~seconds per segment at 2000 samples.
+   Can be accelerated with a bytes-based approach if needed.
+
+2. **IMF LZ requires `ptsa`** — bundled in the repo at `ptsa/ptsa/emd.py`.  Falls back to
+   all-zeros if the import fails.  `ptsa.emd` and `PyEMD` may produce slightly different IMFs
+   (different sifting stopping criteria); test against the reference to confirm agreement.
+
+3. **QRS features assume native-SR sample indices** — `sig.sampling_rate` is used as the
+   divisor.  The reference OSEA detector resamples to 200 Hz internally and returns indices
+   at that rate (divides by 200 hardcoded).  An `OseaDetector` wrapper must convert beat
+   indices back to native SR before returning, or a 200 Hz override is needed.
+
+4. **IMF normalisation uses `/max`, not `/range`** — `imf_lz.py` normalises as
+   `(s − min(s)) / max(s)`, matching the reference exactly (division by max, not
+   `max − min`).  This differs from the main preprocessing normalisation.
+
+5. **Count1–3 loop step stays at original `sampling_rate` after resampling to 250 Hz** —
+   faithful replication of the reference quirk; irrelevant when input is already 250 Hz.
+
+---
+
+## Phase 4 — Testing strategy  *(next)*
 
 Each feature needs a numerical agreement test against the reference Cython implementation.
 
@@ -334,25 +367,24 @@ Each feature needs a numerical agreement test against the reference Cython imple
 
 ---
 
-## Phase 4+ — Feature implementation (one PR per module)
+## Phase 5+ — Optimisation and integration
 
-Order of implementation (easy → hard):
-1. amplitude, count1–3, mav (trivial numpy)
-2. lz, ste, mea (simple signal processing)
-3. vf_leak, spectral_m, spectral_a2, spectral_fm (FFT-based)
-4. tcsc, tci (windowed threshold crossing)
-5. psr, hilbert (phase-space)
-6. sample_entropy (port from pyeeg or use antropy)
-7. imf_lz (requires EMD library integration)
-8. qrs_features (requires QRS detector decision and validation)
+Candidates for follow-up:
+- Replace pure-Python LZ with a `bytes`-based or Cython port if speed is a bottleneck
+- Validate `ptsa.emd` vs `PyEMD` on the test segments; switch if PTSA diverges
+- Add `OseaDetector` / `NeuroKitDetector` concrete classes outside `algo/` for QRS
+- Wire `algo/extract.py` into the main `feature_extraction.py` driver as an optional backend
 
 ---
 
 ## Open decisions
 
-- [ ] **QRS detector**: neurokit2 vs wfdb-python XQRS vs biosppy vs pure Pan-Tompkins port?
-      Decision deferred to Phase 2 assessment.
-- [ ] **EMD library**: bundled PTSA vs `PyEMD` (pip-installable, actively maintained)?
-      PTSA is already in the repo; PyEMD is cleaner. Decide in Phase 2.
-- [ ] **antropy vs manual**: `antropy` provides `lziv_complexity` and `sample_entropy`;
-      verify they match the reference implementation's specific parameter choices.
+- [x] **EMD library**: chose bundled **PTSA** (`ptsa/ptsa/emd.py`) — no pip dependency,
+      matches the reference.  PyEMD is a drop-in fallback if PTSA proves inaccurate.
+- [x] **Sample entropy**: replicated **pyeeg** directly in `sample_entropy.py` — no
+      `antropy` dependency; exact match with the reference is guaranteed.
+- [ ] **QRS detector**: still open.  `neurokit2` gives beat positions but not N/V/Q labels.
+      `wfdb.processing.xqrs_detect` is WFDB-native.  Neither replicates OSEA's
+      classification scheme.  Validate against OSEA reference before deciding.
+- [ ] **LZ speed**: pure-Python implementation is correct but slow (~seconds/segment).
+      Profile on the full dataset before deciding whether a C/Cython port is needed.
