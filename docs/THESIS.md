@@ -1013,7 +1013,6 @@ From the perspective of a physician, the machine learning algorithm seemed to pe
 As discussed in previous sections, the freely available ECG datasets widely used in ECG researches were not diverse enough and contained inadequate patient numbers for some rhythm types, had unbalanced distributions, and the quality of annotations varied. Also, the demographic data of the patients included, such as their age, gender, underlying diseases, ...etc., were not available in these databases, but the information is important when examining whether the testing environment is close to clinical setting or not. A more standard compliant ECG database recorded from actual AED devices in various clinical settings might greatly help the advances of the researches in this field. At the time of this writing, however, such a database does not exist. Therefore the author of this thesis tried to collect the best parts of existing free public ECG databases and carefully corrected some of the errors in them. We hope that our hard work could approximate a slightly more standard-compliant testing environment which might be used in future researches as a benchmark for AED algorithms, helping other researchers in this field.
 
 # References
-
 - [1] B. J. Aehlert. *ECGs Made Easy*. Elsevier Health Sciences, 5th edition, 2015.
 - [2] F. Alonso-Atienza, E. Morgado, L. Fernández-Martínez, A. García-Alberola, and J. Rojo-Álvarez. Combination of eeg parameters with support vector machines for the detection of life-threatening arrhythmias. In *2012 Computing in Cardiology*, pages 385–388, Sept 2012.
 - [3] F. Alonso-Atienza, E. Morgado, L. Fernández-Martínez, A. García-Alberola, and J. L. Rojo-Álvarez. Detection of life-threatening arrhythmias using feature selection and support vector machines. *IEEE Trans. Biomed. Eng.*, 61(3):832–840, March 2014.
@@ -1021,7 +1020,6 @@ As discussed in previous sections, the freely available ECG datasets widely used
 - [5] A. Amann, R. Tratnig, and K. Unterkofler. A new ventricular fibrillation detection algorithm for automated external defibrillators. In *Computers in Cardiology, 2005*, pages 559–562, Sept 2005.
 - [6] A. Amann, R. Tratnig, and K. Unterkofler. Reliability of old and new ventricular fibrillation detection algorithms for automated external defibrillators. *Biomed. Eng. Online*, 4(1):1–15, 2005.
 - [7] A. Amann, R. Tratnig, and K. Unterkofler. Detecting ventricular fibrillation by time-delay methods. *IEEE Trans. Biomed. Eng.*, 54(1):174–177, Jan 2007.
-
 - [8] E. M. Anas, S. Y. Lee, and M. K. Hasan. Sequential algorithm for life threatening cardiac pathologies detection based on mean signal strength and EMD functions. *Biomed. Eng. Online*, 9:43, 2010.
 - [9] M. A. Arafat, A. W. Chowdhury, and M. K. Hasan. A simple time domain algorithm for the detection of ventricular fibrillation in electrocardiogram. *SIViP*, 5(1):1–10, 2011.
 - [10] S. Barro, R. Ruiz, D. Cabello, and J. Mira. Algorithmic sequential decision-making in the frequency domain for life threatening ventricular arrhythmias and imitative artefacts: a diagnostic system. *J. Biomed. Eng.*, 11(4):320 – 328, 1989.
@@ -1032,25 +1030,15 @@ As discussed in previous sections, the freely available ECG datasets widely used
 - [15] R. Dzwonczyk, C. G. Brown, and H. A. Werman. The median frequency of the ecg during ventricular fibrillation: its use in an algorithm for estimating the duration of cardiac arrest. *IEEE Trans. Biomed. Eng.*, 37(6):640–646, June 1990.
 - [16] M. Elgendy, B. Eskofier, S. Dokos, and D. Abbott. Revisiting qrs detection methodologies for portable, wearable, battery-operated, and wireless ecg systems. *PLoS One*, 9(1):1–18, 01 2014.
 - [17] A. L. Goldberger, L. A. N. Amaral, L. Glass, J. M. Hausdorff, P. C. Ivanov, R. G. Mark, J. E. Mietus, G. B. Moody, C.-K. Peng, and H. E. Stanley. Physiobank, physiotoolkit, and physionet: Components of a new research resource for complex physiologic signals. *Circulation*, 101(23):e215–e220, 2000.
-
-[18] L. Goldman and A. I. Schafer, editors. *Goldman-Cecil Medicine*. Saunders, an imprint of Elsevier Inc., 25th edition, 2016.
-
-[19] P. S. Hamilton. E.p. limited: Open source ecg analysis software.
-
-[20] C.-W. Hsu and C.-J. Lin. A comparison of methods for multiclass support vector machines. *IEEE Trans. Neural Networks*, 13(2):415–425, Mar 2002.
-
-[21] N. E. Huang, Z. Shen, S. R. Long, M. C. Wu, H. H. Shih, Q. Zheng, N.-C. Yen, C. C. Tung, and H. H. Liu. The empirical mode decomposition and the hilbert spectrum for nonlinear and non-stationary time series analysis. *Proc. R. Soc. A*, 454(1971):903–995, 1998.
-
-[22] I. Jekova. Shock advisory tool: Detection of life-threatening cardiac arrhythmias and shock success prediction by means of a common parameter set. *Biomed. Signal Process. Control*, 2(1):25 – 33, 2007.
-
-[23] I. Jekova and V. Krasteva. Real time detection of ventricular fibrillation and tachycardia. *Physiol. Meas.*, 25(5):1167, 2004.
-
-[24] I. Jekova and P. Mitev. Detection of ventricular fibrillation and tachycardia from the surface ECG by a set of parameters acquired from four methods. *Physiol. Meas.*, 23(4):629–634, Nov 2002.
-
-[25] S. JS and M. WH. Recalls and safety alerts affecting automated external defibrillators. *JAMA*, 296(6):655–660, 2006.
-
-[26] V. Kalidas and L. S. Tamil. Enhancing accuracy of arrhythmia classification by combining logical and machine learning techniques. In *2015 Computing in Cardiology Conference (CinC)*, pages 733–736, Sept 2015.
-
+- [18] L. Goldman and A. I. Schafer, editors. *Goldman-Cecil Medicine*. Saunders, an imprint of Elsevier Inc., 25th edition, 2016.
+- [19] P. S. Hamilton. E.p. limited: Open source ecg analysis software.
+- [20] C.-W. Hsu and C.-J. Lin. A comparison of methods for multiclass support vector machines. *IEEE Trans. Neural Networks*, 13(2):415–425, Mar 2002.
+- [21] N. E. Huang, Z. Shen, S. R. Long, M. C. Wu, H. H. Shih, Q. Zheng, N.-C. Yen, C. C. Tung, and H. H. Liu. The empirical mode decomposition and the hilbert spectrum for nonlinear and non-stationary time series analysis. *Proc. R. Soc. A*, 454(1971):903–995, 1998.
+- [22] I. Jekova. Shock advisory tool: Detection of life-threatening cardiac arrhythmias and shock success prediction by means of a common parameter set. *Biomed. Signal Process. Control*, 2(1):25 – 33, 2007.
+- [23] I. Jekova and V. Krasteva. Real time detection of ventricular fibrillation and tachycardia. *Physiol. Meas.*, 25(5):1167, 2004.
+- [24] I. Jekova and P. Mitev. Detection of ventricular fibrillation and tachycardia from the surface ECG by a set of parameters acquired from four methods. *Physiol. Meas.*, 23(4):629–634, Nov 2002.
+- [25] S. JS and M. WH. Recalls and safety alerts affecting automated external defibrillators. *JAMA*, 296(6):655–660, 2006.
+- [26] V. Kalidas and L. S. Tamil. Enhancing accuracy of arrhythmia classification by combining logical and machine learning techniques. In *2015 Computing in Cardiology Conference (CinC)*, pages 733–736, Sept 2015.
 - [27] J. S. Karthika, J. M. Thomas, and J. J. Kizhakkekkottam. Detection of life-threatening arrhythmias using temporal, spectral and wavelet features. In *2015 IEEE International Conference on Computational Intelligence and Computing Research (ICCIC)*, pages 1–4, Dec 2015.
 - [28] R. E. Kerber, L. B. Becker, J. D. Bourland, R. O. Cummins, A. P. Hallstrom, M. B. Michos, G. Nichol, J. P. Ornato, W. H. Thies, R. D. White, B. D. Zuckerman, and M. E. by the Board of Trustees of the American College of Cardiology. Automatic external defibrillators for public access defibrillation: Recommendations for specifying and reporting arrhythmia analysis algorithm performance, incorporating new waveforms, and enhancing safety: A statement for health professionals from the american heart association task force on automatic external defibrillation, subcommittee on aed safety and efficacy. *Circulation*, 95(6):1677–1682, 1997.
 - [29] S. Kuo and R. Dillman. Computer detection of ventricular fibrillation. *Proc. Computers in Cardiology*, 1978.
@@ -1059,7 +1047,6 @@ As discussed in previous sections, the freely available ECG datasets widely used
 - [32] H. Li, W. Han, C. Hu, and M. Q. H. Meng. Detecting ventricular fibrillation by fast algorithm of dynamic sample entropy. In *Robotics and Biomimetics (ROBIO), 2009 IEEE International Conference on*, pages 1105–1110, Dec 2009.
 - [33] Q. Li, C. Rajagopalan, and G. D. Clifford. Ventricular fibrillation and tachycardia classification using a machine learning approach. *IEEE Trans. Biomed. Eng.*, 61(6):1607–1613, June 2014.
 - [34] B. LOWN and M. WOLF. Approaches to sudden death from coronary heart disease. *Circulation*, 44(1):130–142, 1971.
-
 - [35] T. J. Mader, B. H. Nathanson, S. Millay, R. A. Coute, M. Clapp, and B. McNally. Out-of-hospital cardiac arrest outcomes stratified by rhythm analysis. *Resuscitation*, 83(11):1358 – 1362, 2012.
 - [36] C. D. Manning, P. Raghavan, and H. Schütze. *Introduction to Information Retrieval*. Cambridge University Press, New York, NY, USA, 2008.
 - [37] B. McNally, R. Robb, M. Mehta, K. Vellano, A. L. Valderrama, P. W. Yoon, C. Sas-son, A. Crouch, A. B. Perez, R. Merritt, and A. Kellermann. Out-of-hospital cardiac arrest surveillance — Cardiac Arrest Registry to Enhance Survival (CARES), United States, October 1, 2005–December 31, 2010. *MMWR Surveill. Summ.*, 60(8):1–19, Jul 2011.
@@ -1068,7 +1055,6 @@ As discussed in previous sections, the freely available ECG datasets widely used
 - [40] T. Nishiyama, A. Nishiyama, M. Negishi, S. Kashimura, Y. Katsumata, T. Kimura, N. Nishiyama, Y. Tanimoto, Y. Aizawa, H. Mitamura, K. Fukuda, and S. Takatsuki. Diagnostic accuracy of commercially available automated external defibrillators. *J. Am. Heart. Assoc.*, 4(12), 2015.
 - [41] J. Pardey. Detection of ventricular fibrillation by sequential hypothesis testing of binary sequences. In *2007 Computers in Cardiology*, pages 573–576, Sept 2007.
 - [42] S. M. Pincus. Approximate entropy as a measure of system complexity. *Proc. Natl. Acad. Sci. U.S.A.*, 88(6):2297–2301, Mar 1991.
-
 - [43] M. Sansone, R. Fusco, A. Pepino, and C. Sansone. Electrocardiogram pattern recognition and analysis based on artificial neural networks and support vector machines: a review. *J Healthc Eng*, 4(4):465–504, 2013.
 - [44] N. V. Thakor, Y. S. Zhu, and K. Y. Pan. Ventricular tachycardia and fibrillation detection by a sequential hypothesis testing algorithm. *IEEE Trans. Biomed. Eng.*, 37(9):837–843, Sept 1990.
 - [45] The Public Access Defibrillation Trial Investigators. Public-access defibrillation and survival after out-of-hospital cardiac arrest. *N. Engl. J. Med.*, 351(7):637–646, 2004. PMID: 15306665.
