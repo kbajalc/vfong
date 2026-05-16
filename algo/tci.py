@@ -26,7 +26,8 @@ def compute_tci(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration.
+        Extraction configuration — uses ``cfg.threshold`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------

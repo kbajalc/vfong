@@ -24,7 +24,7 @@ def compute_spectral_a2(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.sampling_rate``).
+        Extraction configuration — uses ``cfg.signal.sampling_rate``.
 
     Returns
     -------

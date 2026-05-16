@@ -2,64 +2,87 @@
 Shared data types for the algo/ feature extraction package.
 """
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
-from typing import Protocol, runtime_checkable
+from typing import ClassVar, Protocol, runtime_checkable
 
 import numpy as np
 
 
 # ---------------------------------------------------------------------------
-# Configuration
+# Configuration — one sub-config per concern
 # ---------------------------------------------------------------------------
 
 @dataclass
-class SegmentConfig:
-    """All parameters that govern feature extraction for one 8-second segment.
+class SignalConfig:
+    """Physical signal properties and preprocessing filter parameters."""
+    sampling_rate: float = 250.0    # Hz — must match the actual recording
+    highpass_hz: float = 0.5        # drift-suppression high-pass cutoff
+    lowpass_hz: float = 30.0        # anti-alias low-pass cutoff
+    moving_avg_order: int = 5       # moving-average smoothing kernel size
 
-    Defaults match the reference implementation in vf_features.pyx exactly.
-    """
-    # Signal
-    sampling_rate: float = 250.0        # Hz — must reflect the actual recording rate
 
-    # Preprocessing
-    highpass_hz: float = 0.5            # drift-suppression high-pass cutoff
-    lowpass_hz: float = 30.0            # anti-alias low-pass cutoff
-    moving_avg_order: int = 5           # moving-average smoothing order
-
+@dataclass
+class ThresholdConfig:
+    """Parameters for threshold-crossing features: TCSC [0] and TCI [1]."""
     # TCSC [0]
     tcsc_threshold_pct: float = 0.20    # ±20 % of peak-to-peak amplitude
-    tcsc_window_sec: float = 3.0        # moving window length
-    tcsc_step_sec: float = 1.0          # window step
+    tcsc_window_sec: float = 3.0        # Tukey-windowed sub-window length
+    tcsc_step_sec: float = 1.0          # sub-window step
 
     # TCI [1]
     tci_threshold_pct: float = 0.20     # 20 % of peak-to-peak amplitude
     tci_window_sec: float = 1.0         # 1-second analysis windows
 
-    # STE [2]
-    ste_tau_sec: float = 3.0            # exponential decay time constant
 
-    # MEA [3]
-    mea_tau_sec: float = 0.2            # exponential decay time constant
+@dataclass
+class EnergyConfig:
+    """Parameters for energy-envelope features: STE [2], MEA [3], MAV [12]."""
+    ste_tau_sec: float = 3.0        # STE exponential decay time constant
+    mea_tau_sec: float = 0.2        # MEA exponential decay time constant
+    mav_window_sec: float = 2.0     # MAV sliding window length
 
-    # PSR [4] and HILB [5]
-    psr_delay_sec: float = 0.5          # time-delay embedding delay
-    psr_grid_size: int = 40             # N×N phase-space grid
 
-    # MAV [12]
-    mav_window_sec: float = 2.0         # sliding window length
+@dataclass
+class PhaseSpaceConfig:
+    """Parameters for phase-space features: PSR [4] and HILB [5]."""
+    delay_sec: float = 0.5          # time-delay embedding lag
+    grid_size: int = 40             # N×N occupancy grid (both axes)
 
-    # Count1–3 [13–15] and SpEn [11] — require 250 Hz; signal is resampled if needed
-    count_target_rate: float = 250.0
+
+@dataclass
+class ComplexityConfig:
+    """Parameters for complexity and count features: LZ [10], SpEn [11], Count1–3 [13–15].
+
+    Count1–3 and SpEn require 250 Hz; the signal is resampled to
+    ``resample_rate`` before computing these features.
+    """
+    resample_rate: float = 250.0    # target rate for count and SpEn features
 
     # SpEn [11]
-    spen_duration_sec: float = 5.0      # use last 5 s of segment
-    spen_m: int = 2                     # embedding dimension
-    spen_r: float = 0.2                 # tolerance (fraction of std)
+    spen_duration_sec: float = 5.0  # use last N seconds of segment
+    spen_m: int = 2                 # embedding dimension
+    spen_r: float = 0.2             # tolerance as fraction of signal std
 
-    # Asystole gate — used upstream, not inside algo/
-    asystole_threshold_mv: float = 0.15
+
+@dataclass
+class SegmentConfig:
+    """Top-level configuration for one 8-second ECG segment.
+
+    Compose sub-configs to override specific sections::
+
+        cfg = SegmentConfig(
+            signal=SignalConfig(sampling_rate=360.0),
+            phase_space=PhaseSpaceConfig(grid_size=64),
+        )
+
+    All defaults match the reference Cython implementation (vf_features.pyx)
+    exactly.
+    """
+    signal: SignalConfig = field(default_factory=SignalConfig)
+    threshold: ThresholdConfig = field(default_factory=ThresholdConfig)
+    energy: EnergyConfig = field(default_factory=EnergyConfig)
+    phase_space: PhaseSpaceConfig = field(default_factory=PhaseSpaceConfig)
+    complexity: ComplexityConfig = field(default_factory=ComplexityConfig)
 
 
 # ---------------------------------------------------------------------------
@@ -70,14 +93,19 @@ class SegmentConfig:
 class PreprocessedSignal:
     """Output of the preprocessing pipeline.
 
-    Carries both forms of the signal that downstream feature extractors need:
-    - ``raw_mv``: after ADC→mV conversion only — used by amplitude [16]
-    - ``processed``: fully conditioned (drift-suppressed, normalised, filtered,
-      smoothed) — used by all other features
+    Carries both signal forms that downstream extractors need:
+
+    ``raw_mv``
+        After ADC→mV conversion only, before normalisation.
+        Used by: amplitude [16], QRS detector input [22–26].
+    ``processed``
+        Fully conditioned: drift-suppressed, std-normalised, low-pass filtered,
+        moving-average smoothed.
+        Used by: all other features.
     """
-    raw_mv: np.ndarray          # shape (N,), float64, millivolts, un-normalised
-    processed: np.ndarray       # shape (N,), float64, normalised + filtered
-    sampling_rate: float        # Hz (may differ from SegmentConfig if resampled)
+    raw_mv: np.ndarray      # shape (N,), float64, millivolts, un-normalised
+    processed: np.ndarray   # shape (N,), float64, normalised + filtered
+    sampling_rate: float    # Hz — from SignalConfig.sampling_rate
 
 
 # ---------------------------------------------------------------------------
@@ -88,11 +116,13 @@ class PreprocessedSignal:
 class Features:
     """All 27 features for one 8-second ECG segment.
 
-    Field names and index order match the canonical ordering in CLAUDE.md:
-      TCSC(0) TCI(1) STE(2) MEA(3) PSR(4) HILB(5) VF(6) M(7) A2(8) FM(9)
-      LZ(10) SpEn(11) MAV(12) Count1(13) Count2(14) Count3(15)
-      Amplitude(16) IMF1_LZ(17)…IMF5_LZ(21) RR(22) RR_Std(23) RR_CV(24)
-      UR(25) VR(26)
+    Field names and index order match the canonical ordering in CLAUDE.md::
+
+      TCSC(0) TCI(1) STE(2) MEA(3) PSR(4) HILB(5)
+      VF(6) M(7) A2(8) FM(9) LZ(10) SpEn(11)
+      MAV(12) Count1(13) Count2(14) Count3(15) Amplitude(16)
+      IMF1_LZ(17) IMF2_LZ(18) IMF3_LZ(19) IMF4_LZ(20) IMF5_LZ(21)
+      RR(22) RR_Std(23) RR_CV(24) UR(25) VR(26)
     """
     # --- Time domain ---
     tcsc: float = 0.0           # [0]  Threshold Crossing Sample Count
@@ -129,6 +159,17 @@ class Features:
     ur: float = 0.0             # [25] Unknown-beat ratio
     vr: float = 0.0             # [26] VPC-beat ratio
 
+    NAMES: ClassVar[tuple[str, ...]] = (
+        "tcsc", "tci", "ste", "mea",
+        "psr", "hilb",
+        "vf_leak", "m", "a2", "fm",
+        "lz", "spen",
+        "mav", "count1", "count2", "count3",
+        "amplitude",
+        "imf1_lz", "imf2_lz", "imf3_lz", "imf4_lz", "imf5_lz",
+        "rr", "rr_std", "rr_cv", "ur", "vr",
+    )
+
     def to_array(self) -> np.ndarray:
         """Return all 27 features as a float64 array in canonical index order."""
         return np.array([
@@ -142,17 +183,6 @@ class Features:
             self.rr, self.rr_std, self.rr_cv, self.ur, self.vr,
         ], dtype=np.float64)
 
-    NAMES: tuple[str, ...] = field(default_factory=lambda: (
-        "tcsc", "tci", "ste", "mea",
-        "psr", "hilb",
-        "vf_leak", "m", "a2", "fm",
-        "lz", "spen",
-        "mav", "count1", "count2", "count3",
-        "amplitude",
-        "imf1_lz", "imf2_lz", "imf3_lz", "imf4_lz", "imf5_lz",
-        "rr", "rr_std", "rr_cv", "ur", "vr",
-    ))
-
 
 # ---------------------------------------------------------------------------
 # QRS detector protocol
@@ -162,9 +192,9 @@ class Features:
 class QRSDetector(Protocol):
     """Interface for any QRS detector used by qrs_features.py.
 
-    Implementations:
-    - OseaDetector  — wraps the original C OSEA library via ctypes (reference)
-    - NeuroKitDetector — pure Python via neurokit2 (production replacement)
+    Concrete implementations (not in this package):
+    - ``OseaDetector``      — wraps the C OSEA library; used as reference
+    - ``NeuroKitDetector``  — pure Python via neurokit2; production replacement
     """
 
     def detect(
@@ -177,14 +207,14 @@ class QRSDetector(Protocol):
         Parameters
         ----------
         signal_mv:
-            ECG signal in millivolts, raw (un-normalised).
+            Raw (un-normalised) ECG in millivolts.
         sampling_rate:
             Samples per second.
 
         Returns
         -------
-        List of ``(sample_index, beat_type)`` tuples in ascending sample order.
+        list of (sample_index, beat_type) tuples, ascending by sample_index.
         Beat types follow OSEA convention: ``'N'`` normal, ``'V'`` VPC,
-        ``'Q'`` unknown/unclassified, etc.
+        ``'Q'`` unknown/unclassified.
         """
         ...

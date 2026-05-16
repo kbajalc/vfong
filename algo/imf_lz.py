@@ -31,7 +31,7 @@ def compute_imf_lz(
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.sampling_rate``).
+        Extraction configuration — uses ``cfg.signal.sampling_rate``.
 
     Returns
     -------

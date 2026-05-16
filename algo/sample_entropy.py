@@ -24,8 +24,8 @@ def compute_sample_entropy(sig: PreprocessedSignal, cfg: SegmentConfig) -> float
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.spen_duration_sec``, ``cfg.spen_m``,
-        ``cfg.spen_r``, ``cfg.count_target_rate``).
+        Extraction configuration — uses ``cfg.complexity`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------

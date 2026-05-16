@@ -36,7 +36,7 @@ def compute_qrs_features(
     sig:
         Preprocessed signal — uses ``sig.raw_mv`` (detector needs raw signal).
     cfg:
-        Extraction configuration (``cfg.sampling_rate``).
+        Extraction configuration — uses ``cfg.signal.sampling_rate``.
     detector:
         Any object satisfying the ``QRSDetector`` protocol.
 

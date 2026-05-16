@@ -24,7 +24,7 @@ def compute_hilbert(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.psr_grid_size``).
+        Extraction configuration — uses ``cfg.phase_space.grid_size``.
 
     Returns
     -------

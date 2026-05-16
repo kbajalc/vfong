@@ -24,7 +24,8 @@ def compute_ste(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.ste_tau_sec``).
+        Extraction configuration — uses ``cfg.energy.ste_tau_sec`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------

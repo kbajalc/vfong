@@ -24,7 +24,8 @@ def compute_mea(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.mea_tau_sec``).
+        Extraction configuration — uses ``cfg.energy.mea_tau_sec`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------

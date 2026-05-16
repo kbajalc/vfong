@@ -24,7 +24,8 @@ def compute_count3(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.count_target_rate``).
+        Extraction configuration — uses ``cfg.complexity.resample_rate`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------

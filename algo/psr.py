@@ -24,7 +24,8 @@ def compute_psr(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.psr_delay_sec``, ``cfg.psr_grid_size``).
+        Extraction configuration — uses ``cfg.phase_space`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------

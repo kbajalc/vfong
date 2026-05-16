@@ -32,7 +32,7 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
         1-D float64 array of signal samples already converted to millivolts.
         Length should be ``cfg.sampling_rate * 8`` for an 8-second segment.
     cfg:
-        Extraction configuration (filter cutoffs, smoothing order, …).
+        Extraction configuration — uses ``cfg.signal``.
 
     Returns
     -------
@@ -43,13 +43,13 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
     # --- STUB ---
     # TODO: implement the five-step pipeline using scipy.signal
     #   Step 1: signal_mv - signal_mv.mean()
-    #   Step 2: scipy.signal.butter + filtfilt (highpass at cfg.highpass_hz)
+    #   Step 2: scipy.signal.butter + filtfilt (highpass at cfg.signal.highpass_hz)
     #   Step 3: / np.std(...)
-    #   Step 4: scipy.signal.butter + filtfilt (lowpass at cfg.lowpass_hz)
-    #   Step 5: np.convolve with ones(cfg.moving_avg_order) / cfg.moving_avg_order
+    #   Step 4: scipy.signal.butter + filtfilt (lowpass at cfg.signal.lowpass_hz)
+    #   Step 5: np.convolve with ones(cfg.signal.moving_avg_order) / order
     processed = np.zeros_like(signal_mv)
     return PreprocessedSignal(
         raw_mv=signal_mv.copy(),
         processed=processed,
-        sampling_rate=cfg.sampling_rate,
+        sampling_rate=cfg.signal.sampling_rate,
     )

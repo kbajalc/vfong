@@ -23,7 +23,8 @@ def compute_mav(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Extraction configuration (``cfg.mav_window_sec``).
+        Extraction configuration — uses ``cfg.energy.mav_window_sec`` and
+        ``cfg.signal.sampling_rate``.
 
     Returns
     -------
