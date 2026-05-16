@@ -1,45 +1,22 @@
+# Detecting Life-Threatening Arrhythmia with Machine Learning Algorithms
 
+**Master Thesis**
 
-國立臺灣大學電機資訊學院資訊工程學系
-
-碩士論文
-
-Department of Computer Science and Information Engineering
-
-College of Electrical Engineering and Computer Science
-
+Department of Computer Science and Information Engineering  
+College of Electrical Engineering and Computer Science  
 National Taiwan University
 
-Master Thesis
+---
 
-以機器學習演算法偵測致命性心律不整
+**Author:** Jen-Yee Hong  
+**Advisor:** Yen-Jen Oyang, Ph.D.  
+**Date:** July 2016
 
-Detecting Life-Threatening Arrhythmia with Machine  
-Learning Algorithms
-
-洪任諭
-
-Jen-Yee Hong
-
-指導教授：歐陽彥正博士
-
-Advisor: Yen-Jen Oyang, Ph.D.
-
-中華民國 105 年 7 月
-
-July 2016
-
-# 誌謝
+---
 
 # Acknowledgements
 
 First, I would like to thank my supervisor, Dr. Yen-Jen Oyang for all the guidance throughout the whole study process and the revisions of the thesis. Also, thank Dr. Hsieh-Cheng Han, Dr. Fei Pei Lai, and Dr. Wei-Zen Sun for giving me important and constructive opinions to improve my work. Their generous help made this master thesis more complete. Special thanks to Dr. Hsuan-Tien Lin for the excellent machine learning courses which helped me understand the basics of machine learning techniques used in this research. Last, but not the least, thank the development teams and the open source communities of the python, numpy, and sklearn projects for providing such high-quality pieces of software. This research is not possible without their contributions.
-
-# 中文摘要
-
-突發性院外心跳停止是引發成人死亡的首要原因之一，經常由心室顫動 (VF) 造成。即時偵測這些致命性的心律不整，並且盡早以自動體外電擊器 (AED) 施予去顫，是治療關鍵。過去的研究提出了各種偵測心室顫動的演算法，但是大部分並未遵循現行由美國心臟病協會所制定的醫學標準。本論文呈現了一個基於支撐向量機的機器學習演算法，並在演算法的發展和測試過程當中，謹慎的依循美國心臟病協會的醫學標準。整體而言，此演算法滿足美國心臟病協會標準要求的性能，達到 93.21 % 的敏感度、99.88 % 的特異性、以及 89.28 % 的精確度。此外，本研究使用的測試資料，比起過去研究更為全面，並且由內科醫師檢視過確保正確性。因此，對於未來自動體外去顫器演算法的研究，本資料集或許可作為一個更好的測試標準。
-
-關鍵字：心律不整、心室顫動、自動體外去顫器、心電圖、訊號處理、機器學習
 
 # Abstract
 
