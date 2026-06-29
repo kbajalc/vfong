@@ -16,7 +16,7 @@ import numpy as np
 class SignalConfig:
     """Physical signal properties and preprocessing filter parameters."""
     sampling_rate: float = 250.0    # Hz — must match the actual recording
-    highpass_hz: float = 0.5        # drift-suppression high-pass cutoff
+    highpass_hz: float = 1.0        # drift-suppression high-pass cutoff (reference: 1 Hz)
     lowpass_hz: float = 30.0        # anti-alias low-pass cutoff
     moving_avg_order: int = 5       # moving-average smoothing kernel size
 

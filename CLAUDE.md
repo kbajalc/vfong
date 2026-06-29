@@ -136,6 +136,31 @@ The Cython extensions are kept intact as the reference; `algo/` is a parallel im
 
 Dependencies: `numpy`, `scipy`, `wfdb` (xqrs detector), `ptsa/` (bundled, EMD for IMF features).
 
+#### Validating `algo/` against the reference (Phase 4 — in progress)
+
+Status and full findings: `algo/PLAN.md` "Phase 4" section. This validation is **active,
+not finished** — `algo/` currently reproduces the reference only for `amplitude` and the
+preprocessing stage; ~20 features still diverge and need feature-by-feature fixes.
+
+Ground truth without libwfdb (dev machine uses conda env `dev`, Python 3.14):
+
+```bash
+conda activate dev
+pip install Cython setuptools wfdb            # one-time
+python setup_ref.py build_ext --inplace       # builds signal_processing + vf_features .so
+python tests/compare_reference.py             # side-by-side reference vs algo table
+```
+
+- `setup_ref.py` builds only the two libwfdb-free reference extensions; they compile
+  cleanly under Python 3.14 / Cython 3.2 / numpy 2.x.
+- `tests/_refstub/qrs_detect.py` stubs the OSEA detector (put on `sys.path` ahead of the
+  `.pyx`) so `vf_features` imports without libwfdb; reference QRS features (idx 22-26) come
+  out 0 and are validated separately.
+- Segments are downloaded from PhysioNet via `wfdb.rdrecord(record, pn_dir=db, ...)`.
+- Fixes already applied on `codex`: `SignalConfig.highpass_hz` 0.5→1.0 (preprocessing now
+  bit-identical to reference); LZ76 rewritten with `bytes.find` (bit-identical, ~150×
+  faster, unblocks `imf_lz`).
+
 ### Key data structures
 
 **`SegmentInfo`** (defined in `vf_data.pyx`): `db_name`, `record_name`, `begin_time` (samples), `end_time`, `sampling_rate`, `rhythm` (WFDB annotation string e.g. `"(VF"`, `"(N"`). After extraction, two fields are added dynamically: `detected_beats` (`list[(sample, beat_type_str)]`) and `amplitude` (`float64`, peak-to-peak mV).

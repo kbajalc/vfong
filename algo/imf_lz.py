@@ -15,11 +15,10 @@ The 12-bit encoding: for each uint16 value v, bits are stored at positions
 [i*12 ... i*12+11] as [bit11, bit10, ..., bit1, bit0] (MSB first).
 """
 
-import math
-
 import numpy as np
 import scipy.signal as ss
 
+from algo.lz import _lz76
 from algo.types import PreprocessedSignal, SegmentConfig
 
 try:
@@ -27,33 +26,6 @@ try:
     _HAS_PTSA = True
 except ImportError:
     _HAS_PTSA = False
-
-
-def _lz76_bytes(seq: np.ndarray) -> float:
-    """LZ76 on a uint8 array; same algorithm as lz.py:_lz76."""
-    n = len(seq)
-    if n < 2:
-        return 0.0
-    cn = 1
-    s_len = 1
-    q_pos = s_len
-    q_len = 1
-    while (q_pos + q_len) <= n:
-        haystack_end = s_len + q_len - 1
-        needle = seq[q_pos: q_pos + q_len]
-        found = False
-        for i in range(haystack_end - q_len + 1):
-            if np.array_equal(seq[i: i + q_len], needle):
-                found = True
-                break
-        if found:
-            q_len += 1
-        else:
-            cn += 1
-            s_len += q_len
-            q_pos += q_len
-            q_len = 1
-    return cn / (n / math.log2(n))
 
 
 def _imf_lz_complexity(imf: np.ndarray) -> float:
@@ -71,7 +43,7 @@ def _imf_lz_complexity(imf: np.ndarray) -> float:
         v = int(values[i])
         for c in range(12):
             binary_seq[j - c] = (v >> c) & 1
-    return _lz76_bytes(binary_seq)
+    return _lz76(binary_seq)
 
 
 def compute_imf_lz(

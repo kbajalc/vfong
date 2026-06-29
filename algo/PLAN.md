@@ -363,36 +363,94 @@ All 27 features are implemented across three difficulty groups:
 
 ---
 
-## Phase 4 — Testing strategy  *(next)*
+## Phase 4 — Validation against the reference  *(in progress — 2026-06-29)*
 
 Each feature needs a numerical agreement test against the reference Cython implementation.
+Validation has begun and has surfaced **substantial per-feature divergences** that must be
+fixed before the agreement tests can pass.
 
-**Approach:**
-1. Build the reference Cython extensions (`make build`)
-2. Run `extract_one.py` on a set of known WFDB segments to capture reference feature vectors
-3. Implement a `tests/test_<feature>.py` that:
-   - Loads the same signal segment
-   - Calls the algo/ implementation
-   - Asserts `abs(algo_value - reference_value) < tolerance`
-4. Tolerance: `1e-6` for deterministic features; `1e-3` for entropy/complexity features
-   where numerical paths may differ
+### How ground truth is obtained on this machine (macOS, no libwfdb)
 
-**Test segments to use:**
-- `mitdb/100` segment 0 (NSR — exercises most features normally)
-- `vfdb/422` segment at sample 385788 (coarse VF — high-amplitude, high-frequency)
-- A fine-VF segment from mghdb (low amplitude, stresses the amplitude/threshold features)
-- An asystole segment (near-zero signal, exercises edge cases)
+The reference Cython feature code does **not** need libwfdb — only `wfdb_reader` and
+`qrs_detect` do. So we build just the two feature extensions:
 
-**QRS detector validation:**
-- Capture OSEA beat detections from `qrs_test.py` for the test segments
-- The Python QRS detector must agree within ±10 ms on beat positions for NSR segments
+```bash
+conda activate dev                       # Python 3.14, numpy 2.4, scipy 1.18
+pip install Cython setuptools            # one-time
+python setup_ref.py build_ext --inplace  # builds signal_processing + vf_features .so
+```
+
+`setup_ref.py` (repo root) is a minimal build file for exactly these two extensions; they
+compile cleanly under Python 3.14 / Cython 3.2 / numpy 2.x.
+
+`vf_features.pyx` does `from qrs_detect import qrs_detect` at module load (would pull in
+libwfdb). A stub `tests/_refstub/qrs_detect.py` returning `[]` is placed on `sys.path`
+*ahead* of the `.pyx`, so the reference imports the stub. Consequence: the reference's QRS
+features (RR/RR_Std/RR_CV/UR/VR, idx 22–26) come out 0 and are validated separately.
+
+Signals are downloaded live from PhysioNet via `wfdb.rdrecord(record, pn_dir=db,
+sampfrom=…, sampto=…, channels=[ch])` — no local WFDB tree required. Feed the **same** raw
+mV array to both `vf_features.extract_features(sig, int(fs))` (returns `(arr27, beats, amp)`)
+and `algo.extract.extract_features(sig, SegmentConfig(...))`.
+
+Reproduce the side-by-side table with `tests/compare_reference.py`.
+
+### Findings so far
+
+Compared on mitdb/100 (NSR, 360 Hz) and vfdb/418 (VF, 250 Hz):
+
+- **Only `amplitude` [16] matched the reference out of the box** (exact, 0 diff) — it uses a
+  separate raw-signal path (`get_amplitude`), which confirms the harness is sound.
+- **Root-cause bug #1 (FIXED):** `SignalConfig.highpass_hz` was `0.5`; the reference uses
+  `1.0` (vf_features.pyx:575). After the fix the **preprocessed signal is bit-identical to
+  the reference** (max|diff| = 0.0 on both segments). All five DSP helpers
+  (`moving_average`, `drift_supression`, `butter_lowpass_filter`, mean-sub, min-max) already
+  matched exactly.
+- **After the preprocessing fix, ~20 features still diverge** — so these are *independent
+  per-feature algorithm bugs*, now testable with identical input. Severity (relative error,
+  hp=1.0):
+
+  | Severity | Features | Rel. error |
+  |---|---|---|
+  | Exact ✅ | amplitude | 0 |
+  | Structural ❌ | **SpEn (~10×)**, TCI, STE, LZ, Count1, MAV | ~25–90 % |
+  | Moderate ⚠️ | vf_leak, a2, psr, hilb, m, fm, Count2/3, IMF1–5 | ~1–17 % |
+
+- **Side fix (done):** pure-Python LZ76 now uses `bytes.find` for the substring search —
+  **bit-identical** to the old numpy loop, ~150× faster. This unblocked `imf_lz`, which had
+  been multi-minute per segment (24000-bit sequences × 5 IMFs) — the original smoke-test
+  "hang". `lz.py:_lz76` is now the single shared implementation; `imf_lz.py` imports it.
+  This closes the "LZ speed deferred" open decision.
+
+### Resume plan — *harness first, then fix*  (agreed with user)
+
+1. **Build the permanent `tests/` harness** so it is hermetic (no network/libwfdb/Cython at
+   test time): cache the input signals and reference 27-vectors to disk
+   (`tests/data/*.npz` + a generator script that needs the reference build + network once),
+   then `tests/test_agreement.py` loads the cache, runs `algo`, and asserts per-feature
+   tolerance. Mark the currently-diverging features `xfail` with a reason so the suite is
+   green and each fix flips an `xfail` to pass.
+   - Tolerance: `1e-9` for the now-exact preprocessing-bound features once fixed; `1e-3` for
+     entropy/complexity (SpEn, LZ, IMF) where numerical paths legitimately differ.
+   - **Test segments — small diverse set** (agreed): mitdb NSR, vfdb VF, cudb VF, edb,
+     mghdb fine-VF (channel 1). Covers morphologies and both 250/360 Hz.
+2. **Then fix the divergent features**, worst-first: SpEn → TCI → STE → LZ → Count1 → MAV →
+   the moderate group. Each is now isolated (identical preprocessed input), so debug by
+   comparing the algo function's output to the reference function on the shared `samples`.
+
+### QRS detector validation (separate)
+
+- The reference uses OSEA (N/V/Q); algo uses xqrs (`'N'` only, UR/VR≡0). They will not match
+  exactly. Validate xqrs beat positions within ±10 ms on NSR segments against OSEA captured
+  via `qrs_test.py`; treat RR/RR_Std/RR_CV agreement loosely.
 
 ---
 
 ## Phase 5+ — Optimisation and integration
 
 Candidates for follow-up:
-- Replace pure-Python LZ with a `bytes`-based or Cython port if speed is a bottleneck
+- ~~Replace pure-Python LZ with a `bytes`-based or Cython port~~ — **done** in Phase 4
+  (`bytes.find`, bit-identical, ~150× faster)
 - Validate `ptsa.emd` vs `PyEMD` on the test segments; switch if PTSA diverges
 - Add `OseaDetector` / `NeuroKitDetector` concrete classes outside `algo/` for QRS
 - Wire `algo/extract.py` into the main `feature_extraction.py` driver as an optional backend
