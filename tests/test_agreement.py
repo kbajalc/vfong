@@ -35,11 +35,12 @@ _COMPLEXITY = {10, 11, 17, 18, 19, 20, 21}  # LZ, SpEn, IMF1-5
 _RTOL_DEFAULT, _ATOL_DEFAULT = 1e-6, 1e-9
 _RTOL_COMPLEXITY, _ATOL_COMPLEXITY = 1e-3, 1e-6
 
-# Feature indices that do NOT yet reproduce the reference (Phase 4 TODO).
 # With reference_bug_compat=True, 26/27 features match the reference bit-for-bit.
-# Remaining:
-#   [11] spen — reference pyeeg.samp_entropy is non-deterministic (as_strided);
-#               no stable ground truth, handled separately/last
+# [11] spen is PERMANENTLY xfail against the reference: the reference's
+# pyeeg.samp_entropy uses as_strided on a non-contiguous slice and is wrong +
+# non-deterministic (no stable ground truth). algo's SpEn is correct and is
+# validated independently in test_sample_entropy.py. See memory:
+# reference-spen-nondeterministic.
 XFAIL_FEATURES = {11}
 
 
