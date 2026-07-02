@@ -433,13 +433,20 @@ Design principle confirmed with the user: **algo/ stays clean/correct by default
 Side fix: pure-Python LZ76 now uses `bytes.find` — bit-identical, ~150× faster; unblocked
 `imf_lz` (was multi-minute/segment). `lz.py:_lz76` is the single shared impl.
 
-Suite status: **146 passed, 5 xfailed** (SpEn × 5 segments).
+Suite status: **155 passed, 5 xfailed** (SpEn × 5 segments).
 
-### QRS detector validation (separate — pending)
+### QRS features [22-26] — formula validated; detector comparison deferred
 
-- The reference uses OSEA (N/V/Q); algo uses xqrs (`'N'` only, UR/VR≡0). They will not match
-  exactly. Validate xqrs beat positions within ±10 ms on NSR segments against OSEA captured
-  via `qrs_test.py`; treat RR/RR_Std/RR_CV agreement loosely.
+Full detector-level agreement isn't possible on this machine (reference OSEA needs libwfdb)
+and the detectors differ by design: xqrs returns `'N'` only, so UR/VR ≡ 0, whereas OSEA
+classifies N/V/Q. What is validated (`tests/test_qrs_features.py`): the statistics FORMULA
+in `compute_qrs_features` matches a faithful transcription of `beat_statistics()` exactly
+(random beat lists, edge cases, UR/VR counting, first-beat skip).
+
+Key detail: the reference divides RR by a hardcoded **200** (OSEA resamples to 200 Hz and
+returns 200 Hz indices); algo divides by the detector's native rate. Feeding sr=200 makes
+them directly comparable — and they match. Deferred until libwfdb is available: build OSEA,
+compare xqrs beat positions within ±10 ms on NSR, and check RR agreement loosely.
 
 ---
 
