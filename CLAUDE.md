@@ -136,30 +136,38 @@ The Cython extensions are kept intact as the reference; `algo/` is a parallel im
 
 Dependencies: `numpy`, `scipy`, `wfdb` (xqrs detector), `ptsa/` (bundled, EMD for IMF features).
 
-#### Validating `algo/` against the reference (Phase 4 — in progress)
+#### Validating `algo/` against the reference (Phase 4 — complete)
 
-Status and full findings: `algo/PLAN.md` "Phase 4" section. This validation is **active,
-not finished** — `algo/` currently reproduces the reference only for `amplitude` and the
-preprocessing stage; ~20 features still diverge and need feature-by-feature fixes.
+Status and full findings: `algo/PLAN.md` "Phase 4" section. **26/27 features match the
+reference bit-for-bit; SpEn is correct but unmatchable (non-deterministic reference).**
 
-Ground truth without libwfdb (dev machine uses conda env `dev`, Python 3.14):
+Run the hermetic suite (no network/libwfdb/Cython needed — uses cached fixtures):
 
 ```bash
-conda activate dev
-pip install Cython setuptools wfdb            # one-time
-python setup_ref.py build_ext --inplace       # builds signal_processing + vf_features .so
-python tests/compare_reference.py             # side-by-side reference vs algo table
+conda activate dev                            # Python 3.14
+pip install pytest                            # one-time
+pytest tests/                                 # 146 passed, 5 xfailed (SpEn ×5)
 ```
 
-- `setup_ref.py` builds only the two libwfdb-free reference extensions; they compile
-  cleanly under Python 3.14 / Cython 3.2 / numpy 2.x.
-- `tests/_refstub/qrs_detect.py` stubs the OSEA detector (put on `sys.path` ahead of the
-  `.pyx`) so `vf_features` imports without libwfdb; reference QRS features (idx 22-26) come
-  out 0 and are validated separately.
-- Segments are downloaded from PhysioNet via `wfdb.rdrecord(record, pn_dir=db, ...)`.
-- Fixes already applied on `codex`: `SignalConfig.highpass_hz` 0.5→1.0 (preprocessing now
-  bit-identical to reference); LZ76 rewritten with `bytes.find` (bit-identical, ~150×
-  faster, unblocks `imf_lz`).
+To regenerate fixtures or the side-by-side table (needs the reference build + network):
+
+```bash
+pip install Cython setuptools wfdb            # one-time
+python setup_ref.py build_ext --inplace       # builds signal_processing + vf_features .so
+python tests/gen_fixtures.py                   # refresh tests/data/fixtures.{npz,json}
+python tests/compare_reference.py              # side-by-side reference vs algo table
+```
+
+Key mechanism — **`SegmentConfig.reference_bug_compat`** (default `False`): `algo/` is a
+clean/correct reimplementation by default; the flag reproduces reference bugs so the suite
+can bit-match. Bugs found and gated: TCSC multiplies overlapping windows of the shared
+signal by a Tukey window *in place* (corrupts all downstream features — the master cause);
+vf_leak uses `argmax` on the complex FFT. Config fix (clean): `highpass_hz` 0.5→1.0.
+SpEn: reference `pyeeg.samp_entropy` uses `as_strided` on non-contiguous input → wrong +
+non-deterministic; algo's SpEn is correct and validated independently in
+`tests/test_sample_entropy.py`. Also: LZ76 rewritten with `bytes.find` (bit-identical,
+~150× faster). `tests/_refstub/qrs_detect.py` stubs OSEA so `vf_features` imports without
+libwfdb (reference QRS features come out 0; validated separately).
 
 ### Key data structures
 

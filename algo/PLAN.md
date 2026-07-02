@@ -363,11 +363,12 @@ All 27 features are implemented across three difficulty groups:
 
 ---
 
-## Phase 4 — Validation against the reference  *(in progress — 2026-06-29)*
+## Phase 4 — Validation against the reference  *(complete — 2026-07-02)*
 
-Each feature needs a numerical agreement test against the reference Cython implementation.
-Validation has begun and has surfaced **substantial per-feature divergences** that must be
-fixed before the agreement tests can pass.
+Each feature is checked by a hermetic numerical agreement test against the reference Cython
+implementation. **26/27 features match bit-for-bit** (via `reference_bug_compat`); SpEn is
+correct but not matchable against the non-deterministic reference (validated independently).
+Remaining Phase-4 follow-up: QRS feature validation (below).
 
 ### How ground truth is obtained on this machine (macOS, no libwfdb)
 
@@ -395,50 +396,46 @@ and `algo.extract.extract_features(sig, SegmentConfig(...))`.
 
 Reproduce the side-by-side table with `tests/compare_reference.py`.
 
-### Findings so far
+### Outcome — 26/27 features validated bit-for-bit
 
-Compared on mitdb/100 (NSR, 360 Hz) and vfdb/418 (VF, 250 Hz):
+The hermetic suite (`tests/test_agreement.py`, small diverse set: mitdb/100, vfdb/418,
+cudb/cu01, edb/e0103, mghdb/mgh040) validates each feature against cached reference vectors.
+**Result: 26 of 27 features now match the reference bit-for-bit.**
 
-- **Only `amplitude` [16] matched the reference out of the box** (exact, 0 diff) — it uses a
-  separate raw-signal path (`get_amplitude`), which confirms the harness is sound.
-- **Root-cause bug #1 (FIXED):** `SignalConfig.highpass_hz` was `0.5`; the reference uses
-  `1.0` (vf_features.pyx:575). After the fix the **preprocessed signal is bit-identical to
-  the reference** (max|diff| = 0.0 on both segments). All five DSP helpers
-  (`moving_average`, `drift_supression`, `butter_lowpass_filter`, mean-sub, min-max) already
-  matched exactly.
-- **After the preprocessing fix, ~20 features still diverge** — so these are *independent
-  per-feature algorithm bugs*, now testable with identical input. Severity (relative error,
-  hp=1.0):
+Getting there uncovered three reference bugs and one config bug:
 
-  | Severity | Features | Rel. error |
-  |---|---|---|
-  | Exact ✅ | amplitude | 0 |
-  | Structural ❌ | **SpEn (~10×)**, TCI, STE, LZ, Count1, MAV | ~25–90 % |
-  | Moderate ⚠️ | vf_leak, a2, psr, hilb, m, fm, Count2/3, IMF1–5 | ~1–17 % |
+1. **`highpass_hz` config bug (FIXED, clean):** was `0.5`; reference uses `1.0`
+   (vf_features.pyx:575). After the fix the preprocessed signal is bit-identical to the
+   reference (max|diff| = 0.0). The five DSP helpers already matched.
 
-- **Side fix (done):** pure-Python LZ76 now uses `bytes.find` for the substring search —
-  **bit-identical** to the old numpy loop, ~150× faster. This unblocked `imf_lz`, which had
-  been multi-minute per segment (24000-bit sequences × 5 IMFs) — the original smoke-test
-  "hang". `lz.py:_lz76` is now the single shared implementation; `imf_lz.py` imports it.
-  This closes the "LZ speed deferred" open decision.
+2. **TCSC in-place mutation (master root cause).** `threshold_crossing_sample_counts`
+   (idx 0, computed first) does `window = samples[a:b]; window *= tukey` on a *view*,
+   corrupting the shared preprocessed signal in place — its own overlapping windows AND
+   every feature after it. This alone caused ~all downstream divergence. Reproduced by
+   `SegmentConfig.reference_bug_compat` (default False): compute_tcsc uses a view instead
+   of a copy; because TCSC runs first and all features read the shared `sig.processed`, the
+   corruption propagates in reference order. With compat on, 24/27 matched immediately.
 
-### Resume plan — *harness first, then fix*  (agreed with user)
+3. **vf_leak complex-argmax (reference bug).** vf_leak calls `np.argmax` on the *complex*
+   fft (lexicographic by real part, not magnitude). Gated behind `reference_bug_compat`;
+   clean path uses `argmax(|fft|)`. → 26/27.
 
-1. **Build the permanent `tests/` harness** so it is hermetic (no network/libwfdb/Cython at
-   test time): cache the input signals and reference 27-vectors to disk
-   (`tests/data/*.npz` + a generator script that needs the reference build + network once),
-   then `tests/test_agreement.py` loads the cache, runs `algo`, and asserts per-feature
-   tolerance. Mark the currently-diverging features `xfail` with a reason so the suite is
-   green and each fix flips an `xfail` to pass.
-   - Tolerance: `1e-9` for the now-exact preprocessing-bound features once fixed; `1e-3` for
-     entropy/complexity (SpEn, LZ, IMF) where numerical paths legitimately differ.
-   - **Test segments — small diverse set** (agreed): mitdb NSR, vfdb VF, cudb VF, edb,
-     mghdb fine-VF (channel 1). Covers morphologies and both 250/360 Hz.
-2. **Then fix the divergent features**, worst-first: SpEn → TCI → STE → LZ → Count1 → MAV →
-   the moderate group. Each is now isolated (identical preprocessed input), so debug by
-   comparing the algo function's output to the reference function on the shared `samples`.
+4. **SpEn non-determinism (unmatchable).** `pyeeg.samp_entropy` embeds via `as_strided`
+   with hardcoded itemsize strides — wrong for non-contiguous input. The reference feeds a
+   non-contiguous slice, so its SpEn is wrong and varies call-to-call (vfdb_418: 0.85 / 1.23
+   / 1.30). algo embeds via list-comprehension (copies) → correct + contiguity-robust. SpEn
+   [11] is therefore **permanently xfail vs the reference**; algo's SpEn is validated
+   independently against pyeeg-on-contiguous-input in `tests/test_sample_entropy.py`.
 
-### QRS detector validation (separate)
+Design principle confirmed with the user: **algo/ stays clean/correct by default; the
+`reference_bug_compat` flag reproduces reference bugs only for validation.**
+
+Side fix: pure-Python LZ76 now uses `bytes.find` — bit-identical, ~150× faster; unblocked
+`imf_lz` (was multi-minute/segment). `lz.py:_lz76` is the single shared impl.
+
+Suite status: **146 passed, 5 xfailed** (SpEn × 5 segments).
+
+### QRS detector validation (separate — pending)
 
 - The reference uses OSEA (N/V/Q); algo uses xqrs (`'N'` only, UR/VR≡0). They will not match
   exactly. Validate xqrs beat positions within ±10 ms on NSR segments against OSEA captured
