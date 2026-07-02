@@ -36,8 +36,15 @@ def compute_vf_leak(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     fft = fft[:n_fft]
     fft_freq = fft_freq[:n_fft]
 
-    # reference uses np.argmax on complex array — we use abs for correct behaviour
-    peak_freq_idx = int(np.argmax(np.abs(fft)))
+    # Peak frequency. The reference calls np.argmax on the COMPLEX fft, which
+    # numpy resolves lexicographically (by real part, then imag) — not by
+    # magnitude. That is almost certainly unintended, so the clean path uses the
+    # true spectral peak (|fft|); reference_bug_compat reproduces the complex
+    # argmax for bit-exact validation.
+    if cfg.reference_bug_compat:
+        peak_freq_idx = int(np.argmax(fft))
+    else:
+        peak_freq_idx = int(np.argmax(np.abs(fft)))
     peak_freq = fft_freq[peak_freq_idx]
 
     cycle = (1.0 / peak_freq) if peak_freq != 0.0 else float(n)

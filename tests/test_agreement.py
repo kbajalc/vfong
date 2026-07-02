@@ -36,12 +36,11 @@ _RTOL_DEFAULT, _ATOL_DEFAULT = 1e-6, 1e-9
 _RTOL_COMPLEXITY, _ATOL_COMPLEXITY = 1e-3, 1e-6
 
 # Feature indices that do NOT yet reproduce the reference (Phase 4 TODO).
-# With reference_bug_compat=True (replicating the TCSC in-place mutation), 24/27
-# features match exactly. Remaining:
-#   [6]  vf_leak — genuine per-feature divergence, under investigation
-#   [11] spen    — reference pyeeg.samp_entropy is non-deterministic (as_strided);
-#                  no stable ground truth, handled separately/last
-XFAIL_FEATURES = {6, 11}
+# With reference_bug_compat=True, 26/27 features match the reference bit-for-bit.
+# Remaining:
+#   [11] spen — reference pyeeg.samp_entropy is non-deterministic (as_strided);
+#               no stable ground truth, handled separately/last
+XFAIL_FEATURES = {11}
 
 
 def _tol(idx):
