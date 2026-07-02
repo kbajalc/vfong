@@ -41,7 +41,12 @@ def compute_tcsc(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     w_begin = 0
     w_end = window_size
     while w_end <= n_samples:
-        window = samples[w_begin:w_end].copy()
+        if cfg.reference_bug_compat:
+            # Reference bug: operate on a VIEW so `*= tukey` mutates the shared
+            # signal in place, corrupting overlapping windows + downstream features.
+            window = samples[w_begin:w_end]
+        else:
+            window = samples[w_begin:w_end].copy()
         window *= tukey_win
         window = np.abs(window)
         window /= np.max(window)

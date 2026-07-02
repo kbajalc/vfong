@@ -36,9 +36,12 @@ _RTOL_DEFAULT, _ATOL_DEFAULT = 1e-6, 1e-9
 _RTOL_COMPLEXITY, _ATOL_COMPLEXITY = 1e-3, 1e-6
 
 # Feature indices that do NOT yet reproduce the reference (Phase 4 TODO).
-# amplitude [16] and QRS [22-26] (both sides 0 here) already agree.
-XFAIL_FEATURES = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
-                  17, 18, 19, 20, 21}
+# With reference_bug_compat=True (replicating the TCSC in-place mutation), 24/27
+# features match exactly. Remaining:
+#   [6]  vf_leak — genuine per-feature divergence, under investigation
+#   [11] spen    — reference pyeeg.samp_entropy is non-deterministic (as_strided);
+#                  no stable ground truth, handled separately/last
+XFAIL_FEATURES = {6, 11}
 
 
 def _tol(idx):
@@ -67,7 +70,10 @@ _ALGO = {}
 def _algo_vector(seg_id, fs):
     if seg_id not in _ALGO:
         sig = _CACHE[f"{seg_id}__sig"]
-        cfg = SegmentConfig(signal=SignalConfig(sampling_rate=float(fs)))
+        # reference_bug_compat reproduces the TCSC in-place mutation so algo can
+        # be validated bit-for-bit against the (buggy) reference.
+        cfg = SegmentConfig(signal=SignalConfig(sampling_rate=float(fs)),
+                            reference_bug_compat=True)
         _ALGO[seg_id] = algo_extract(sig, cfg, qrs_detector=None).to_array()
     return _ALGO[seg_id]
 
