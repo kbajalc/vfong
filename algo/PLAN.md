@@ -435,18 +435,24 @@ Side fix: pure-Python LZ76 now uses `bytes.find` — bit-identical, ~150× faste
 
 Suite status: **155 passed, 5 xfailed** (SpEn × 5 segments).
 
-### QRS features [22-26] — formula validated; detector comparison deferred
+### QRS features [22-26] — formula validated + OSEA detector compared
 
-Full detector-level agreement isn't possible on this machine (reference OSEA needs libwfdb)
-and the detectors differ by design: xqrs returns `'N'` only, so UR/VR ≡ 0, whereas OSEA
-classifies N/V/Q. What is validated (`tests/test_qrs_features.py`): the statistics FORMULA
-in `compute_qrs_features` matches a faithful transcription of `beat_statistics()` exactly
-(random beat lists, edge cases, UR/VR counting, first-beat skip).
+Two layers, both done:
 
-Key detail: the reference divides RR by a hardcoded **200** (OSEA resamples to 200 Hz and
-returns 200 Hz indices); algo divides by the detector's native rate. Feeding sr=200 makes
-them directly comparable — and they match. Deferred until libwfdb is available: build OSEA,
-compare xqrs beat positions within ±10 ms on NSR, and check RR agreement loosely.
+1. **Formula** (`tests/test_qrs_features.py`): `compute_qrs_features` matches a faithful
+   transcription of `beat_statistics()` exactly (random beat lists, edge cases, UR/VR
+   counting, first-beat skip). The reference divides RR by a hardcoded **200** (OSEA
+   resamples to 200 Hz); algo divides by native rate. Feeding sr=200 makes them match.
+
+2. **Detector** (`tests/test_qrs_osea.py`): the reference OSEA detector is built WITHOUT
+   libwfdb via `setup_osea.py` — OSEA needs only WFDB *header* constants, stubbed in
+   `tests/_osea/wfdb/ecgcodes.h`; `bxbep.c` (real WFDB I/O) is replaced by
+   `tests/_osea/osea_amap.c` (just `amap` + `fflag`). The test skips if the `.so` isn't
+   built. Detectors differ by design (OSEA classifies N/V/Q at 200 Hz; xqrs is 'N'-only at
+   native rate), so we check LOOSE agreement, which holds: beat counts within ±2, RR within
+   ~5% (vfdb identical), and — after removing a small constant fiducial offset — 71–100%
+   beat-position overlap within ±25 ms for organized rhythms (VF has no true QRS, so its
+   overlap is expectedly ~50%). UR/VR remain 0 for xqrs until a beat classifier is added.
 
 ---
 

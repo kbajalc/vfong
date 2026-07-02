@@ -167,7 +167,10 @@ SpEn: reference `pyeeg.samp_entropy` uses `as_strided` on non-contiguous input â
 non-deterministic; algo's SpEn is correct and validated independently in
 `tests/test_sample_entropy.py`. Also: LZ76 rewritten with `bytes.find` (bit-identical,
 ~150Ã— faster). `tests/_refstub/qrs_detect.py` stubs OSEA so `vf_features` imports without
-libwfdb (reference QRS features come out 0; validated separately).
+libwfdb (reference QRS features come out 0). The real OSEA detector is also buildable
+without libwfdb via `python setup_osea.py build_ext --inplace` (WFDB headers stubbed in
+`tests/_osea/`); `tests/test_qrs_osea.py` then loosely validates xqrs vs OSEA (skips if the
+`.so` isn't built).
 
 ### Key data structures
 
