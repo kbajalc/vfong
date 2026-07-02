@@ -1,0 +1,42 @@
+[
+  {
+    "id": "mitdb_100_0",
+    "label": "NSR",
+    "record": "100",
+    "pn_dir": "mitdb",
+    "fs": 360,
+    "sampfrom": 0
+  },
+  {
+    "id": "vfdb_418_0",
+    "label": "VF",
+    "record": "418",
+    "pn_dir": "vfdb",
+    "fs": 250,
+    "sampfrom": 0
+  },
+  {
+    "id": "cudb_cu01_0",
+    "label": "VF",
+    "record": "cu01",
+    "pn_dir": "cudb",
+    "fs": 250,
+    "sampfrom": 0
+  },
+  {
+    "id": "edb_e0103_0",
+    "label": "edb",
+    "record": "e0103",
+    "pn_dir": "edb",
+    "fs": 250,
+    "sampfrom": 0
+  },
+  {
+    "id": "mghdb_mgh040_0",
+    "label": "mghFine",
+    "record": "mgh040",
+    "pn_dir": "mghdb",
+    "fs": 360,
+    "sampfrom": 0
+  }
+]
