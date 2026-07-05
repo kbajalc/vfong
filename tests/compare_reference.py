@@ -45,7 +45,7 @@ def fetch(record, pn_dir, fs, sampfrom, channel):
     n = int(fs * 8)
     rec = wfdb.rdrecord(record, pn_dir=pn_dir, sampfrom=sampfrom,
                         sampto=sampfrom + n, channels=[channel])
-    return rec.p_signal[:, 0].astype(np.float64)
+    return rec.p_signal[:, 0].astype(np.float64) # type: ignore
 
 
 def compare(label, record, pn_dir, fs, sampfrom, channel):

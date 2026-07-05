@@ -35,7 +35,7 @@ def query_research_gate_impact(journal):
         time.sleep(2.0 - delta_time)
         last_google_time = time.time()
 
-    for url in google.search("researchgate {0}".format(journal), stop=1):
+    for url in google.search("researchgate {0}".format(journal), stop=1): # type: ignore
         r = requests.get(url)
         text = r.text
         if text:

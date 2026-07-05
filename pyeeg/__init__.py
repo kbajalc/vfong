@@ -422,7 +422,7 @@ def svd_entropy(X, Tau, DE, W=None):
 
     if W is None:
         Y = embed_seq(X, Tau, DE)
-        W = numpy.linalg.svd(Y, compute_uv=0)
+        W = numpy.linalg.svd(Y, compute_uv=0) # type: ignore
         W /= sum(W)  # normalize singular values
 
     return -1 * sum(W * numpy.log(W))
@@ -457,7 +457,7 @@ def fisher_info(X, Tau, DE, W=None):
 
     if W is None:
         Y = embed_seq(X, Tau, DE)
-        W = numpy.linalg.svd(Y, compute_uv=0)
+        W = numpy.linalg.svd(Y, compute_uv=0) # type: ignore
         W /= sum(W)  # normalize singular values
 
     return -1 * sum(W * numpy.log(W))
@@ -978,8 +978,8 @@ def information_based_similarity(x, y, n):
 
     Rank = [[], []]
     Buff = [[], []]
-    Buff[0] = tuple(Count[0])
-    Buff[1] = tuple(Count[1])
+    Buff[0] = tuple(Count[0]) # type: ignore
+    Buff[1] = tuple(Count[1]) # type: ignore
     for i in range(0, 2):
         Count[i].sort()
         Count[i].reverse()
@@ -1099,7 +1099,7 @@ def LLE(x, tau, n, T, fs):
 
     # neighbor_dists[i,j] = ||Em[i+j]-Em[i+neighbors[j]]||_2
     neighbor_dists = numpy.ma.MaskedArray(D[row_inds, col_inds], -in_bounds)
-    J = (-neighbor_dists.mask).sum(axis=1) #  number of in-bounds indices by row
+    J = (-neighbor_dists.mask).sum(axis=1) #  number of in-bounds indices by row # type: ignore
     # Set invalid (zero) values to 1; log(1) = 0 so sum is unchanged
     neighbor_dists[neighbor_dists == 0] = 1
     d_ij = numpy.sum(numpy.log(neighbor_dists.data), axis=1)

@@ -40,6 +40,6 @@ def test_robust_to_non_contiguous_input():
     rng = np.random.default_rng(3)
     base = rng.standard_normal(4000)
     view = base[-1250:]                       # typically non-contiguous slice base
-    assert _samp_entropy(view, 2, 0.2 * np.std(view)) == pytest.approx(
-        _samp_entropy(np.ascontiguousarray(view), 2, 0.2 * np.std(view)),
+    assert _samp_entropy(view, 2, 0.2 * np.std(view)) == pytest.approx(   # type: ignore
+        _samp_entropy(np.ascontiguousarray(view), 2, 0.2 * np.std(view)), # type: ignore
         rel=1e-12, abs=1e-12)

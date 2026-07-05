@@ -6,3 +6,13 @@ requires = [
     "numpy",
 ]
 build-backend = "setuptools.build_meta"
+
+[tool.pyright]
+# Suppress all type diagnostics from vendored third-party code. `ignore` still
+# lets these be imported/analyzed (so types flow into vftx/), it just hides
+# their own errors. Use `exclude` instead to drop them from analysis entirely.
+ignore = [
+    "ptsa",
+    "pyeeg",
+    "hong",       # Cython .pyx + thesis Python; not meant to type-check cleanly
+]

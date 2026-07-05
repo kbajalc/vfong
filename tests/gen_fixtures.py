@@ -52,7 +52,7 @@ def main():
         print(f"fetching {pn_dir}/{record} @{sampfrom} (fs={fs}, ch={channel}) ...", flush=True)
         rec = wfdb.rdrecord(record, pn_dir=pn_dir, sampfrom=sampfrom,
                             sampto=sampfrom + n, channels=[channel])
-        sig = rec.p_signal[:, 0].astype(np.float64)
+        sig = rec.p_signal[:, 0].astype(np.float64) # type: ignore
         ref = np.asarray(vf_features.extract_features(sig, int(fs))[0], dtype=np.float64)
         arrays[f"{seg_id}__sig"] = sig
         arrays[f"{seg_id}__ref"] = ref
