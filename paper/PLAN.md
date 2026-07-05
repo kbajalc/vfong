@@ -155,18 +155,27 @@ Settled for the dataset build in `vfta/`:
   been planned for the VFL-vs-VF sub-analysis (see below); that analysis uses cheap features
   instead. SpEn [11] (about 55 ms/window) is real-time feasible but off by default in the bulk
   build to keep it cheap (~9 ms/window); it is available via a flag for the feature screen.
+- Shockable labelling follows the benchmark convention. A window is shockable when shockable
+  episodes (VT/VFL/VF) cover at least 90% of it, non-shockable when no shockable episode is
+  present, and MIX only when a shockable episode partially straddles the window below the
+  threshold. An unannotated background window is therefore non-shockable, matching how
+  COMP55-2005 and Jekova score the whole recording start to finish. This reclaims the cudb
+  pre-VF lead-in, which carries no rhythm annotation (only 20 rhythm markers and 47 VF brackets
+  across all 35 records), as non-shockable rather than MIX, and shrinks MIX to just
+  shockable-boundary transitions (about 3k of 168k windows at 8 s). The separate `Rhythm` label
+  (dominant clean episode at 90% purity) still drives the VT/VFL/VF sub-analysis.
+- AHADB restricted to the 8-series. A survey of all 79 curated ahadb records (kept in
+  `data/temp/ahadb_anns.txt`) found no rhythm-episode markers, only beats and VF brackets, in
+  10 records (the 8-series, 8201-8210). Including the rest would flood the set with unvalidated
+  non-shockable windows, so the study keeps only the 8-series ventricular records, where the
+  bracketed spans are shockable and the background is non-shockable. This gives usable SHOCK
+  (about 5.4k windows at 8 s) and NON (about 12k) from records known to contain the ventricular
+  event. Implemented as `labels.RECORD_FILTER`.
 
 ## Open items to confirm during the phases
 
-- AHADB record use. Only some AHADB records carry ventricular arrhythmias; many have none, so
-  the full database is overkill for the benchmark. Jekova used the AHA ventricular series
-  (A8001-A8010) [JEKOVA-2004]; the cbor `ahadb/RECORDS` is already curated (about 79 active
-  records, the 8200-series being the ventricular ones) and `CborDatabase` skips the commented
-  rest. Confirm the benchmark subset in Phase 3. The full annotated AHADB is kept for the
-  Phase 4 fine-tuning.
 - Whether both window lengths (8 s and 4 s) run for all five candidates, or 4 s runs only for
-  the leaders, depends on how heavy the overlapping-window dataset build turns out to be.
-  Decide in Phase 2 when the dataset is constructed.
+  the leaders. The build is done for both, so this is now just a question of analysis effort.
 
 ## Phases
 

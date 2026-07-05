@@ -206,11 +206,11 @@ non-shockable diversity and carries few ventricular episodes. Its native 360 Hz 
 to 250 Hz [MITDB].
 
 The American Heart Association Database (AHADB) holds 30-minute two-channel records and
-requires a licence from ECRI. Only part of it carries ventricular arrhythmias, so the record
-list is curated to the relevant subset (about 79 records, the 8200-series being the
-ventricular ones) for the benchmark, while the full annotated set is kept for the Phase 4
-tuning. This is the same AHA ventricular material used by Jekova and Krasteva [JEKOVA-2004,
-AHADB].
+requires a licence from ECRI. Its records carry beat annotations and VF markers but no
+rhythm-episode labels, so only the 8-series ventricular records (8201 to 8210, the ones with VF
+brackets) are used. In those records the bracketed spans are shockable and the surrounding
+background is non-shockable. This is the same AHA ventricular material used by Jekova and
+Krasteva [JEKOVA-2004, AHADB].
 
 Together the four give rich shockable content (VFDB, CUDB, and the AHADB subset) against a
 broad non-shockable background (MITDB), matching the combination used in the benchmark
@@ -254,15 +254,18 @@ tally the annotation marks in the window by type. Storing durations and counts, 
 collapsed label, keeps the raw evidence in the file, so the target definitions below can change
 without rebuilding.
 
-A window is assigned the rhythm class of its dominant episode when that episode covers at least
-90% of the window; otherwise the window is marked MIX. This gives clean, morphologically
-homogeneous windows for the analysis and keeps VT, VFL, and VF as distinct classes. The
-shockable class is VT, VFL, and VF against everything else, matching the published benchmark
-target [COMP55-2005]. Because VFL sits between VT and VF and the databases annotate it
-separately, the three VFL configurations (VFL shockable, VFL non-shockable, VFL excluded) are
-all available from the same file. The clean windows are used for the feature analysis and
-tuning; evaluation uses all windows, MIX included, since a deployed detector cannot skip
-boundary windows.
+Each window carries two labels. The rhythm label names the dominant episode when one covers at
+least 90% of the window, otherwise MIX; it gives clean, homogeneous examples and keeps VT, VFL,
+and VF as distinct classes for the sub-analysis. The shockable label follows the benchmark
+convention [COMP55-2005, JEKOVA-2004]: a window is shockable when shockable episodes (VT, VFL,
+VF) cover at least 90% of it, non-shockable when no shockable episode is present, and MIX only
+when a shockable episode partially straddles the window. An unannotated background window is
+therefore non-shockable, which is how these algorithms are scored over a whole recording, and
+MIX is limited to shockable-boundary transitions. Because VFL sits between VT and VF and the
+databases annotate it separately, the three VFL configurations (VFL shockable, VFL
+non-shockable, VFL excluded) are all available from the same file. The clean windows are used
+for the feature analysis and tuning; evaluation uses all windows, since a deployed detector
+cannot skip boundary windows.
 
 Per-window decisions become reference episode annotations by majority voting. Each sample
 belongs to several overlapping windows and takes the majority label across them; contiguous
