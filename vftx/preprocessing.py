@@ -73,6 +73,12 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
         nyq = 0.5 * sc.sampling_rate
         b, a = ss.butter(5, sc.lowpass_hz / nyq, btype="lowpass") # type: ignore
         s = ss.filtfilt(b, a, s)
+    else:
+        # No frequency filtering. Re-center to zero mean, which the high-pass in
+        # step 4 would otherwise provide: min-max normalisation (step 2) leaves the
+        # signal in [0, 1], and features that assume an oscillation around zero
+        # (vf_leak, spectral, phase-space) need the DC offset removed.
+        s = s - np.mean(s)
     pass #if
 
     return PreprocessedSignal(

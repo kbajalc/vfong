@@ -18,7 +18,11 @@ BEATS = ["N", "L", "R", "B", "A", "S", "C", "V", "W", "F", "Q", "P", "O", "Z"]
 
 META = ["DB", "RID", "Start", "End"]
 
-HEADER = "\t".join(META + LABELS + BEATS)
+
+def header(feature_names=()) -> str:
+    """TSV header line: metadata, labels, beat counts, then feature columns."""
+    return "\t".join(META + LABELS + BEATS + list(feature_names))
+pass #def
 
 # Episode note (WFDB rhythm string) -> label bucket. Type "[" maps to VFN.
 _EPISODE_MAP = {
@@ -87,15 +91,23 @@ class Segment:
         pass #for
     pass #def
 
-    def row(self) -> list:
-        return (
+    def row(self, features=None) -> list:
+        base = (
             [self.db, self.rid, self.start, self.end]
             + [self.labels[k] for k in LABELS]
             + [self.counts[k] for k in BEATS]
         )
+        if features is not None:
+            base += list(features)
+        pass #if
+        return base
     pass #def
 
-    def line(self) -> str:
-        return "\t".join(str(x) for x in self.row())
+    def line(self, features=None) -> str:
+        cells = [str(x) for x in self.row()]
+        if features is not None:
+            cells += [f"{v:.6g}" for v in features]
+        pass #if
+        return "\t".join(cells)
     pass #def
 pass #class

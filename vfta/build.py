@@ -22,8 +22,9 @@ from joblib import Parallel, delayed
 from pxg import env
 from pxg.cbor import CborDatabase, CborRecord
 
+from vfta.features import default_config, feature_names, window_features
 from vfta.filters import LYN_WIND, MED_WIND, signal_filter
-from vfta.segment import HEADER, Segment
+from vfta.segment import Segment, header
 
 
 def default_outdir(window_sec: float) -> str:
@@ -91,8 +92,14 @@ def build_record(
     lyn: int = LYN_WIND,
     med: int = MED_WIND,
     hi: int = 0,
+    spen: bool = False,
 ) -> tuple[str, int]:
-    """Filter one record and write its sliding-window TSV. Returns (path, rows)."""
+    """Filter one record and write its sliding-window TSV. Returns (path, rows).
+
+    Each row carries the labels, beat counts, and the vftx feature columns
+    (``spen`` adds sample entropy; QRS and EMD features are excluded, see
+    ``vfta.features``).
+    """
     if outdir is None:
         outdir = default_outdir(window_sec)
     pass #if
@@ -102,6 +109,8 @@ def build_record(
 
     window = int(window_sec * fs)
     step = int(step_sec * fs)
+    cfg = default_config(fs)
+    names = feature_names(spen=spen)
 
     dbdir = os.path.join(outdir, db)
     os.makedirs(dbdir, exist_ok=True)
@@ -109,9 +118,10 @@ def build_record(
 
     rows = 0
     with open(path, "w") as out:
-        out.write(HEADER + "\n")
+        out.write(header(names) + "\n")
         for seg in slide_segments(rec, window, step):
-            out.write(seg.line())
+            feats = window_features(rec.Signal[seg.start:seg.end], cfg, spen=spen)
+            out.write(seg.line(feats))
             out.write("\n")
             rows += 1
         pass #for
@@ -129,6 +139,7 @@ def build_database(
     chn: int = 0,
     outdir: str | None = None,
     records: list[str] | None = None,
+    spen: bool = False,
 ) -> list[tuple[str, int]]:
     """Build every record of a database in parallel. Returns [(path, rows), ...]."""
     if outdir is None:
@@ -139,7 +150,7 @@ def build_database(
     rids = records if records is not None else cdb.Records
 
     return Parallel(n_jobs=jobs)(
-        delayed(build_record)(db, rid, window_sec, step_sec, outdir, fs, chn)
+        delayed(build_record)(db, rid, window_sec, step_sec, outdir, fs, chn, spen=spen)
         for rid in rids
     )
 pass #def
@@ -152,10 +163,12 @@ def _main() -> None:
     ap.add_argument("--step", type=float, default=1.0, help="window step in seconds")
     ap.add_argument("--jobs", type=int, default=-1, help="parallel workers (-1 = all cores)")
     ap.add_argument("--outdir", default=None, help="output directory (default data/s<sec>)")
+    ap.add_argument("--spen", action="store_true", help="also compute sample entropy (~55 ms/window)")
     args = ap.parse_args()
 
     results = build_database(
-        args.db, window_sec=args.window, step_sec=args.step, jobs=args.jobs, outdir=args.outdir
+        args.db, window_sec=args.window, step_sec=args.step, jobs=args.jobs,
+        outdir=args.outdir, spen=args.spen,
     )
     total = sum(rows for _, rows in results)
     print(f"{args.db}: {len(results)} records, {total} windows -> {default_outdir(args.window) if not args.outdir else args.outdir}")
