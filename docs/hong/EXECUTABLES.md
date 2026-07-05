@@ -122,7 +122,6 @@ and will need minor updates before they can run on current sklearn versions.
 
 | File | Purpose |
 |------|---------|
-| `docs/hong/xtract.py` | Extracts base64-embedded images from the thesis HTML (`docs/hong/THESIS.html`), saves them to `docs/hong/images/`, and rewrites the corresponding image links in `docs/hong/THESIS.md`. Run once after adding a new thesis HTML export. |
 | `dblp/query_dblp.py` | Queries the DBLP academic publications database. Used during thesis research to survey the ECG / VF detection literature. |
 
 ---
