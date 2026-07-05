@@ -31,7 +31,7 @@ def _aux_counts(sig: PreprocessedSignal, cfg: SegmentConfig) -> tuple[int, int, 
     # custom IIR bandpass
     fs = np.zeros(n)
     for i in range(2, n):
-        fs[i] = (14.0 * fs[i - 1] - 7.0 * fs[i - 2] + (samples[i] - samples[i - 2]) / 2.0) / 8.0
+        fs[i] = (14.0 * fs[i - 1] - 7.0 * fs[i - 2] + (samples[i] - samples[i - 2]) / 2.0) / 8.0 # type: ignore
 
     count1, count2, count3 = 0, 0, 0
     for i in range(0, n, sr):  # note: step = original sr (matches reference quirk)

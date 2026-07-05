@@ -30,7 +30,7 @@ def compute_spectral_fm(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     n = len(samples)
     n_fft = int(np.ceil(n / 2))
 
-    fft = np.fft.fft(samples * ss.windows.hamming(n))
+    fft = np.fft.fft(samples * ss.windows.hamming(n)) # type: ignore
     fft_freq = np.fft.fftfreq(n)
 
     fft = fft[:n_fft]

@@ -36,7 +36,7 @@ def compute_amplitude(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     s = np.convolve(s, np.ones(order) / order, mode="same")
     s = _drift_suppression(s, 1.0, sr)
     nyq = 0.5 * sr
-    b, a = ss.butter(5, 30.0 / nyq, btype="lowpass")
+    b, a = ss.butter(5, 30.0 / nyq, btype="lowpass") # type: ignore
     s = ss.filtfilt(b, a, s)
 
     half_peak_width = int(np.round(0.05 * sr))

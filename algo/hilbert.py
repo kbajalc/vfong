@@ -32,10 +32,10 @@ def compute_hilbert(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
 
     x = ss.resample(samples, n_out)
     analytic = ss.hilbert(x)
-    y = np.imag(analytic)
+    y = np.imag(analytic) # type: ignore
 
-    x_offset = np.min(x)
-    x_range = np.max(x) - x_offset
+    x_offset = np.min(x) # type: ignore
+    x_range = np.max(x) - x_offset # type: ignore
     y_offset = np.min(y)
     y_range = np.max(y) - y_offset
 

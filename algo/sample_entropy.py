@@ -58,5 +58,5 @@ def compute_sample_entropy(sig: PreprocessedSignal, cfg: SegmentConfig) -> float
         samples = ss.resample(samples, n_target)
 
     segment = samples[-n_window:]
-    r = cc.spen_r * float(np.std(segment))
-    return _samp_entropy(segment, cc.spen_m, r)
+    r = cc.spen_r * float(np.std(segment)) # type: ignore
+    return _samp_entropy(segment, cc.spen_m, r) # type: ignore

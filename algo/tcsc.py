@@ -36,7 +36,7 @@ def compute_tcsc(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     if window_size > n_samples:
         window_size = n_samples
 
-    tukey_win = ss.windows.tukey(window_size, alpha=0.5 / tc.tcsc_window_sec)
+    tukey_win = ss.windows.tukey(window_size, alpha=0.5 / tc.tcsc_window_sec) # type: ignore
     counts: list[float] = []
     w_begin = 0
     w_end = window_size

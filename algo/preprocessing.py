@@ -66,7 +66,7 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
 
     # 5. Butterworth low-pass
     nyq = 0.5 * sc.sampling_rate
-    b, a = ss.butter(5, sc.lowpass_hz / nyq, btype="lowpass")
+    b, a = ss.butter(5, sc.lowpass_hz / nyq, btype="lowpass") # type: ignore
     s = ss.filtfilt(b, a, s)
 
     return PreprocessedSignal(

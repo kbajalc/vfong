@@ -76,8 +76,8 @@ def compute_imf_lz(
         samples = ss.resample(samples, n_out)
 
     # 2. Normalise: (s - min) / max  (not range — matches reference)
-    s_min = np.min(samples)
-    s_max = np.max(samples)
+    s_min = np.min(samples) # type: ignore
+    s_max = np.max(samples) # type: ignore
     if s_max == 0.0:
         return 0.0, 0.0, 0.0, 0.0, 0.0
     normalised = (samples - s_min) / s_max
@@ -86,7 +86,7 @@ def compute_imf_lz(
     emd_input = (normalised * (2 ** 12)).astype(np.uint16)
 
     # 4. EMD — all 5 modes in one call
-    imfs = _ptsa_emd(emd_input, max_modes=5)
+    imfs = _ptsa_emd(emd_input, max_modes=5) # type: ignore
 
     results: list[float] = []
     for i in range(5):
