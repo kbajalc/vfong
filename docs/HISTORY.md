@@ -166,7 +166,7 @@ The deepest pre-thesis branch. Most of the infrastructure that survived into the
 finalised here.
 
 **OSEA QRS detector integrated** (`ca0d938`) — Added the EP Limited OSEA-20 open-source
-QRS detector (`osea20-gcc/`) and a Cython wrapper (`qrs_detect.pyx`). This replaced an
+QRS detector (`osea/`) and a Cython wrapper (`qrs_detect.pyx`). This replaced an
 earlier simpler detector and enabled the four QRS-derived features (RR interval mean/std/CV,
 unknown-beat ratio, VPC ratio).
 

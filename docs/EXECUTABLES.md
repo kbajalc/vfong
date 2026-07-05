@@ -132,11 +132,11 @@ These are not executable directly but are imported by the Python scripts above.
 |------|---------|
 | `vf_features.pyx` | The 27-feature extraction engine implementing all thesis features: TCSC, TCI, STE, MEA, MAV, Count1–3, Amplitude, RR statistics, VF leak, spectral moments (M, A2, FM), LZ complexity, SpEn, EMD-IMF LZ (IMF1–5), PSR, and HILB. |
 | `vf_data.pyx` | Dataset loading, non-overlapping 8-second ECG segmentation, rhythm annotation handling, per-record channel and annotator selection, and label correction machinery. |
-| `qrs_detect.pyx` | Cython wrapper around the Hamilton/OSEA QRS detection C library (`osea20-gcc/`). Used by `feature_extraction.py` and `qrs_test.py`. |
+| `qrs_detect.pyx` | Cython wrapper around the Hamilton/OSEA QRS detection C library (`osea/`). Used by `feature_extraction.py` and `qrs_test.py`. |
 | `signal_processing.pyx` | Preprocessing functions: 5-order moving average, 1 Hz high-pass drift suppression, 30 Hz Butterworth low-pass filter, and peak-to-peak amplitude calculation. |
 | `wfdb_reader.pyx` | Low-level WFDB record reader (C-level bindings for reading PhysioNet ECG `.dat`/`.hea` files). |
 
-The C source for QRS detection lives in `osea20-gcc/` and is linked during the
+The C source for QRS detection lives in `osea/` and is linked during the
 Cython build step.
 
 ---

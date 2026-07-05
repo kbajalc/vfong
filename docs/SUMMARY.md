@@ -116,7 +116,7 @@ Count1–3 require 250 Hz; segments are resampled before these features. SpEn al
 |----------------|---------------------|
 | Datasets, segmentation, labels | `vf_data.pyx` |
 | Preprocessing | `signal_processing.pyx` |
-| QRS detection | `qrs_detect.pyx` + `osea20-gcc/` |
+| QRS detection | `qrs_detect.pyx` + `osea/` |
 | All 27 features | `vf_features.pyx` + `vf_features_native.c` |
 | Feature extraction driver | `feature_extraction.py` |
 | AHA label logic, estimators | `vf_classify.py` |

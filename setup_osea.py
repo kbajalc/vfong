@@ -13,7 +13,7 @@ from setuptools import Extension, setup
 from Cython.Build import cythonize
 import numpy as np
 
-OSEA = "osea20-gcc"
+OSEA = "osea"
 osea_sources = [
     f"{OSEA}/analbeat.c", f"{OSEA}/bdac.c", f"{OSEA}/classify.c",
     f"{OSEA}/match.c", f"{OSEA}/noisechk.c", f"{OSEA}/postclas.c",

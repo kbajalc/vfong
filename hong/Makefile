@@ -34,7 +34,7 @@ release:
 
 clean:
 	find . -maxdepth 2 \( -name '*.so' -o -name '*.pyd' -o -name '*.c' \
-	    -o -name '*.pyx.gdb' \) -not -path './osea20-gcc/*' -delete
+	    -o -name '*.pyx.gdb' \) -not -path './osea/*' -delete
 	rm -rf build/
 
 check:

@@ -82,7 +82,7 @@ committing.
 ## Mode 2 — gdb / cygdb (`make debug`)
 
 Use this when you need to step into C code: the OSEA QRS detector
-(`osea20-gcc/`), `vf_features_native.c` (LZ complexity), or the WFDB C library.
+(`osea/`), `vf_features_native.c` (LZ complexity), or the WFDB C library.
 
 ### What it does
 
@@ -173,7 +173,7 @@ it the files open as plain text and breakpoints in them are invisible.
 
 | Extension | Publisher | Purpose |
 |-----------|-----------|---------|
-| **C/C++** | Microsoft | Syntax and hover for `.c` / `.h` files in `osea20-gcc/` |
+| **C/C++** | Microsoft | Syntax and hover for `.c` / `.h` files in `osea/` |
 | **GitLens** | GitKraken | Inline blame, useful when tracing which commit introduced a feature |
 | **Error Lens** | Alexander | Inline error display, catches Python type errors without leaving the editor |
 

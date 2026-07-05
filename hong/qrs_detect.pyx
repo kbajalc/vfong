@@ -2,7 +2,7 @@
 # PS Hamilton, WJ Tompkins. Quantitative investigation of QRS detection rules using the MIT/BIH arrhythmia database.
 # IEEE Trans. Biomed. Eng BME-33: 1158-1165 (1987).
 # http://www.eplimited.com/software.htm
-# The C code is put in osea20-gcc directory and it's licensed under GNU Library General Public License (LGPL).
+# The C code is put in osea directory and it's licensed under GNU Library General Public License (LGPL).
 
 import pyximport; pyximport.install()  # use Cython
 import numpy as np
@@ -12,11 +12,11 @@ import scipy.signal
 import threading
 
 
-# defined in osea20-gcc/bdac.c
+# defined in osea/bdac.c
 cdef extern int BeatDetectAndClassify(int ecgSample, int *beatType, int *beatMatch)
 cdef extern void ResetBDAC()
 
-# defined in osea20-gcc/bxbep.c
+# defined in osea/bxbep.c
 cdef extern int amap(int a)
 
 # the underlying C library used for QRS detection is not thread-safe nor reentrant.

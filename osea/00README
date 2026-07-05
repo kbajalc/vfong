@@ -24,10 +24,10 @@ To compile these sources and run the programs:
    there to compile and install the WFDB software using gcc.
 
 3. Unpack the osea 2.0 software by typing:
-	tar xfvz osea20-gcc.tar.gz
-   This creates a directory called osea20-gcc, containing the sources for
+	tar xfvz osea.tar.gz
+   This creates a directory called osea, containing the sources for
    'easytest' and 'bxbep'.  Enter this directory by typing:
-	cd osea20-gcc
+	cd osea
 
 4. The sources are set up by default so that easytest and bxbep will
    read the MIT-BIH Arrhythmia Database files directly from PhysioNet

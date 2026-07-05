@@ -1,6 +1,6 @@
 /* Standalone `amap` for the OSEA qrs_detect extension.
  *
- * amap() lives in osea20-gcc/bxbep.c, but that file is a full WFDB-I/O beat
+ * amap() lives in osea/bxbep.c, but that file is a full WFDB-I/O beat
  * evaluation program (needs libwfdb). amap itself is a pure switch over MIT
  * annotation codes returning an AAMI test-label character, so we provide it
  * here (verbatim from bxbep.c) plus the `fflag` global it reads, avoiding the

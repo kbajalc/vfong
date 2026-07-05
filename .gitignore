@@ -2,10 +2,10 @@
 build/
 vfong.egg-info/
 __pycache__/
-osea20-gcc/*.o
-osea20-gcc/easytest
-osea20-gcc/easytest2
-osea20-gcc/bxbep
+osea/*.o
+osea/easytest
+osea/easytest2
+osea/bxbep
 *.so
 # *.c
 !vf_features_native.c

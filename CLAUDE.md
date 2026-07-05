@@ -17,7 +17,7 @@ hong/     Hong's original Cython implementation (the reference): all .pyx +
           file_lists/, corrections_s8.txt, README.
 algo/     Clean pure-Python reimplementation of all 27 features (see below).
 tests/    Agreement + unit tests (validate algo/ against hong/).
-ptsa/  pyeeg/  osea20-gcc/   Vendored third-party deps, shared by hong/ and algo/.
+ptsa/  pyeeg/  osea/   Vendored third-party deps, shared by hong/ and algo/.
 docs/     Project documentation.  setup_ref.py / setup_osea.py  build hong/'s
           reference extensions for the tests (kept at root, sources point into hong/).
 ```
@@ -126,7 +126,7 @@ No parallelism, no joblib. Set a breakpoint on the `vf_features.extract_features
 |---|---|---|
 | `wfdb_reader` | `wfdb_reader.pyx` + `libwfdb` | Thin Cython wrapper around the WFDB C library: `read_signals()`, `read_annotations()`, `read_info()` |
 | `vf_data` | `vf_data.pyx` | `DataSet`, `Record`, `SegmentInfo`, `Segment`; dataset iteration and label correction; loads record lists from `file_lists/` |
-| `qrs_detect` | `qrs_detect.pyx` + `osea20-gcc/*.c` + `libwfdb` | Wraps the OSEA QRS detector (EP Limited); resamples to 200 Hz internally; **not thread-safe** (uses a module-level lock) |
+| `qrs_detect` | `qrs_detect.pyx` + `osea/*.c` + `libwfdb` | Wraps the OSEA QRS detector (EP Limited); resamples to 200 Hz internally; **not thread-safe** (uses a module-level lock) |
 | `vf_features` | `vf_features.pyx` + `vf_features_native.c` | All 27 feature computations; `extract_features(signals, sampling_rate, feature_names_set)` is the main entry point |
 | `signal_processing` | `signal_processing.pyx` | Shared DSP utilities used by `vf_features`: drift suppression, Butterworth filter, moving average |
 

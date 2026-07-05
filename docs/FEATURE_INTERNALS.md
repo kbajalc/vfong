@@ -25,7 +25,7 @@ vf_features.extract_features(src_samples, sampling_rate, features_to_extract)
 │   └── butter_lowpass_filter(cutoff=30 Hz) signal_processing.pyx
 │
 ├── [QRS DETECTION — on raw src_samples]
-│   └── qrs_detect(src_samples, sampling_rate)   qrs_detect.pyx → osea20-gcc/ C library
+│   └── qrs_detect(src_samples, sampling_rate)   qrs_detect.pyx → osea/ C library
 │       returns: list of (beat_sample_at_200Hz, beat_type_char)
 │
 ├── [FEATURE GROUP: time-domain / morphology]  — on preprocessed samples
@@ -107,7 +107,7 @@ normalised [0,1] signal.
 
 Runs on `src_samples` (raw mV, unfiltered) via `qrs_detect.qrs_detect()`.
 
-Internally the OSEA C library (`osea20-gcc/bdac.c`) does its own bandpass
+Internally the OSEA C library (`osea/bdac.c`) does its own bandpass
 filtering. The signal is resampled to 200 Hz before being fed to the detector.
 The detector is run **twice** on the same segment:
 
