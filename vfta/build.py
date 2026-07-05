@@ -19,20 +19,8 @@ import argparse
 import os
 
 from joblib import Parallel, delayed
-
-try:  # pxg lives in the sibling exg-rad checkout
-    from pxg import env
-    from pxg.cbor import CborDatabase, CborRecord
-except ModuleNotFoundError:  # pragma: no cover - path bootstrap
-    import sys
-
-    _sib = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "exg-rad"))
-    if _sib not in sys.path:
-        sys.path.insert(0, _sib)
-    pass #if
-    from pxg import env
-    from pxg.cbor import CborDatabase, CborRecord
-pass #try
+from pxg import env
+from pxg.cbor import CborDatabase, CborRecord
 
 from vfta.filters import LYN_WIND, MED_WIND, signal_filter
 from vfta.segment import HEADER, Segment
