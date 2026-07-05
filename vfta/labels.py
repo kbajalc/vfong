@@ -21,6 +21,9 @@ import pandas as pd
 # Rhythm classes and which ones count as shockable.
 SHOCKABLE = {"VT", "VFL", "VF"}
 
+# Episode-duration columns that count as shockable coverage.
+_SHOCK_COLS = ["VTH", "VFL", "VFN", "VFB"]
+
 # Episode-label column -> rhythm class it contributes to.
 _RHYTHM_COVERAGE = {
     "VT": ["VTH"],
@@ -49,7 +52,17 @@ pass #def
 
 
 def assign_targets(df: pd.DataFrame, window_sec: float = 8.0, fs: int = 250, purity: float = 0.9) -> pd.DataFrame:
-    """Add ``Rhythm`` and ``Shock`` columns using the purity threshold."""
+    """Add ``Rhythm`` and ``Shock`` columns.
+
+    ``Rhythm`` names the dominant clean episode (VT/VFL/VF/NSR/OTHER) when one covers at least
+    ``purity`` of the window, else MIX; it drives the VT/VFL/VF sub-analysis.
+
+    ``Shock`` follows the benchmark convention (COMP55-2005, JEKOVA-2004). A window is SHOCK
+    when shockable episodes (VT/VFL/VF) cover at least ``purity`` of it, NON when no shockable
+    episode is present at all, and MIX only when a shockable episode partially straddles the
+    window below the threshold. An unannotated background window (no episode) is therefore NON,
+    which is what these algorithms are scored against.
+    """
     thr = purity * window_sec * fs
 
     cov = pd.DataFrame(index=df.index)
@@ -62,21 +75,51 @@ def assign_targets(df: pd.DataFrame, window_sec: float = 8.0, fs: int = 250, pur
 
     out = df.copy()
     out["Rhythm"] = dominant.where(strong, "MIX")
-    out["Shock"] = out["Rhythm"].map(
-        lambda r: "MIX" if r == "MIX" else ("SHOCK" if r in SHOCKABLE else "NON")
-    )
+
+    shock_cov = df[_SHOCK_COLS].sum(axis=1)
+    shock = pd.Series("MIX", index=df.index)
+    shock[shock_cov >= thr] = "SHOCK"
+    shock[shock_cov == 0] = "NON"
+    out["Shock"] = shock
     return out
 pass #def
 
 
-def load_dataset(dbs, window_sec: float = 8.0, fs: int = 250, purity: float = 0.9, outdir: str | None = None) -> pd.DataFrame:
-    """Load and label several databases, returning one concatenated DataFrame."""
+def _ahadb_8series(rid: str) -> bool:
+    return rid.startswith("8")
+pass #def
+
+
+RECORD_FILTER = {"ahadb": _ahadb_8series}
+"""Per-database record filters for the study dataset. ahadb is kept to its 8-series
+(8xxx) ventricular records, the only ones with VF brackets; the rest of ahadb carries no
+rhythm annotation at all and would flood the set with unvalidated non-shockable windows. In
+an 8-series record the bracketed spans are shockable and the background is non-shockable, so
+these records give usable SHOCK and NON data. See paper/PLAN.md."""
+
+
+def load_dataset(
+    dbs,
+    window_sec: float = 8.0,
+    fs: int = 250,
+    purity: float = 0.9,
+    outdir: str | None = None,
+    record_filter=RECORD_FILTER,
+) -> pd.DataFrame:
+    """Load and label several databases, returning one concatenated DataFrame.
+
+    Databases with an entry in ``record_filter`` keep only the records the predicate accepts.
+    """
     if isinstance(dbs, str):
         dbs = [dbs]
     pass #if
     frames = []
     for db in dbs:
         df = load_database(db, window_sec, outdir)
+        keep = record_filter.get(db)
+        if keep is not None:
+            df = df[df["RID"].map(keep)].reset_index(drop=True)
+        pass #if
         frames.append(assign_targets(df, window_sec, fs, purity))
     pass #for
     return pd.concat(frames, ignore_index=True)
