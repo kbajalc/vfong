@@ -1,5 +1,9 @@
 # Paper plan
 
+The dataset-construction strategy for the next phase (read through `pxg.cbor` instead of
+WFDB, one TSV feature file per record under `work/vft8/`, code in `vfta/`, filter once at the
+record level) is folded into "Phase 2: Dataset and preprocessing" below.
+
 Working plan for the paper in `paper/PAPER.md`. This file defines the scope, the phases,
 and the decisions that shape the manuscript. `paper/DRAFT.md` is the earlier, broader draft
 and stays as a source of text and references we pull from. It is not the target document.
@@ -130,6 +134,11 @@ reported for the winner only, not for the whole candidate set.
 - Whether both window lengths (8 s and 4 s) run for all five candidates, or 4 s runs only for
   the leaders, depends on how heavy the overlapping-window dataset build turns out to be.
   Decide in Phase 2 when the dataset is constructed.
+- Whether to skip `vftx`'s per-segment filtering. The Phase 2 plan filters once at the record
+  level (matching the real-time `exg-core` pipeline), which means turning off the
+  drift-suppression and low-pass steps inside `vftx`. This changes what `vftx` computes
+  relative to its reference-validated default, so confirm which `vftx` preprocessing steps stay
+  on and check the effect on the features. Decide in Phase 2.
 
 ## Phases
 
@@ -156,17 +165,41 @@ Deliverables: `PAPER.md` sections 1 and 2 drafted.
 
 ### Phase 2: Dataset and preprocessing
 
-Goal: assemble the labeled segment dataset and fix the preprocessing pipeline.
-Inputs: VFDB + CUDB + AHADB + MITDB via the WFDB readers; `vftx` preprocessing.
-Work: slide overlapping windows over each record with a 1 s step, at both window lengths (8 s
-for the benchmark, 4 s for the short-episode test); label each window from the annotations and
-derive the shockable class and the VT/VFL/VF sub-labels; set up the majority-vote smoothing
-that turns per-window decisions into reference episode labels; apply the standard
-preprocessing; settle the AHADB record selection; gauge the build cost to decide whether both
-window lengths run for all five candidates; report window counts per database, per class, and
-per window length.
-Deliverables: the dataset table (composition) for Results section 4.1; `PAPER.md` sections
-3.1-3.3 drafted.
+Goal: build the labeled segment dataset as on-disk feature files, one per record, so the
+later analysis never touches the raw ECG again. Dataset construction is the heavy part of the
+work: it takes time and needs intermediate results saved to disk. VFPred is the model for this
+staging, and part of the strategy is already prototyped in `ideas/VFML.ipynb`.
+
+Data source and parallelism. Do not read through WFDB directly: its C library is slow and not
+thread-safe, which blocks record-level parallelism. Read instead through `pxg.cbor`, which
+serves the same WFDB signals and annotations verbatim from a custom format; the data is
+already available in `work/cbor`. Databases are processed one at a time, parallel at the record
+level, so each record (for example `mitdb/100`) produces a single feature file (for example
+`work/vft8/mitdb/100.tsv` for the 8 s window).
+
+TSV layout. Each row is one segment: beat counts, episode lengths, labels, and all 27 `vftx`
+features. The exact columns follow `ideas/VFML.ipynb`. Once every record is written, the
+analysis in Phases 3 and 4 works on the TSV corpus alone.
+
+Windowing and filtering. Following `VFML.ipynb`: read the whole record, apply the initial
+filtering once at the record level (baseline removal and low-pass), then form 8 s and 4 s
+segments stepping by 1 s (the stride is configurable). Filters are not applied per segment.
+This matches the intended `exg-core` integration, where baseline removal and low-pass run once
+in a real-time pipeline, not per window. `VFML.ipynb` has the filter implementations in Python.
+Because filtering moves to the record level, the per-segment filtering inside `vftx` is
+skipped. See the open item on this below.
+
+Code. Dataset construction lives in `vfta/` as Python modules plus notebooks for orchestration
+and visualization. The first step is to read `ideas/VFML.ipynb`, then extract and rewrite the
+relevant parts so that, given a database name, one function produces all the TSV files in
+parallel from `pxg.cbor`. Feature extraction wiring comes after a working pipeline exists.
+
+Then: label each window and derive the shockable class and the VT/VFL/VF sub-labels; set up
+the majority-vote smoothing into reference episode labels; settle the AHADB record selection;
+gauge build cost to decide whether both window lengths run for all five candidates; report
+window counts per database, per class, and per window length.
+Deliverables: the on-disk TSV corpus; the dataset composition table for Results section 4.1;
+`PAPER.md` sections 3.1-3.3 drafted.
 
 ### Phase 3: Feature screen and candidate shootout
 
