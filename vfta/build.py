@@ -112,7 +112,7 @@ def build_record(
     window = int(window_sec * fs)
     step = int(step_sec * fs)
     cfg = default_config(fs)
-    names = feature_names(spen=spen)
+    names = feature_names(spen=spen, jekova=True)
 
     dbdir = os.path.join(outdir, db)
     os.makedirs(dbdir, exist_ok=True)
@@ -122,7 +122,7 @@ def build_record(
     with open(path, "w") as out:
         out.write(header(names) + "\n")
         for seg in slide_segments(rec, window, step):
-            feats = window_features(rec.Signal[seg.start:seg.end], cfg, spen=spen)
+            feats = window_features(rec.Signal[seg.start:seg.end], cfg, spen=spen, jekova=True)
             out.write(seg.line(feats))
             out.write("\n")
             rows += 1

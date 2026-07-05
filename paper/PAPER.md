@@ -406,22 +406,75 @@ the two axes side by side rather than collapsing them into one score.
 
 ### 3.6 Candidate tuning and flutter-vs-fibrillation test
 
-> Phase 4. Tune two candidates, not one: TCSC, the established classical design already
-> confirmed in practice (find a reference), and JEKOVA, a newer but still simple, real-time
-> friendly design that topped the screen. For each, sweep its decision threshold(s), build the
-> ROC curve, and pick operating points at both window lengths and the three VFL configurations.
-> JEKOVA needs a small grid search over its three count thresholds; TCSC a single-threshold ROC
-> sweep as in COMP55-2005. Then the sub-analysis on the leading candidate: does its feature
-> separate VFL from VF? VFL is fast, near-sinusoidal, regular; VF is disorganized; VT and VFL
-> are usually short transient phases toward VF. Use cheap features for the split (spectral
-> concentration and regularity, for example a2, vf_leak, the phase-space fill); Hong's IMF-LZ
-> answer to VF-vs-VT is out, EMD being too slow for real time. Cite TCSC-2009, COMP55-2005,
-> JEKOVA-2004, HONG-2016.
+The two candidates that lead on the two axes of the shootout are tuned in full: TCSC, the
+cheapest detector and the established threshold-crossing design [TCSC-2009], and JEKOVA, the
+strongest on discrimination and still real-time friendly [JEKOVA-2004]. Both are tuned on the
+clean set, separately for each window length (the feature distributions shift with window
+length, so a threshold tuned at 8 seconds is not optimal at 4 seconds) and under each of the
+three VFL configurations.
+
+TCSC is a single feature with a single threshold. The threshold is swept across the whole range
+of the feature, and the operating point that maximises F1 is reported, together with the full
+ROC curve, in the manner of the COMP55-2005 single-threshold analysis. This is the same sweep
+that produced the shootout AUC, now read at a chosen operating point rather than as an area.
+
+JEKOVA is not a single threshold but the cascade of count rules from the original paper
+[JEKOVA-2004]: two rules that declare a segment non-shockable, two that declare it shockable,
+and a combined term Count1·Count2/Count3, with anything unmatched left "not classified" for a
+later wave-detection stage. Reproducing this faithfully needed two adjustments, both recorded so
+the tuning stays honest. First, the counts. The screen and shootout used the vftx counts, which
+follow Hong's reimplementation on the signed band-pass output; on that signed output the second
+count is degenerate (about half the samples sit above a near-zero mean, for every rhythm), and
+the cascade relies on exactly that count's spread. The original paper counts the absolute
+band-pass output, so the detector here recomputes the three counts on the absolute output, where
+the second count regains its discriminating spread. Second, the window length. The paper's
+constants are raw sample counts over a 10-second epoch, so they do not transfer to an 8 or
+4-second window; the counts are normalised to fractions of the window sample count, which are
+comparable across window lengths, and the published constants are expressed on the same
+fractional scale. The cascade thresholds are then grid-searched for best F1, with the
+published-constant cascade reported as a baseline. The "not classified" branch cannot use the
+paper's wave detection without a peak detector, which a signal-only detector avoids by design
+(section 3.4), so those windows fall back to a threshold on the third count, the strongest of
+the three; that fallback is one of the grid-searched parameters.
+
+The winning detector then gets one further test: does a cheap feature separate flutter from
+fibrillation? The two are physiologically distinct, VFL being a fast, regular, near-sinusoidal
+oscillation and VF being disorganised, so spectral-concentration and regularity measures should
+carry the split. Using the rhythm label, the VFL and VF windows are scored by the oriented AUC
+of each candidate feature (spectral concentration a2, leakage vf_leak, the phase-space fills
+psr and hilb, and the band-pass count). Hong's answer to the related VF-versus-VT question was
+Lempel-Ziv complexity on the empirical-mode-decomposition modes [HONG-2016], but that is out of
+scope here because EMD is too slow for the real-time target (section 3.4). Flutter is rare in
+these databases (about 470 windows at 8 seconds), so this result is indicative rather than
+definitive.
 
 ### 3.7 Evaluation metrics
 
-> Phase 4. F1 (headline), Se, Sp, PPV, Acc, G-Mean. TP/FP/TN/FN as durations in ms. Define
-> each briefly. Note ROC is used only for the winner tuning, not the whole shootout.
+Each detector produces a binary decision per window, which is compared against the window's
+shockable label to give the four confusion counts: true positives (TP, shockable windows
+correctly flagged), false positives (FP, non-shockable windows wrongly flagged), true negatives
+(TN), and false negatives (FN, missed shockable windows). All the metrics below are functions of
+these four counts, and all are reported at the tuned operating point.
+
+Sensitivity (Se = TP / (TP + FN)) is the fraction of shockable windows caught; for an AED it is
+the safety-critical metric, since a false negative is a missed shock. Specificity
+(Sp = TN / (TN + FP)) is the fraction of non-shockable windows correctly passed over; a low
+specificity means inappropriate shocks. Positive predictive value (PPV = TP / (TP + FP)) is the
+fraction of flagged windows that were truly shockable, which matters here because the classes
+are imbalanced (far more non-shockable windows), so even a high specificity can still leave many
+false positives per true positive. Accuracy (Acc = (TP + TN) / total) is the overall fraction
+correct, reported for completeness but weak under class imbalance, where predicting the majority
+class alone already scores high.
+
+The headline metric is F1, the harmonic mean of PPV and sensitivity
+(F1 = 2·PPV·Se / (PPV + Se)). It rewards a detector only when both are high, and unlike accuracy
+it is not inflated by the large non-shockable majority, which makes it the right single number
+for tuning on this imbalanced problem. The G-Mean, the geometric mean of sensitivity and
+specificity (sqrt(Se·Sp)), is reported alongside as a balance measure that, unlike F1, is
+symmetric in the two classes and so penalises sacrificing either one. The ROC curve (sensitivity
+against 1 minus specificity as the threshold sweeps) is used only for the winner tuning in this
+section, not for the whole shootout, where a single AUC per candidate already summarised the
+threshold-free separation.
 
 ## 4. Results
 

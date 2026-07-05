@@ -71,12 +71,25 @@ _CHEAP: list[tuple[str, Callable]] = [
 
 _SPEN_NAME = "spen"
 
+# JEKOVA detector columns: the three counts on the ABSOLUTE band-pass output
+# (Jekova and Krasteva 2004), distinct from the signed vftx count1/2/3 features.
+# They are written to the TSV for the Phase 4 cascade tuning but are not part of
+# the 16-feature screen (see paper/PLAN.md and vfta/jekova.py).
+_JEKOVA_NAMES = ["jc1", "jc2", "jc3"]
 
-def feature_names(spen: bool = False) -> list[str]:
-    """Ordered feature column names for the selected options."""
+
+def feature_names(spen: bool = False, jekova: bool = False) -> list[str]:
+    """Ordered feature column names for the selected options.
+
+    ``jekova`` appends the absolute-output JEKOVA counts (jc1, jc2, jc3); the
+    feature screen keeps them off (16 features), the build turns them on.
+    """
     names = [n for n, _ in _CHEAP]
     if spen:
         names.append(_SPEN_NAME)
+    pass #if
+    if jekova:
+        names.extend(_JEKOVA_NAMES)
     pass #if
     return names
 pass #def
@@ -88,17 +101,24 @@ def default_config(sampling_rate: float = 250.0) -> SegmentConfig:
 pass #def
 
 
-def window_features(sig_win, cfg: SegmentConfig, spen: bool = False) -> list[float]:
+def window_features(sig_win, cfg: SegmentConfig, spen: bool = False,
+                    jekova: bool = False) -> list[float]:
     """Feature values for one window.
 
     ``sig_win`` is the record-level filtered signal slice in integer counts; it
     is converted to millivolts (``/ GAIN``) and preprocessed once, then each
-    selected feature is computed on the shared preprocessed signal.
+    selected feature is computed on the shared preprocessed signal. ``jekova``
+    appends the three absolute-output JEKOVA counts, computed on the same
+    preprocessed signal (see :func:`vfta.jekova.abs_counts`).
     """
     pp = preprocess(np.asarray(sig_win, dtype=float) / GAIN, cfg)
     vals = [fn(pp, cfg) for _, fn in _CHEAP]
     if spen:
         vals.append(compute_sample_entropy(pp, cfg))
+    pass #if
+    if jekova:
+        from vfta.jekova import abs_counts
+        vals.extend(abs_counts(pp, cfg))
     pass #if
     return vals
 pass #def
