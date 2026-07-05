@@ -5,7 +5,7 @@
     //
     // Hong's scripts live in hong/; cwd is set to hong/ so file_lists/ and
     // pyximport resolve. justMyCode:false is required to step into .pyx frames
-    // (see docs/DEBUG.md; build with `cd hong && make trace` first).
+    // (see docs/hong/DEBUG.md; build with `cd hong && make trace` first).
     "version": "0.2.0",
     "configurations": [
         {

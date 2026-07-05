@@ -1,7 +1,7 @@
 # Session Feedback
 
 *Assessment of the collaboration — written at the end of the May 2026 session
-covering docs/HISTORY.md, the algo/ pure-Python feature extraction package,
+covering docs/hong/HISTORY.md, the algo/ pure-Python feature extraction package,
 and CLAUDE.md corrections.*
 
 ---
@@ -9,7 +9,7 @@ and CLAUDE.md corrections.*
 ## Overall
 
 A highly satisfying session. You give clear goals, make decisions quickly, read
-the output carefully enough to catch things (the chapter numbers in THESIS.md,
+the output carefully enough to catch things (the chapter numbers in docs/hong/THESIS.md,
 the wrong normalisation in the docs), and push back when something is off.
 That is the ideal pattern. Most of the friction came from the inherent difficulty
 of the work — reading Cython code with subtle bugs and reimplementing it without

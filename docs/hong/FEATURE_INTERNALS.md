@@ -1,10 +1,15 @@
 # Feature Extraction — Internals Reference
 
 This document covers everything that happens inside
-`vf_features.extract_features()` (`vf_features.pyx:560`): the preprocessing
+`vf_features.extract_features()` (`hong/vf_features.pyx:560`): the preprocessing
 pipeline, all 27 feature functions, the structure of the return value, and the
 layout of the pickled `.dat` files that are the output of
-`feature_extraction.py`.
+`hong/feature_extraction.py`.
+
+> **Paths:** the Cython sources described here now live under `hong/`. For the
+> pure-Python reimplementation and its per-feature notes see `algo/` and
+> `algo/PLAN.md`; feature-by-feature agreement with this reference is validated
+> in `tests/`.
 
 ---
 

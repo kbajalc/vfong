@@ -254,7 +254,7 @@ The repository was adopted by **Kostadin Bajalcaliev** with two commits:
 - Minor compatibility patches to `signal_processing.pyx`, `qrs_detect.pyx`, `pyeeg/__init__.py`
 - Added `.vscode/` workspace configuration
 
-**"Documents"** (`4b48055`) — converted the thesis PDF to Markdown (`docs/THESIS.md`) using
+**"Documents"** (`4b48055`) — converted the thesis PDF to Markdown (`docs/hong/THESIS.md`) using
 an automated tool; seeded initial documentation stubs.
 
 ---
@@ -263,10 +263,10 @@ an automated tool; seeded initial documentation stubs.
 
 A `develop` branch was cut from the takeover point:
 
-- `docs/EXECUTABLES.md` — full executable reference with CLI flags
-- `docs/FEATURE_EXTRACTION.md` — detailed analysis of `feature_extraction.py`
-- `docs/FEATURE_INTERNALS.md` — all 27 feature algorithms with call tree
-- `docs/DEBUG.md` — debugging guide: `make trace` for pdb/VS Code, `make debug` for gdb/cygdb
+- `docs/hong/EXECUTABLES.md` — full executable reference with CLI flags
+- `docs/hong/FEATURE_EXTRACTION.md` — detailed analysis of `feature_extraction.py`
+- `docs/hong/FEATURE_INTERNALS.md` — all 27 feature algorithms with call tree
+- `docs/hong/DEBUG.md` — debugging guide: `make trace` for pdb/VS Code, `make debug` for gdb/cygdb
 - `extract_one.py` — single-segment extraction script for interactive debugging
 - Makefile `trace` and `debug` targets
 

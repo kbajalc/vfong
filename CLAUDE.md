@@ -242,7 +242,7 @@ initialisation latency.  The `algo/` package uses `WfdbXqrsDetector` instead.
 
 ## Debugging
 
-See `docs/DEBUG.md` for the full guide. Quick reference:
+See `docs/hong/DEBUG.md` for the full guide. Quick reference:
 
 ```bash
 make trace    # enables pdb / VS Code breakpoints inside .pyx files
@@ -262,16 +262,16 @@ VS Code `launch.json` already has three configurations for `extract_one.py` and 
 | `develop` | Documentation additions (`docs/`) — frozen |
 | `codex` | Active development: bug fixes, modernisation, documentation |
 
-Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation; `algo/` pure-Python feature extraction package (all 27 features). See `docs/HISTORY.md` for the full narrative.
+Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation; `algo/` pure-Python feature extraction package (all 27 features). See `docs/hong/HISTORY.md` for the full narrative.
 
 ---
 
 ## Docs
 
-- `docs/HISTORY.md` — project history: original author background, phase-by-phase narrative of all commits from May 2016 to present
-- `docs/SUMMARY.md` — thesis summary: AHA class definitions, dataset details, all 27 features with indices, thesis→code mapping table
-- `docs/EXECUTABLES.md` — every runnable script with CLI flags and usage examples
-- `docs/FEATURE_EXTRACTION.md` — detailed `feature_extraction.py` execution flow and all CLI flags
-- `docs/FEATURE_INTERNALS.md` — all 27 feature functions: algorithms, call tree, preprocessing pipeline, `.dat` file format
-- `docs/DEBUG.md` — debugging guide (pdb, gdb, VS Code, `make trace`/`debug`/`release`)
-- `docs/THESIS.md` / `docs/THESIS.pdf` — full 2016 NTU thesis with figures, tables, formulas, clickable ToC and references
+- `docs/hong/HISTORY.md` — project history: original author background, phase-by-phase narrative of all commits from May 2016 to present
+- `docs/hong/SUMMARY.md` — thesis summary: AHA class definitions, dataset details, all 27 features with indices, thesis→code mapping table
+- `docs/hong/EXECUTABLES.md` — every runnable script with CLI flags and usage examples
+- `docs/hong/FEATURE_EXTRACTION.md` — detailed `feature_extraction.py` execution flow and all CLI flags
+- `docs/hong/FEATURE_INTERNALS.md` — all 27 feature functions: algorithms, call tree, preprocessing pipeline, `.dat` file format
+- `docs/hong/DEBUG.md` — debugging guide (pdb, gdb, VS Code, `make trace`/`debug`/`release`)
+- `docs/hong/THESIS.md` / `docs/hong/THESIS.pdf` — full 2016 NTU thesis with figures, tables, formulas, clickable ToC and references

@@ -1,9 +1,13 @@
 # Executables Reference
 
-This document lists every runnable file in the repository, organized by role.
-The research context is a 2016 NTU master thesis on AED-oriented arrhythmia
-detection using handcrafted ECG features and machine learning (see `THESIS.md`
-and `PAPER.md` for full background).
+This document lists the runnable files of the original thesis implementation,
+organized by role. The research context is a 2016 NTU master thesis on
+AED-oriented arrhythmia detection using handcrafted ECG features and machine
+learning (see `docs/hong/THESIS.md` for full background).
+
+> **Paths:** these scripts now live under `hong/`; run them from inside that
+> directory (`cd hong`). The pure-Python reimplementation is in `algo/` and its
+> tests in `tests/` — not covered here.
 
 ---
 
@@ -118,7 +122,7 @@ and will need minor updates before they can run on current sklearn versions.
 
 | File | Purpose |
 |------|---------|
-| `docs/xtract.py` | Extracts base64-embedded images from the thesis HTML (`THESIS.html`), saves them to `docs/images/`, and rewrites the corresponding image links in `THESIS.md`. Run once after adding a new thesis HTML export. |
+| `docs/hong/xtract.py` | Extracts base64-embedded images from the thesis HTML (`docs/hong/THESIS.html`), saves them to `docs/hong/images/`, and rewrites the corresponding image links in `docs/hong/THESIS.md`. Run once after adding a new thesis HTML export. |
 | `dblp/query_dblp.py` | Queries the DBLP academic publications database. Used during thesis research to survey the ECG / VF detection literature. |
 
 ---
@@ -146,7 +150,7 @@ Cython build step.
 To understand the repository in the same order as the thesis workflow:
 
 1. `README` — brief project overview
-2. `docs/THESIS.md` — the full thesis (data, features, experiments, results)
+2. `docs/hong/THESIS.md` — the full thesis (data, features, experiments, results)
 3. `docs/PAPER.md` — annotated mapping of thesis claims to repo code
 4. `vf_data.pyx` — dataset loading and segmentation
 5. `feature_extraction.py` — feature generation driver

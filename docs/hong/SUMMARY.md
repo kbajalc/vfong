@@ -2,7 +2,7 @@
 
 **Thesis:** "Detecting Life-Threatening Arrhythmia with Machine Learning Algorithms"  
 **Author:** Jen-Yee Hong, National Taiwan University, July 2016  
-**Full text:** `docs/THESIS.md`
+**Full text:** `docs/hong/THESIS.md`
 
 ---
 
@@ -112,6 +112,9 @@ Count1–3 require 250 Hz; segments are resampled before these features. SpEn al
 
 ## 7. Thesis → Code Mapping
 
+Source files below are the original thesis implementation, now under `hong/`
+(e.g. `hong/vf_features.pyx`). The pure-Python reimplementation is in `algo/`.
+
 | Thesis section | Primary source file |
 |----------------|---------------------|
 | Datasets, segmentation, labels | `vf_data.pyx` |
@@ -149,11 +152,11 @@ Repo is broader than the thesis alone: it adds ensemble models (random forest, a
 
 ## 10. Suggested Reading Order
 
-1. `docs/SUMMARY.md` — this file: overall context and code mapping
-2. `docs/THESIS.md` — full thesis with figures, tables, formulas
+1. `docs/hong/SUMMARY.md` — this file: overall context and code mapping
+2. `docs/hong/THESIS.md` — full thesis with figures, tables, formulas
 3. `vf_data.pyx` — dataset loading, segmentation, label correction
 4. `feature_extraction.py` — parallelised feature generation driver
 5. `vf_features.pyx` — all 27 feature implementations
 6. `vf_classify.py` — AHA labeling and estimator setup
 7. `vf_tests.py` — experiment loop and CSV reporting
-8. `docs/EXECUTABLES.md` — every runnable file with usage examples
+8. `docs/hong/EXECUTABLES.md` — every runnable file with usage examples
