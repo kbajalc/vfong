@@ -64,7 +64,7 @@ the ones that changed or were newly settled for this paper.
 |---|---|
 | Benchmark target | All candidates are benchmarked on shockable (VT/VFL/VF) vs non-shockable. This matches the published purpose of these algorithms and keeps the shootout comparable to the literature. |
 | Winner sub-analysis | The winning candidate gets one extra test: can it separate flutter (VFL) from fibrillation (VF), which have very different signatures? See "Why VFL vs VF, for the winner only" below. |
-| Candidate set | Five detectors: the three from `DRAFT.md` (VFLEAK, SPEC, TCSC) plus HILB (phase space) and MEA (amplitude shape), chosen from Hong's thesis on the grounds below. See "Candidate detectors and winner selection". |
+| Candidate set | Five detectors: the three from `DRAFT.md` (VFLEAK, SPEC, TCSC) plus HILB (phase space) and JEKOVA (14.6 Hz band-pass counts). MEA was the fifth but was dropped after the feature screen; see "Candidate detectors and winner selection". |
 | Winner selection | Data-driven, weighing discrimination against computational cost. Not the single best score if it is far more expensive. TCSC is the stated hypothesis for the winner (cheap and strong). |
 | Databases | Full set: VFDB + CUDB + AHADB (licensed, available) + MITDB, matching the COMP55-2005 combination for comparability. |
 | Windowing | Overlapping windows with a 1 s step, and a majority-vote smoothing to turn per-window decisions into reference episode labels (the `DRAFT.md` post-processing). Two window lengths, 8 s (benchmark, matches the original papers) and 4 s (short-episode test, MITDB). Both run for all five candidates if the dataset build allows; confirmed in Phase 2. |
@@ -91,16 +91,18 @@ actually work (thesis section 2.3, quoting Amann et al. 2005):
 - HILB (Amann 2005), phase-space box-counting. Amann's own algorithm and the strongest single
   classical algorithm in the literature (IROC around 95%), at moderate cost (one FFT-based
   convolution). This adds the phase-space family, which none of the first three cover.
-- MEA (modified exponential), amplitude distribution and shape, cheap. Hong reports Amann's
-  finding that the best-performing features work in the time domain, so a strong, cheap
-  time-domain shape feature is a natural second addition. It adds the distribution-and-shape
-  family.
+- JEKOVA (Jekova and Krasteva 2004), a 14.6 Hz integer band-pass filter followed by three
+  counts of the filtered output (Count1-3). It reports about 96% sensitivity and 94%
+  specificity, uses only integer arithmetic (real-time friendly), and its Count3 topped our
+  feature screen. It adds the band-pass family.
 
-Two families are left out of the candidate set on purpose. Complexity and entropy measures
-(LZ, SpEn) are excluded because Amann found they perform poorly wherever specificity is above
-80% (thesis section 2.3), which is exactly the region an AED-grade detector must live in. So
-the five candidates span threshold crossing (TCSC), spectral (VFLEAK, SPEC), phase space
-(HILB), and distribution and shape (MEA), and skip complexity, with a documented reason.
+MEA (modified exponential, the amplitude-shape family) was the fifth candidate but was dropped:
+in the screen it discriminated poorly (single-feature AUC about 0.78) while JEKOVA's band-pass
+counts were the strongest of all. Complexity and entropy measures (LZ, SpEn) are also left out,
+because Amann found they perform poorly wherever specificity is above 80% (thesis section 2.3),
+the region an AED-grade detector must live in. So the five candidates span threshold crossing
+(TCSC), spectral leakage (VFLEAK), spectral FFT (SPEC), phase space (HILB), and band-pass
+(JEKOVA).
 
 The point of five is to make the winner choice an argued one, not a coin flip. Cost matters
 because the downstream target is an embedded, real-time extension of `exg-core`. Hong's own
@@ -287,7 +289,7 @@ rule on top of a feature) are thin wrappers to add during Phases 3-4:
 | VFLEAK (Kuo and Dillman 1978) | `vf_leak` [6] | Leakage ratio; add the threshold. Cheap. |
 | SPEC (Barro 1989) | `m` [7], `a2` [8], `fm` [9] | Spectral descriptors; add FSMN/A1/A2/A3 and Jekova thresholds. Expensive (FFT per window). |
 | HILB (Amann 2005) | `hilb` [5] | Phase-space box-count; add the threshold. Moderate cost. |
-| MEA (modified exponential) | `mea` [3] | Amplitude envelope; add the threshold. Cheap. |
+| JEKOVA (Jekova and Krasteva 2004) | `count1` [13], `count2` [14], `count3` [15] | 14.6 Hz band-pass counts; add the thresholds. Cheap (integer arithmetic). |
 
 The five candidates already map onto existing `vftx` features, so no new feature math is
 needed, only the thin threshold-and-decision wrappers and the cost measurement. The dataset

@@ -293,9 +293,9 @@ categories as the review in section 2.
 | A2 | spectral | energy in a band around the dominant frequency; high for narrow-band VF |
 | FM | spectral | amplitude-weighted mean frequency of the spectrum |
 | LZ | complexity | Lempel-Ziv complexity of the binarised signal; high for disordered VF |
-| Count1 | count | samples in the upper half of the amplitude range |
-| Count2 | count | samples above the mean |
-| Count3 | count | samples within the mean plus or minus the mean deviation |
+| Count1 | band-pass | samples in the upper half of the 14.6 Hz band-pass output [JEKOVA-2004] |
+| Count2 | band-pass | samples above the mean of the band-pass output [JEKOVA-2004] |
+| Count3 | band-pass | samples within the mean plus or minus the mean deviation of the band-pass output [JEKOVA-2004] |
 | Amplitude | amplitude | peak-to-peak amplitude in millivolts |
 
 Sample entropy (how predictable the signal is) is also available but off by default, because at
@@ -310,13 +310,24 @@ needed. The EMD-based IMF-LZ features are dropped because empirical mode decompo
 about 2 seconds per window, which cannot keep up with a real-time 1-second step. Both families
 exist in the reference set but have no place in a signal-only real-time detector.
 
-The five candidate detectors are each one feature plus a threshold decision. TCSC, VFLEAK, and
-SPEC come from the benchmark literature [TCSC-2009, VFLEAK-1978, SPEC-1989]; HILB and MEA are
-added to span the phase-space and amplitude-shape families [HILB-2005, COMP55-2005]. The choice
-follows what Hong's review of Amann et al. reports: time-domain features perform best (which
-motivates MEA), the Hilbert phase-space method is the strongest single classical algorithm
-(HILB), and complexity and entropy measures are left out of the candidate set because they
-perform poorly wherever specificity must stay above 80% [HONG-2016, COMP55-2005]. Each
+Five candidate detectors are compared, each one algorithm computed from one or a few of the
+features above plus a threshold decision. Each maps onto a distinct method family.
+
+| Candidate | Feature(s) | Family | Reference |
+|---|---|---|---|
+| TCSC | tcsc | threshold crossing | [TCSC-2009] |
+| VFLEAK | vf_leak | spectral, leakage | [VFLEAK-1978] |
+| SPEC | m, a2, fm | spectral, FFT descriptors | [SPEC-1989] |
+| HILB | hilb | phase space | [HILB-2005] |
+| JEKOVA | count1, count2, count3 | 14.6 Hz band-pass | [JEKOVA-2004] |
+
+TCSC, VFLEAK, and SPEC come from the benchmark literature. HILB is added as the strongest
+single classical algorithm [HILB-2005]. The fifth slot first held MEA (the amplitude-shape
+family), but the feature screen (section 4.2) ranked MEA poorly and ranked JEKOVA's band-pass
+counts at the top, so JEKOVA takes the slot: it is a strong published detector (about 96%
+sensitivity and 94% specificity) that uses only integer arithmetic, which suits the real-time
+target [JEKOVA-2004]. Complexity and entropy measures are left out of the candidate set because
+they perform poorly wherever specificity must stay above 80% [HONG-2016, COMP55-2005]. Each
 candidate's decision threshold is set and tuned in Phase 3 and Phase 4; the tuned values and
 the per-window compute cost are reported in Results.
 
