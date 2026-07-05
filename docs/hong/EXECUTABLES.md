@@ -3,7 +3,7 @@
 This document lists the runnable files of the original thesis implementation,
 organized by role. The research context is a 2016 NTU master thesis on
 AED-oriented arrhythmia detection using handcrafted ECG features and machine
-learning (see `docs/hong/THESIS.md` for full background).
+learning (see `docs/hong/THESIS.md` and `docs/hong/SUMMARY.md` for full background).
 
 > **Paths:** these scripts now live under `hong/`; run them from inside that
 > directory (`cd hong`). The pure-Python reimplementation is in `algo/` and its
@@ -151,7 +151,7 @@ To understand the repository in the same order as the thesis workflow:
 
 1. `README` — brief project overview
 2. `docs/hong/THESIS.md` — the full thesis (data, features, experiments, results)
-3. `docs/PAPER.md` — annotated mapping of thesis claims to repo code
+3. `docs/hong/SUMMARY.md` — thesis summary and thesis→code mapping
 4. `vf_data.pyx` — dataset loading and segmentation
 5. `feature_extraction.py` — feature generation driver
 6. `vf_features.pyx` — feature implementations
