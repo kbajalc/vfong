@@ -7,9 +7,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A research pipeline (2016 NTU master thesis) for detecting life-threatening cardiac arrhythmias (VF/VT) in 8-second ECG segments. The system reads PhysioNet WFDB records, extracts 27 handcrafted signal-processing features via Cython extensions, and trains/evaluates scikit-learn classifiers using AHA reporting rules (shockable / intermediate / non-shockable).
 
 The repo also hosts a paper-writing project (`paper/`). `paper/PLAN.md` is the working plan
-(refined scope, resolved decisions, the phases); `paper/PAPER.md` is the manuscript skeleton;
+(refined scope, resolved decisions, the phases); `paper/PAPER.md` is the manuscript;
 `paper/DRAFT.md` is the earlier broad draft kept as a source of text and references;
-`paper/NOTES.md` is the takeover status report.
+`paper/NOTES.md` is the takeover status report. The experiments run in `PAPER.ipynb` (repo
+root) on the `vfta/` pipeline (see below); Phases 1-4 are done (intro, dataset, feature
+screen, candidate shootout, TCSC + JEKOVA tuning, flutter-vs-fibrillation), Phase 5
+(Discussion, Conclusion, Abstract, references) remains.
 
 ---
 
@@ -62,10 +65,13 @@ hong/     Hong's original Cython implementation (the reference): all .pyx +
           (feature_extraction.py, vf_tests.py, extract_one.py, …), .sh scripts,
           file_lists/, corrections_s8.txt, README.
 vftx/     Clean pure-Python reimplementation of all 27 features (see below).
+vfta/     Paper pipeline (see below): cbor -> filter -> sliding-window -> per-record
+          TSV, labels, feature screen, candidate shootout, Phase 4 tuning.
 tests/    Agreement + unit tests (validate vftx/ against hong/).
 ptsa/  pyeeg/  osea/   Vendored third-party deps, shared by hong/ and vftx/.
 docs/     Project documentation.  setup_ref.py / setup_osea.py  build hong/'s
           reference extensions for the tests (kept at root, sources point into hong/).
+PAPER.ipynb   Paper experiment notebook (repo root); runs the vfta/ pipeline end to end.
 ```
 
 Hong's build and thesis commands below run from inside `hong/` (e.g. `cd hong && make
@@ -244,6 +250,30 @@ libwfdb (reference QRS features come out 0). The real OSEA detector is also buil
 without libwfdb via `python setup_osea.py build_ext --inplace` (WFDB headers stubbed in
 `tests/_osea/`); `tests/test_qrs_osea.py` then loosely validates xqrs vs OSEA (skips if the
 `.so` isn't built).
+
+### `vfta/` — paper experiment pipeline
+
+`vfta` = **V**entricular **T**achyarrhythmias **A**nalysis. The pipeline behind `PAPER.ipynb`
+and `paper/PAPER.md`. Reads ECG through `pxg.cbor` (not WFDB), filters once per record, slides
+overlapping 1 s-step windows at 8 s and 4 s, and writes one TSV per record under `data/s<sec>/`
+(git-ignored). Analysis then works on the TSV corpus alone. Signal-only by design: QRS features
+and EMD IMF-LZ are excluded (see `paper/PLAN.md` Phase 2).
+
+| Module | Role |
+|---|---|
+| `vfta/build.py` | `cbor -> filter -> sliding window -> per-record TSV`, parallel by record. CLI `python -m vfta.build <db> --window 8` |
+| `vfta/filters.py` | Record-level Lynn band-pass + median baseline (matches the real-time exg-core pipeline) |
+| `vfta/segment.py` | TSV row: metadata, episode-duration labels, beat counts, feature columns |
+| `vfta/features.py` | Per-window vftx features (16 cheap + optional SpEn) + `jc1/jc2/jc3`; `screen_features()` is the 16-feature analysis list |
+| `vfta/labels.py` | Shockable / Rhythm labels (benchmark convention); ahadb 8-series filter |
+| `vfta/screen.py` | Feature screen: point-biserial, mutual information, single-feature AUC, redundancy |
+| `vfta/shootout.py` | Five candidate detectors (TCSC, VFLEAK, SPEC, HILB, JEKOVA); discrimination vs compute cost |
+| `vfta/jekova.py` | JEKOVA detector: 14.6 Hz band-pass, absolute counts (`jc1/2/3`), decision cascade |
+| `vfta/tuning.py` | Phase 4: TCSC threshold sweep, JEKOVA cascade grid search, operating-point metrics, VFL configs |
+
+Key finding (see `paper/PLAN.md`): JEKOVA's cascade needs the counts on the **absolute**
+band-pass output (`jc1/jc2/jc3`), because vftx's signed `count2` is degenerate (~0.5 for every
+rhythm). The build writes both; the analysis uses `jc`.
 
 ### Key data structures
 

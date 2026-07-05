@@ -176,8 +176,12 @@ Settled for the dataset build in `vfta/`:
 
 ## Open items to confirm during the phases
 
-- Whether both window lengths (8 s and 4 s) run for all five candidates, or 4 s runs only for
-  the leaders. The build is done for both, so this is now just a question of analysis effort.
+- Both window lengths (8 s and 4 s) run for all five candidates in the screen and the shootout,
+  and for both tuned candidates in Phase 4. Resolved: they run for all.
+- JEKOVA counts. The cascade needs the counts on the absolute band-pass output; vftx's signed
+  `count2` is degenerate (near 0.5 for every rhythm). Resolved: the build writes the absolute
+  counts as `jc1/jc2/jc3` and the analysis (screen, shootout, tuning) uses them. See the Phase 2
+  decisions and the candidate table below.
 
 ## Phases
 
@@ -239,6 +243,11 @@ gauge build cost to decide whether both window lengths run for all five candidat
 window counts per database, per class, and per window length.
 Deliverables: the on-disk TSV corpus; the dataset composition table for Results section 4.1;
 `PAPER.md` sections 3.1-3.3 drafted.
+Status: done. Corpus built at `data/s8/<db>/<rid>.tsv` and `data/s4/...` (the path is
+`data/s<sec>`, not `work/vft8`). Each row carries the 16 signal-only vftx features plus the
+three JEKOVA absolute counts (`jc1/jc2/jc3`); QRS and IMF-LZ are excluded by design. `PAPER.md`
+sections 3.1-3.4 and 4.1 written. Not built: the majority-vote episode smoothing (evaluation is
+per-window), so Phase 4 reports per-window confusion counts, not ms durations.
 
 ### Phase 3: Feature screen and candidate shootout
 
@@ -254,6 +263,11 @@ Second, the shootout: for each of the five candidate detectors report its discri
 heatmap for redundancy), and the discrimination-vs-cost comparison.
 Deliverables: screen and shootout tables and figures for Results sections 4.2-4.3;
 `PAPER.md` sections 3.4-3.5 drafted.
+Status: done. The screen ranks the 16 analysis features (the JEKOVA absolute counts jc2/jc3/jc1
+are the top three, AUC 0.986/0.985/0.974); the shootout runs all five candidates at 8 s and 4 s.
+JEKOVA wins discrimination (F1 0.846) but costs about 14x TCSC, which is the cheapest and
+second-best, so both go to Phase 4. `PAPER.md` sections 3.5 and 4.2 written; figures in
+`PAPER.ipynb`.
 
 ### Phase 4: Candidate tuning and VFL-vs-VF test
 
@@ -269,6 +283,14 @@ candidate: test whether its feature separates VFL from VF, using cheap spectral 
 features, and report that result.
 Deliverables: the ROC figures, the operating-point tables, and the VFL-vs-VF result for
 Results section 4.4; `PAPER.md` sections 3.6-3.7 drafted.
+Status: done. TCSC tuned by a single-threshold sweep; JEKOVA by a grid search over the published
+cascade (not three independent thresholds: the cascade combines the counts, including the term
+jc1*jc2/jc3), on the absolute counts normalised to window-length fractions. At 8 s the tuned
+JEKOVA reaches F1 0.847 (Se 0.898, Sp 0.976), the best of any detector; the published-constant
+cascade gives Se 0.973 / Sp 0.900, close to the paper's 0.959 / 0.944 (a reproduction check).
+Tuned thresholds are identical at 8 s and 4 s. VFL-vs-VF: JEKOVA's own count is near chance
+(jc3 AUC 0.603); TCSC (0.735), PSR, and VF_LEAK separate flutter from fibrillation only modestly.
+`PAPER.md` sections 3.6, 3.7, 4.3, 4.4 written. Confusion counts are per-window (no ms durations).
 
 ### Phase 5: Write-up, figures, and finalization
 
@@ -290,13 +312,15 @@ rule on top of a feature) are thin wrappers to add during Phases 3-4:
 | TCSC (Arafat 2009) | `tcsc` [0] | Crossing count; add the `N_d` threshold, retuned at 250 Hz. Cheap. |
 | VFLEAK (Kuo and Dillman 1978) | `vf_leak` [6] | Leakage ratio; add the threshold. Cheap. |
 | SPEC (Barro 1989) | `m` [7], `a2` [8], `fm` [9] | Spectral descriptors; add FSMN/A1/A2/A3 and Jekova thresholds. Expensive (FFT per window). |
-| HILB (Amann 2005) | `hilb` [5] | Phase-space box-count; add the threshold. Moderate cost. |
-| JEKOVA (Jekova and Krasteva 2004) | `count1` [13], `count2` [14], `count3` [15] | 14.6 Hz band-pass counts; add the thresholds. Cheap (integer arithmetic). |
+| HILB (Amann 2005) | `hilb` [5] | Phase-space box-count; single threshold, swept in Phase 4. Moderate cost. |
+| JEKOVA (Jekova and Krasteva 2004) | `jc1`, `jc2`, `jc3` | 14.6 Hz band-pass counts on the absolute filter output (not vftx's signed `count1/2/3`, whose count2 is degenerate). The published decision cascade, retuned in Phase 4. Cheap. |
 
-The five candidates already map onto existing `vftx` features, so no new feature math is
-needed, only the thin threshold-and-decision wrappers and the cost measurement. The dataset
-build computes the cheap non-QRS features (16 by default, plus SpEn on request); QRS and EMD
-features are excluded (see the Phase 2 decisions).
+Four candidates map onto existing `vftx` features; JEKOVA needs the counts on the absolute
+band-pass output (`jc1/jc2/jc3`), added as a thin `vfta/jekova.py` wrapper and written to the
+TSV by the build. The build computes the 16 cheap non-QRS vftx features (plus SpEn on request)
+and the three `jc` counts; QRS and EMD features are excluded (see the Phase 2 decisions). The
+detectors themselves are thin threshold-and-decision wrappers in `vfta/shootout.py`,
+`vfta/jekova.py`, and `vfta/tuning.py`.
 
 ## New reference to add
 
