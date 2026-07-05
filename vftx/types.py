@@ -19,6 +19,7 @@ class SignalConfig:
     highpass_hz: float = 1.0        # drift-suppression high-pass cutoff (reference: 1 Hz)
     lowpass_hz: float = 30.0        # anti-alias low-pass cutoff
     moving_avg_order: int = 5       # moving-average smoothing kernel size
+pass #class
 
 
 @dataclass
@@ -32,6 +33,7 @@ class ThresholdConfig:
     # TCI [1]
     tci_threshold_pct: float = 0.20     # 20 % of peak-to-peak amplitude
     tci_window_sec: float = 1.0         # 1-second analysis windows
+pass #class
 
 
 @dataclass
@@ -40,6 +42,7 @@ class EnergyConfig:
     ste_tau_sec: float = 3.0        # STE exponential decay time constant
     mea_tau_sec: float = 0.2        # MEA exponential decay time constant
     mav_window_sec: float = 2.0     # MAV sliding window length
+pass #class
 
 
 @dataclass
@@ -47,6 +50,7 @@ class PhaseSpaceConfig:
     """Parameters for phase-space features: PSR [4] and HILB [5]."""
     delay_sec: float = 0.5          # time-delay embedding lag
     grid_size: int = 40             # N×N occupancy grid (both axes)
+pass #class
 
 
 @dataclass
@@ -68,6 +72,7 @@ class ComplexityConfig:
     # "pyemd" = the standard EMD-signal package (pip install EMD-signal); a valid
     #           but different EMD, so IMF_LZ values diverge from the reference.
     emd_backend: str = "ptsa"
+pass #class
 
 
 @dataclass
@@ -96,6 +101,7 @@ class SegmentConfig:
     # later windows and every feature computed after it. The clean default leaves
     # each feature working on the uncorrupted signal. See vftx/PLAN.md "Phase 4".
     reference_bug_compat: bool = False
+pass #class
 
 
 # ---------------------------------------------------------------------------
@@ -119,6 +125,7 @@ class PreprocessedSignal:
     raw_mv: np.ndarray      # shape (N,), float64, millivolts, un-normalised
     processed: np.ndarray   # shape (N,), float64, normalised + filtered
     sampling_rate: float    # Hz — from SignalConfig.sampling_rate
+pass #class
 
 
 # ---------------------------------------------------------------------------
@@ -195,6 +202,8 @@ class Features:
             self.imf1_lz, self.imf2_lz, self.imf3_lz, self.imf4_lz, self.imf5_lz,
             self.rr, self.rr_std, self.rr_cv, self.ur, self.vr,
         ], dtype=np.float64)
+    pass #def
+pass #class
 
 
 # ---------------------------------------------------------------------------
@@ -232,3 +241,5 @@ class QRSDetector(Protocol):
         ``'Q'`` unknown/unclassified.
         """
         ...
+    pass #def
+pass #class

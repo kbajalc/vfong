@@ -26,6 +26,7 @@ try:
     _HAS_PTSA = True
 except ImportError:
     _HAS_PTSA = False
+pass #try
 
 
 def _run_emd(emd_input: np.ndarray, backend: str) -> list:
@@ -39,7 +40,9 @@ def _run_emd(emd_input: np.ndarray, backend: str) -> list:
     if backend == "ptsa":
         if not _HAS_PTSA:
             raise ImportError("emd_backend='ptsa' but the bundled ptsa package is unavailable")
+        pass #if
         return _ptsa_emd(emd_input, max_modes=5)  # type: ignore
+    pass #if
     if backend == "pyemd":
         try:
             from PyEMD import EMD
@@ -47,8 +50,11 @@ def _run_emd(emd_input: np.ndarray, backend: str) -> list:
             raise ImportError(
                 "emd_backend='pyemd' requires the EMD-signal package "
                 "(pip install EMD-signal)") from exc
+        pass #try
         return list(EMD()(emd_input.astype(np.float64), max_imf=5))
+    pass #if
     raise ValueError(f"unknown emd_backend {backend!r} (expected 'ptsa' or 'pyemd')")
+pass #def
 
 
 def _imf_lz_complexity(imf: np.ndarray) -> float:
@@ -66,7 +72,10 @@ def _imf_lz_complexity(imf: np.ndarray) -> float:
         v = int(values[i])
         for c in range(12):
             binary_seq[j - c] = (v >> c) & 1
+        pass #for
+    pass #for
     return _lz76(binary_seq)
+pass #def
 
 
 def compute_imf_lz(
@@ -94,12 +103,14 @@ def compute_imf_lz(
     if sr != 250.0:
         n_out = int(len(samples) / sr * 250)
         samples = ss.resample(samples, n_out)
+    pass #if
 
     # 2. Normalise: (s - min) / max  (not range — matches reference)
     s_min = np.min(samples) # type: ignore
     s_max = np.max(samples) # type: ignore
     if s_max == 0.0:
         return 0.0, 0.0, 0.0, 0.0, 0.0
+    pass #if
     normalised = (samples - s_min) / s_max
 
     # 3. Scale to 12-bit uint16
@@ -114,5 +125,8 @@ def compute_imf_lz(
             results.append(_imf_lz_complexity(imfs[i].astype(np.float64)))
         else:
             results.append(0.0)
+        pass #if
+    pass #for
 
     return tuple(results)  # type: ignore[return-value]
+pass #def

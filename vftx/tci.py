@@ -31,12 +31,17 @@ def _find_threshold_crossing(segment: np.ndarray, threshold_ratio: float):
             if segment[i] <= threshold:
                 raised = False
                 last_fall = i
+            pass #if
         else:
             if segment[i] > threshold:
                 raised = True
                 if n_pulses == 0:
                     first_rise = i
+                pass #if
                 n_pulses += 1
+            pass #if
+        pass #if
+    pass #for
 
     if n_pulses > 0:
         begin_silence = first_rise
@@ -44,7 +49,9 @@ def _find_threshold_crossing(segment: np.ndarray, threshold_ratio: float):
     else:
         begin_silence = n
         tail_silence = n
+    pass #if
     return begin_silence, tail_silence, n_pulses
+pass #def
 
 
 def compute_tci(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
@@ -68,10 +75,12 @@ def compute_tci(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
         end = begin + seg_size
         segment = samples[begin:end]
         pulses.append(_find_threshold_crossing(segment, threshold_ratio))
+    pass #for
 
     n_segs = len(pulses)
     if n_segs < 3:
         return 1000.0
+    pass #if
 
     tcis: list[float] = []
     for i in range(1, n_segs - 1):
@@ -83,5 +92,7 @@ def compute_tci(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
         fraction2 = float(t3) / float(t3 + t4) if (t3 + t4) > 0 else 0.0
         effective = float(n_pulses - 1) + fraction1 + fraction2
         tcis.append(1000.0 / effective if effective > 0 else 1000.0)
+    pass #for
 
     return float(np.mean(tcis)) if tcis else 1000.0
+pass #def

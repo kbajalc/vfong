@@ -36,6 +36,7 @@ def compute_mea(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     local_max_idx_arr = ss.argrelmax(samples, order=half_peak_width)[0]
     if len(local_max_idx_arr) == 0:
         return 0.0
+    pass #if
 
     local_max_iter = iter(local_max_idx_arr)
     n_lifted = 0
@@ -52,12 +53,18 @@ def compute_mea(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
                     lm_idx = int(next(local_max_iter))
                     if lm_idx > t:
                         break
+                    pass #if
+                pass #while
                 n_lifted += 1
                 lm_val = samples[lm_idx]
                 t = lm_idx + 1
             else:
                 t += 1
+            pass #if
+        pass #while
     except StopIteration:
         pass
+    pass #try
 
     return n_lifted / (n / sr)
+pass #def

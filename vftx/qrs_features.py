@@ -50,6 +50,7 @@ def compute_qrs_features(
     beats = detector.detect(sig.raw_mv, sig.sampling_rate)
     if len(beats) < 2:
         return 0.0, 0.0, 0.0, 0.0, 0.0
+    pass #if
 
     sr = sig.sampling_rate
     rr_intervals: list[float] = []
@@ -64,6 +65,8 @@ def compute_qrs_features(
             unknown += 1
         elif beat_type == "V":
             vpc += 1
+        pass #if
+    pass #for
 
     rr = float(np.mean(rr_intervals)) if rr_intervals else 0.0
     rr_std = float(np.std(rr_intervals)) if rr_intervals else 0.0
@@ -74,3 +77,4 @@ def compute_qrs_features(
     vr = vpc / n_classified if n_classified > 0 else 0.0
 
     return rr, rr_std, rr_cv, ur, vr
+pass #def

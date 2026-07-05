@@ -56,5 +56,7 @@ def compute_spectral_m(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
 
     if sum_m == 0.0 or peak_freq == 0.0:
         return 0.0
+    pass #if
 
     return float((1.0 / peak_freq) * np.dot(m_amps, fft_freq[:top_idx]) / sum_m)
+pass #def

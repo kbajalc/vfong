@@ -42,6 +42,7 @@ def compute_hilbert(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     # guard against flat signal on either axis
     if x_range == 0.0 or y_range == 0.0:
         return 0.0
+    pass #if
 
     grid_x = ((x - x_offset) * (g - 1) / x_range).astype(np.int8)
     grid_y = ((y - y_offset) * (g - 1) / y_range).astype(np.int8)
@@ -49,3 +50,4 @@ def compute_hilbert(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     grid = np.zeros((g, g), dtype=np.int8)
     grid[grid_y, grid_x] = 1
     return float(np.sum(grid)) / float(g * g)
+pass #def

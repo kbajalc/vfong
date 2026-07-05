@@ -49,7 +49,9 @@ def compute_spectral_a2(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     sum_all = float(np.sum(amplitudes[:top_idx]))
     if sum_all == 0.0:
         return 0.0
+    pass #if
 
     a2_min = int(np.searchsorted(fft_freq, 0.7 * peak_freq, side="right"))
     a2_max = int(np.searchsorted(fft_freq, 1.4 * peak_freq, side="left"))
     return float(np.sum(amplitudes[a2_min:a2_max]) / sum_all)
+pass #def

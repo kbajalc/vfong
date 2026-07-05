@@ -28,6 +28,7 @@ def _drift_suppression(data: np.ndarray, cutoff_hz: float, fs: float) -> np.ndar
     b = [c1, -c1]
     a = [1.0, -c2]
     return ss.filtfilt(b, a, data)
+pass #def
 
 
 def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
@@ -56,6 +57,7 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
     s_min, s_max = np.min(s), np.max(s)
     if s_max != s_min:
         s = (s - s_min) / (s_max - s_min)
+    pass #if
 
     # 3. moving-average smoothing
     order = sc.moving_avg_order
@@ -74,3 +76,4 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
         processed=s,
         sampling_rate=sc.sampling_rate,
     )
+pass #def

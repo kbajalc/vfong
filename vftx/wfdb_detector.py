@@ -28,6 +28,7 @@ class WfdbXqrsDetector:
 
     def __init__(self, verbose: bool = False) -> None:
         self._verbose = verbose
+    pass #def
 
     def detect(
         self,
@@ -45,3 +46,5 @@ class WfdbXqrsDetector:
             verbose=self._verbose,
         )
         return [(int(idx), "N") for idx in qrs_inds]
+    pass #def
+pass #class

@@ -26,3 +26,4 @@ def compute_count3(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
         Uses ``cfg.signal.sampling_rate``.
     """
     return float(_aux_counts(sig, cfg)[2])
+pass #def

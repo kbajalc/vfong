@@ -36,6 +36,7 @@ def _samp_entropy(x: np.ndarray, m: int, r: float) -> float:
     Cmp = np.logical_and(Dp <= r, InRange[:-1, :-1]).sum(axis=0)
 
     return float(np.log(np.sum(Cm + 1e-100) / np.sum(Cmp + 1e-100)))
+pass #def
 
 
 def compute_sample_entropy(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
@@ -56,7 +57,9 @@ def compute_sample_entropy(sig: PreprocessedSignal, cfg: SegmentConfig) -> float
     if sig.sampling_rate != target_sr:
         n_target = int(len(samples) / sig.sampling_rate * target_sr)
         samples = ss.resample(samples, n_target)
+    pass #if
 
     segment = samples[-n_window:]
     r = cc.spen_r * float(np.std(segment)) # type: ignore
     return _samp_entropy(segment, cc.spen_m, r) # type: ignore
+pass #def

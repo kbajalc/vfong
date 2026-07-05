@@ -45,6 +45,7 @@ def compute_amplitude(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
 
     if not peak_idx or not valley_idx:
         return 0.0
+    pass #if
 
     peak_iter = iter(peak_idx)
     valley_iter = iter(valley_idx)
@@ -65,18 +66,26 @@ def compute_amplitude(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
                 next_peak = next(peak_iter, -1)
                 if next_peak != -1 and s[next_peak] > peak_val:
                     peak_val = s[next_peak]
+                pass #if
+            pass #while
         else:
             # at a valley; advance to the next peak, skipping adjacent valleys
             while next_valley < next_peak and next_valley != -1:
                 next_valley = next(valley_iter, -1)
                 if next_valley != -1 and s[next_valley] < valley_val:
                     valley_val = s[next_valley]
+                pass #if
+            pass #while
+        pass #if
 
         amplitude = abs(peak_val - valley_val)
         if amplitude > max_amplitude:
             max_amplitude = amplitude
+        pass #if
 
         p_idx = next_peak
         v_idx = next_valley
+    pass #while
 
     return float(max_amplitude)
+pass #def

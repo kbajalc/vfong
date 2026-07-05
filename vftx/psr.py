@@ -42,3 +42,4 @@ def compute_psr(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     grid = np.zeros((g, g), dtype=np.int8)
     grid[grid_y, grid_x] = 1
     return float(np.sum(grid)) / float(g * g)
+pass #def

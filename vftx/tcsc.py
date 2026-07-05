@@ -35,6 +35,7 @@ def compute_tcsc(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     step = sr  # 1-second step
     if window_size > n_samples:
         window_size = n_samples
+    pass #if
 
     tukey_win = ss.windows.tukey(window_size, alpha=0.5 / tc.tcsc_window_sec) # type: ignore
     counts: list[float] = []
@@ -47,11 +48,14 @@ def compute_tcsc(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
             window = samples[w_begin:w_end]
         else:
             window = samples[w_begin:w_end].copy()
+        pass #if
         window *= tukey_win
         window = np.abs(window)
         window /= np.max(window)
         counts.append(float(np.sum(window > tc.tcsc_threshold_pct)) * 100.0 / window_size)
         w_begin += step
         w_end += step
+    pass #while
 
     return float(np.mean(counts)) if counts else 0.0
+pass #def

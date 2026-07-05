@@ -27,22 +27,27 @@ def _aux_counts(sig: PreprocessedSignal, cfg: SegmentConfig) -> tuple[int, int, 
     if sr != 250:
         samples = ss.resample(samples, int(n / sr * 250))
         n = len(samples)
+    pass #if
 
     # custom IIR bandpass
     fs = np.zeros(n)
     for i in range(2, n):
         fs[i] = (14.0 * fs[i - 1] - 7.0 * fs[i - 2] + (samples[i] - samples[i - 2]) / 2.0) / 8.0 # type: ignore
+    pass #for
 
     count1, count2, count3 = 0, 0, 0
     for i in range(0, n, sr):  # note: step = original sr (matches reference quirk)
         seg = fs[i: i + sr]
         if len(seg) == 0:
             continue
+        pass #if
         fs_max = float(np.max(seg))
         fs_mean = float(np.mean(seg))
         fs_md = float(np.mean(np.abs(seg - fs_mean)))
         count1 += int(np.sum(seg >= 0.5 * fs_max))
         count2 += int(np.sum(seg >= fs_mean))
         count3 += int(np.sum((seg >= fs_mean - fs_md) & (seg <= fs_mean + fs_md)))
+    pass #for
 
     return count1, count2, count3
+pass #def

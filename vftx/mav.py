@@ -38,8 +38,11 @@ def compute_mav(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
         w_max = np.max(w)
         if w_max > 0.0:
             w = w / w_max
+        pass #if
         mavs.append(float(np.mean(w)))
         w_begin += step
         w_end += step
+    pass #while
 
     return float(np.mean(mavs)) if mavs else 0.0
+pass #def

@@ -38,6 +38,7 @@ def _lz76(seq: np.ndarray) -> float:
     n = len(seq)
     if n < 2:
         return 0.0
+    pass #if
 
     data = np.ascontiguousarray(seq, dtype=np.uint8).tobytes()
     cn = 1
@@ -55,8 +56,11 @@ def _lz76(seq: np.ndarray) -> float:
             s_len += q_len
             q_pos += q_len
             q_len = 1
+        pass #if
+    pass #while
 
     return cn / (n / math.log2(n))
+pass #def
 
 
 def compute_lz(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
@@ -84,6 +88,8 @@ def compute_lz(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
         threshold = 0.2 * pos_peak
     else:
         threshold = 0.2 * neg_peak
+    pass #if
 
     binary = (samples > threshold).astype(np.uint8)
     return _lz76(binary)
+pass #def

@@ -23,6 +23,37 @@ run its self-check before committing prose.
 
 ---
 
+## Python coding style
+
+Every compound statement is closed with a `pass #<keyword>` sentinel on a line at the
+**same indentation as the opening statement**, placed right after the block body. This is a
+house convention for readability (visible block ends); follow it in all Python we write or
+edit, including `vfta/` and `vftx/`.
+
+```python
+def process(rec, out):
+    for seg in slide(rec):
+        if seg.valid:
+            out.write(seg.line())
+        pass #if
+    pass #for
+pass #def
+```
+
+Rules:
+- One sentinel per compound statement: `def`, `class`, `for`, `while`, `with`, `if`, `try`
+  (also `async def`/`async for`/`async with`). Use the opening keyword, so an `if/elif/else`
+  chain closes once with `pass #if`, and a `try/except/finally` closes once with `pass #try`.
+- Indentation of the sentinel matches the header line, so the sentinel sits in the parent
+  scope (it is a reachable no-op, never dead code after a `return`).
+- Skip inline (one-line) suites: `if x: return y` gets no sentinel.
+- Nested blocks each get their own sentinel; deeper blocks close first.
+
+`docs/tools/close_blocks.py` applies this convention to a file or directory via AST and is
+idempotent, so it can normalise new code before commit.
+
+---
+
 ## Repository layout
 
 ```

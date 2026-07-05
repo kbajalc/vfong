@@ -40,4 +40,6 @@ def compute_spectral_fm(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
     total = np.sum(power)
     if total == 0.0:
         return 0.0
+    pass #if
     return float(np.dot(fft_freq, power) / total * sr)
+pass #def

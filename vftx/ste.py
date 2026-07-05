@@ -46,10 +46,15 @@ def compute_ste(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
             if d < 0.0:
                 higher = False
                 n_crosses += 1
+            pass #if
         else:
             if d > 0.0:
                 higher = True
                 n_crosses += 1
+            pass #if
+        pass #if
+    pass #for
 
     duration = len(samples) / sr
     return n_crosses / duration
+pass #def

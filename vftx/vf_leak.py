@@ -45,16 +45,20 @@ def compute_vf_leak(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
         peak_freq_idx = int(np.argmax(fft))
     else:
         peak_freq_idx = int(np.argmax(np.abs(fft)))
+    pass #if
     peak_freq = fft_freq[peak_freq_idx]
 
     cycle = (1.0 / peak_freq) if peak_freq != 0.0 else float(n)
     half_cycle = int(cycle / 2)
     if half_cycle <= 0 or half_cycle >= n:
         return 0.0
+    pass #if
 
     original = samples[half_cycle:]
     shifted = samples[:-half_cycle]
     denom = float(np.sum(np.abs(original) + np.abs(shifted)))
     if denom == 0.0:
         return 0.0
+    pass #if
     return float(np.sum(np.abs(original + shifted)) / denom)
+pass #def

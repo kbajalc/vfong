@@ -111,6 +111,7 @@ def extract_features(
     rr = rr_std = rr_cv = ur = vr = 0.0
     if qrs_detector is not None:
         rr, rr_std, rr_cv, ur, vr = compute_qrs_features(sig, cfg, qrs_detector)
+    pass #if
 
     return Features(
         tcsc=tcsc, tci=tci, ste=ste, mea=mea,
@@ -122,3 +123,4 @@ def extract_features(
         imf1_lz=imf1, imf2_lz=imf2, imf3_lz=imf3, imf4_lz=imf4, imf5_lz=imf5,
         rr=rr, rr_std=rr_std, rr_cv=rr_cv, ur=ur, vr=vr,
     )
+pass #def
