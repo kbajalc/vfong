@@ -271,7 +271,7 @@ Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError
 - `docs/hong/HISTORY.md` — project history: original author background, phase-by-phase narrative of all commits from May 2016 to present
 - `docs/hong/SUMMARY.md` — thesis summary: AHA class definitions, dataset details, all 27 features with indices, thesis→code mapping table
 - `docs/hong/EXECUTABLES.md` — every runnable script with CLI flags and usage examples
-- `docs/hong/FEATURE_EXTRACTION.md` — detailed `feature_extraction.py` execution flow and all CLI flags
-- `docs/hong/FEATURE_INTERNALS.md` — all 27 feature functions: algorithms, call tree, preprocessing pipeline, `.dat` file format
+- `docs/hong/FEATURES.md` — detailed `feature_extraction.py` execution flow and all CLI flags
+- `docs/hong/INTERNALS.md` — all 27 feature functions: algorithms, call tree, preprocessing pipeline, `.dat` file format
 - `docs/hong/DEBUG.md` — debugging guide (pdb, gdb, VS Code, `make trace`/`debug`/`release`)
 - `docs/hong/THESIS.md` / `docs/hong/THESIS.pdf` — full 2016 NTU thesis with figures, tables, formulas, clickable ToC and references
