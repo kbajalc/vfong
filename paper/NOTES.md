@@ -54,9 +54,35 @@ features are validated. The EMD backend is selectable (default `ptsa`). Suite:
 - Databases: primary set is VFDB + CUDB + AHADB (licensed); the extended set adds MITDB.
 - Primary metric is F1, with Se, Sp, PPV, Acc, and G-Mean. TP/FP/TN/FN are reported as
   duration in ms. ROC/IROC is deferred.
-- Decisions Q1 to Q8 are resolved. Q9 (the proposed new method) is still open.
+- Decisions Q1 to Q8 are resolved. Q9 (the proposed new method) is resolved in `PLAN.md`.
 - Advisor feedback is logged: Gusev, 2026-03-06. The original timeline (Structure section,
   in Macedonian) ran Phases 1 to 5, February to April 2026.
+
+### paper/PLAN.md and paper/PAPER.md: refined scope, phases defined
+
+The paper was refocused (2026-07-05) into a smaller, exam-level study, and the plan and the
+manuscript skeleton now live in their own files. `DRAFT.md` stays as a source of text and
+references, not the target document.
+
+- `PLAN.md` holds the refined scope, the resolved decisions, and six phases (0 to 5).
+- `PAPER.md` is the manuscript skeleton on a standard academic template, each section
+  carrying an editorial note on what it contains and which phase fills it.
+- Scope: rank a set of classical, deterministic detectors by how well they separate the
+  shockable rhythms, then tune the winner. No ML in the experiments (the downstream target is
+  an FDA-oriented extension of `exg-core`, which needs a different validation path); ML is
+  reviewed and named as future work only. This resolves Q9: the contribution is the candidate
+  shootout plus a tuned deterministic detector, not a new algorithm.
+- Candidate set (five): TCSC, VFLEAK, SPEC (from `DRAFT.md`), plus HILB and MEA, the two
+  additions chosen from Hong's thesis (Amann's finding that time-domain features perform best,
+  HILB the strongest classical algorithm, complexity left out for poor performance above 80%
+  specificity). Winner chosen by discrimination weighed against compute cost; TCSC is the
+  hypothesis.
+- Windowing: overlapping windows, 1 s step, majority-vote smoothing into episode labels; two
+  lengths, 8 s (benchmark) and 4 s (short-episode test).
+- Databases: full VFDB + CUDB + AHADB + MITDB set.
+- Winner-only sub-analysis: VFL vs VF, with IMF-LZ [17-21] as the documented fallback (Hong,
+  after Xia et al. 2014).
+- Hong's thesis is now a cited source: [HONG-2016] in `PLAN.md` and `PAPER.md`.
 
 ## 4. How the pieces connect
 
@@ -88,19 +114,25 @@ context.
 
 ## 6. Open questions and next steps
 
+Next up is Phase 1 (introduction and literature review). See `PLAN.md` for the full phase
+breakdown. The items below are what remains open or unbuilt.
+
 The `exg-*` ecosystem is not yet documented: `exg-core` (the tool behind the `exg`
 wrapper), `exg-work` (the off-limits `work/`), and `exg-rad` (in `.vscode/settings.json`
 `extraPaths`). Their relevance to the vftx and paper work is unconfirmed.
 
-Q9, the proposed method, is still open, and it affects what Materials and Methods should
-describe now versus later.
+Detector wrappers to build (Phases 3 to 4): the five candidates (TCSC, VFLEAK, SPEC, HILB,
+MEA) are thin threshold-and-decision rules on top of existing vftx features, plus a compute
+cost measurement per window.
 
-We need to decide whether to add standalone VFLEAK/SPEC/TCSC detector wrappers (thresholds
-and decision rules) on top of vftx, as the paper's reproducible benchmarks.
+AHADB integration is new. vftx is validated on a small diverse set (mitdb, vfdb, cudb, edb,
+mghdb); the paper needs the full VFDB + CUDB + AHADB + MITDB set assembled in Phase 2, with
+the AHADB record selection still to settle.
 
-Database sets need reconciling. The paper's primary set is VFDB + CUDB + AHADB, while vftx is
-currently validated on a small diverse set (mitdb, vfdb, cudb, edb, mghdb). AHADB integration
-is new.
+The evaluation harness is still to build (Phases 3 to 4): the feature screen and the
+candidate shootout (correlation, mutual information, single-feature AUC, F1 at a swept
+threshold, plus compute cost), then the winner ROC tuning, over overlapping 1 s-step windows
+at 8 s and 4 s, across the three VFL configurations, with F1 and duration-based TP/FP/TN/FN.
 
-The evaluation harness is still to build: F1 plus duration-based TP/FP/TN/FN over sliding
-windows at 4 s (and each algorithm's native window), across the three VFL configurations.
+Open decisions for later phases: exact AHADB record selection (Phase 2); whether both window
+lengths run for all five candidates or 4 s only for the leaders (Phase 2).

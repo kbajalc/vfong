@@ -6,7 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A research pipeline (2016 NTU master thesis) for detecting life-threatening cardiac arrhythmias (VF/VT) in 8-second ECG segments. The system reads PhysioNet WFDB records, extracts 27 handcrafted signal-processing features via Cython extensions, and trains/evaluates scikit-learn classifiers using AHA reporting rules (shockable / intermediate / non-shockable).
 
-The repo also hosts a paper-writing project (`paper/`); see `paper/NOTES.md` for its status.
+The repo also hosts a paper-writing project (`paper/`). `paper/PLAN.md` is the working plan
+(refined scope, resolved decisions, the phases); `paper/PAPER.md` is the manuscript skeleton;
+`paper/DRAFT.md` is the earlier broad draft kept as a source of text and references;
+`paper/NOTES.md` is the takeover status report.
 
 ---
 
