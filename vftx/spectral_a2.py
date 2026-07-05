@@ -1,24 +1,21 @@
 """
-Feature [7] — M: First Spectral Moment.
+Feature [8] — A2: Energy Ratio (spectral concentration).
 
-Reference: vf_features.pyx:spectral_features() — M component
+Reference: vf_features.pyx:spectral_features() — A2 component
 
 Algorithm:
-  Hamming-windowed FFT (positive half).  Find the peak frequency f_p in
-  0.5–9 Hz.  Zero out amplitudes < 5 % of peak amplitude.  Upper limit:
-  min(20·f_p, 100 Hz).
-  M = (1/f_p) · Σ(a_i · f_i) / Σ(a_i)  for i up to the upper limit.
-  Frequencies are in normalised units (cycles/sample) internally.
+  Same FFT, peak detection, and amplitude zeroing as M.
+  A2 = Σ(a_i for i in [0.7·f_p, 1.4·f_p]) / Σ(a_i for i up to upper limit).
 """
 
 import numpy as np
 import scipy.signal as ss
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
-def compute_spectral_m(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
-    """Return the first spectral moment M feature.
+def compute_spectral_a2(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
+    """Return the spectral energy ratio A2 feature.
 
     Parameters
     ----------
@@ -39,22 +36,20 @@ def compute_spectral_m(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:
 
     amplitudes = np.abs(fft).copy()
 
-    # find peak in [0.5 Hz, 9 Hz] in normalised units
     min_idx = int(np.searchsorted(fft_freq, 0.5 / sr, side="right"))
     max_idx = int(np.searchsorted(fft_freq, 9.0 / sr, side="left"))
     peak_idx = int(np.argmax(amplitudes[min_idx:max_idx])) + min_idx
     peak_freq = fft_freq[peak_idx]
     peak_amp = amplitudes[peak_idx]
 
-    # zero amplitudes below 5 % of peak
     amplitudes[amplitudes < 0.05 * peak_amp] = 0.0
 
     spec_max_freq = min(20.0 * peak_freq, 100.0 / sr)
     top_idx = int(np.searchsorted(fft_freq, spec_max_freq, side="left"))
-    m_amps = amplitudes[:top_idx]
-    sum_m = float(np.sum(m_amps))
-
-    if sum_m == 0.0 or peak_freq == 0.0:
+    sum_all = float(np.sum(amplitudes[:top_idx]))
+    if sum_all == 0.0:
         return 0.0
 
-    return float((1.0 / peak_freq) * np.dot(m_amps, fft_freq[:top_idx]) / sum_m)
+    a2_min = int(np.searchsorted(fft_freq, 0.7 * peak_freq, side="right"))
+    a2_max = int(np.searchsorted(fft_freq, 1.4 * peak_freq, side="left"))
+    return float(np.sum(amplitudes[a2_min:a2_max]) / sum_all)

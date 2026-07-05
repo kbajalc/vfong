@@ -1,7 +1,7 @@
 # Session Feedback
 
 *Assessment of the collaboration — written at the end of the May 2026 session
-covering docs/hong/HISTORY.md, the algo/ pure-Python feature extraction package,
+covering docs/hong/HISTORY.md, the vftx/ pure-Python feature extraction package,
 and CLAUDE.md corrections.*
 
 ---

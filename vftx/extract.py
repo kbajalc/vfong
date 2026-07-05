@@ -3,8 +3,8 @@ Main feature extraction entry point.
 
 Usage::
 
-    from algo.extract import extract_features
-    from algo.types import SegmentConfig
+    from vftx.extract import extract_features
+    from vftx.types import SegmentConfig
     import numpy as np
 
     signal_mv = np.random.randn(2000)          # 8 s at 250 Hz, already in mV
@@ -27,27 +27,27 @@ from typing import Optional
 
 import numpy as np
 
-from algo.amplitude import compute_amplitude
-from algo.count1 import compute_count1
-from algo.count2 import compute_count2
-from algo.count3 import compute_count3
-from algo.hilbert import compute_hilbert
-from algo.imf_lz import compute_imf_lz
-from algo.lz import compute_lz
-from algo.mav import compute_mav
-from algo.mea import compute_mea
-from algo.preprocessing import preprocess
-from algo.psr import compute_psr
-from algo.qrs_features import compute_qrs_features
-from algo.sample_entropy import compute_sample_entropy
-from algo.spectral_a2 import compute_spectral_a2
-from algo.spectral_fm import compute_spectral_fm
-from algo.spectral_m import compute_spectral_m
-from algo.ste import compute_ste
-from algo.tci import compute_tci
-from algo.tcsc import compute_tcsc
-from algo.types import Features, QRSDetector, SegmentConfig
-from algo.vf_leak import compute_vf_leak
+from vftx.amplitude import compute_amplitude
+from vftx.count1 import compute_count1
+from vftx.count2 import compute_count2
+from vftx.count3 import compute_count3
+from vftx.hilbert import compute_hilbert
+from vftx.imf_lz import compute_imf_lz
+from vftx.lz import compute_lz
+from vftx.mav import compute_mav
+from vftx.mea import compute_mea
+from vftx.preprocessing import preprocess
+from vftx.psr import compute_psr
+from vftx.qrs_features import compute_qrs_features
+from vftx.sample_entropy import compute_sample_entropy
+from vftx.spectral_a2 import compute_spectral_a2
+from vftx.spectral_fm import compute_spectral_fm
+from vftx.spectral_m import compute_spectral_m
+from vftx.ste import compute_ste
+from vftx.tci import compute_tci
+from vftx.tcsc import compute_tcsc
+from vftx.types import Features, QRSDetector, SegmentConfig
+from vftx.vf_leak import compute_vf_leak
 
 
 def extract_features(

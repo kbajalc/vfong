@@ -10,7 +10,7 @@ IIR bandpass with central freq ~14.6 Hz at 250 Hz:
 import numpy as np
 import scipy.signal as ss
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def _aux_counts(sig: PreprocessedSignal, cfg: SegmentConfig) -> tuple[int, int, int]:

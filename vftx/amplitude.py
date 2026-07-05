@@ -13,8 +13,8 @@ Algorithm:
 import numpy as np
 import scipy.signal as ss
 
-from algo.types import PreprocessedSignal, SegmentConfig
-from algo.preprocessing import _drift_suppression
+from vftx.types import PreprocessedSignal, SegmentConfig
+from vftx.preprocessing import _drift_suppression
 
 
 def compute_amplitude(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:

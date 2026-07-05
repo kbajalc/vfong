@@ -14,7 +14,7 @@ Algorithm:
 import numpy as np
 import scipy.signal as ss
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def _samp_entropy(x: np.ndarray, m: int, r: float) -> float:

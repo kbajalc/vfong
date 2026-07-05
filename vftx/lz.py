@@ -19,7 +19,7 @@ import math
 
 import numpy as np
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def _lz76(seq: np.ndarray) -> float:

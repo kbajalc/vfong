@@ -11,7 +11,7 @@ Algorithm:
 
 import numpy as np
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def compute_psr(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:

@@ -1,13 +1,13 @@
 """Validate the QRS-derived feature computation [22-26].
 
-Full detector-level agreement (reference OSEA vs algo xqrs) needs libwfdb, which
+Full detector-level agreement (reference OSEA vs vftx xqrs) needs libwfdb, which
 isn't available on the dev machine — and the detectors differ by design (xqrs
 returns 'N' only, so UR/VR are always 0; OSEA classifies N/V/Q). What we CAN and
 do validate here is the statistics FORMULA in compute_qrs_features against a
 faithful transcription of the reference vf_features.pyx:beat_statistics().
 
 Key detail: the reference divides RR intervals by a hardcoded 200 (OSEA resamples
-to 200 Hz internally and returns 200 Hz indices). algo divides by the detector's
+to 200 Hz internally and returns 200 Hz indices). vftx divides by the detector's
 native sampling rate. Feeding sr=200 makes the two directly comparable.
 """
 import os
@@ -19,8 +19,8 @@ import pytest
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJ)
 
-from algo.qrs_features import compute_qrs_features  # noqa: E402
-from algo.types import PreprocessedSignal, SegmentConfig, SignalConfig  # noqa: E402
+from vftx.qrs_features import compute_qrs_features  # noqa: E402
+from vftx.types import PreprocessedSignal, SegmentConfig, SignalConfig  # noqa: E402
 
 
 class _MockDetector:

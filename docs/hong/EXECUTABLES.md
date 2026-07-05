@@ -6,7 +6,7 @@ AED-oriented arrhythmia detection using handcrafted ECG features and machine
 learning (see `docs/hong/THESIS.md` and `docs/hong/SUMMARY.md` for full background).
 
 > **Paths:** these scripts now live under `hong/`; run them from inside that
-> directory (`cd hong`). The pure-Python reimplementation is in `algo/` and its
+> directory (`cd hong`). The pure-Python reimplementation is in `vftx/` and its
 > tests in `tests/` — not covered here.
 
 ---

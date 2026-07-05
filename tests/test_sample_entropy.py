@@ -1,4 +1,4 @@
-"""Independent correctness check for algo/ Sample Entropy [11].
+"""Independent correctness check for vftx/ Sample Entropy [11].
 
 SpEn cannot be validated against the reference: the reference's
 pyeeg.samp_entropy builds its embedding via numpy as_strided with hardcoded
@@ -6,8 +6,8 @@ itemsize strides, which reads wrong memory for non-contiguous input. The
 reference feeds it a non-contiguous slice, so its SpEn is wrong and even varies
 call-to-call (see memory: reference-spen-nondeterministic).
 
-Instead we validate algo._samp_entropy against pyeeg.samp_entropy on well-formed
-(C-contiguous) inputs, where pyeeg is correct and deterministic. This proves algo
+Instead we validate vftx._samp_entropy against pyeeg.samp_entropy on well-formed
+(C-contiguous) inputs, where pyeeg is correct and deterministic. This proves vftx
 faithfully implements the intended algorithm.
 """
 import os
@@ -20,7 +20,7 @@ PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJ)
 
 import pyeeg  # noqa: E402
-from algo.sample_entropy import _samp_entropy  # noqa: E402
+from vftx.sample_entropy import _samp_entropy  # noqa: E402
 
 
 @pytest.mark.parametrize("seed", [0, 1, 2, 7, 42])
@@ -35,7 +35,7 @@ def test_matches_pyeeg_on_contiguous_input(seed, n):
 
 
 def test_robust_to_non_contiguous_input():
-    """algo must give the SAME result on a non-contiguous view as on its copy —
+    """vftx must give the SAME result on a non-contiguous view as on its copy —
     unlike pyeeg, whose as_strided embed breaks on non-contiguous input."""
     rng = np.random.default_rng(3)
     base = rng.standard_normal(4000)

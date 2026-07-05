@@ -14,7 +14,7 @@ Algorithm:
 import numpy as np
 import scipy.signal as ss
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def compute_vf_leak(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:

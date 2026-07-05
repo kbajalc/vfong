@@ -7,8 +7,8 @@ layout of the pickled `.dat` files that are the output of
 `hong/feature_extraction.py`.
 
 > **Paths:** the Cython sources described here now live under `hong/`. For the
-> pure-Python reimplementation and its per-feature notes see `algo/` and
-> `algo/PLAN.md`; feature-by-feature agreement with this reference is validated
+> pure-Python reimplementation and its per-feature notes see `vftx/` and
+> `vftx/PLAN.md`; feature-by-feature agreement with this reference is validated
 > in `tests/`.
 
 ---

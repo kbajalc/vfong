@@ -1,4 +1,4 @@
-"""Loose validation of the algo/ xqrs detector against the reference OSEA detector.
+"""Loose validation of the vftx/ xqrs detector against the reference OSEA detector.
 
 Requires the OSEA extension, built without libwfdb via:
 
@@ -25,7 +25,7 @@ sys.path.insert(0, PROJ)
 qrs_detect = pytest.importorskip(
     "qrs_detect", reason="OSEA extension not built (run: python setup_osea.py build_ext --inplace)")
 
-from algo.wfdb_detector import WfdbXqrsDetector  # noqa: E402
+from vftx.wfdb_detector import WfdbXqrsDetector  # noqa: E402
 
 DATA = os.path.join(PROJ, "tests", "data")
 _CACHE = np.load(os.path.join(DATA, "fixtures.npz"))

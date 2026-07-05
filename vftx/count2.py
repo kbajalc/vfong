@@ -10,8 +10,8 @@ Algorithm:
   Return total count across all windows (raw integer, not fraction).
 """
 
-from algo.types import PreprocessedSignal, SegmentConfig
-from algo._count_helpers import _aux_counts
+from vftx.types import PreprocessedSignal, SegmentConfig
+from vftx._count_helpers import _aux_counts
 
 
 def compute_count2(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:

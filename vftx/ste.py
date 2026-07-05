@@ -12,7 +12,7 @@ Algorithm:
 
 import numpy as np
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def compute_ste(sig: PreprocessedSignal, cfg: SegmentConfig) -> float:

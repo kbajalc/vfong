@@ -1,4 +1,4 @@
-# algo/ — Pure-Python Feature Extraction: Implementation Plan
+# vftx/ — Pure-Python Feature Extraction: Implementation Plan
 
 ## Goal
 
@@ -7,7 +7,7 @@ originally written as Cython extensions (`vf_features.pyx`, `signal_processing.p
 `vf_features_native.c`). The existing code is kept intact as the **reference implementation**
 and is never modified.
 
-The new package lives in `algo/` and depends only on standard scientific Python libraries
+The new package lives in `vftx/` and depends only on standard scientific Python libraries
 (numpy, scipy, optionally neurokit2 / PyEMD / antropy). No Cython, no C extensions.
 
 ---
@@ -28,7 +28,7 @@ The new package lives in `algo/` and depends only on standard scientific Python 
 ## Package layout
 
 ```
-algo/
+vftx/
   __init__.py
   PLAN.md               ← this file
   types.py              ← SegmentConfig, PreprocessedSignal, Features, QRSDetector
@@ -78,12 +78,12 @@ algo/
 - All 27 feature module stubs: correct signatures, `return 0.0`
 - `extract.py`: `extract_features()` wires everything together end-to-end, returning a
   `Features` instance (all zeros at this stage)
-- `algo/PLAN.md` (this file)
+- `vftx/PLAN.md` (this file)
 
 **Acceptance criteria:**
 ```python
-from algo.extract import extract_features
-from algo.types import SegmentConfig
+from vftx.extract import extract_features
+from vftx.types import SegmentConfig
 import numpy as np
 
 sig = np.random.randn(2000)          # 8 s at 250 Hz
@@ -109,7 +109,7 @@ discrepancies between the reference code and the description in CLAUDE.md / SUMM
 | Drift suppression = high-pass Butterworth | Custom **1-pole bilinear IIR** via `tan(fc·π·T)`; implemented with `filtfilt` |
 
 These affect our `preprocessing.py` and `amplitude.py` implementations directly.
-The algo/ package follows the **code**, not the docs.
+The vftx/ package follows the **code**, not the docs.
 
 ---
 
@@ -393,7 +393,7 @@ features (RR/RR_Std/RR_CV/UR/VR, idx 22–26) come out 0 and are validated separ
 Signals are downloaded live from PhysioNet via `wfdb.rdrecord(record, pn_dir=db,
 sampfrom=…, sampto=…, channels=[ch])` — no local WFDB tree required. Feed the **same** raw
 mV array to both `vf_features.extract_features(sig, int(fs))` (returns `(arr27, beats, amp)`)
-and `algo.extract.extract_features(sig, SegmentConfig(...))`.
+and `vftx.extract.extract_features(sig, SegmentConfig(...))`.
 
 Reproduce the side-by-side table with `tests/compare_reference.py`.
 
@@ -424,11 +424,11 @@ Getting there uncovered three reference bugs and one config bug:
 4. **SpEn non-determinism (unmatchable).** `pyeeg.samp_entropy` embeds via `as_strided`
    with hardcoded itemsize strides — wrong for non-contiguous input. The reference feeds a
    non-contiguous slice, so its SpEn is wrong and varies call-to-call (vfdb_418: 0.85 / 1.23
-   / 1.30). algo embeds via list-comprehension (copies) → correct + contiguity-robust. SpEn
-   [11] is therefore **permanently xfail vs the reference**; algo's SpEn is validated
+   / 1.30). vftx embeds via list-comprehension (copies) → correct + contiguity-robust. SpEn
+   [11] is therefore **permanently xfail vs the reference**; vftx's SpEn is validated
    independently against pyeeg-on-contiguous-input in `tests/test_sample_entropy.py`.
 
-Design principle confirmed with the user: **algo/ stays clean/correct by default; the
+Design principle confirmed with the user: **vftx/ stays clean/correct by default; the
 `reference_bug_compat` flag reproduces reference bugs only for validation.**
 
 Side fix: pure-Python LZ76 now uses `bytes.find` — bit-identical, ~150× faster; unblocked
@@ -443,7 +443,7 @@ Two layers, both done:
 1. **Formula** (`tests/test_qrs_features.py`): `compute_qrs_features` matches a faithful
    transcription of `beat_statistics()` exactly (random beat lists, edge cases, UR/VR
    counting, first-beat skip). The reference divides RR by a hardcoded **200** (OSEA
-   resamples to 200 Hz); algo divides by native rate. Feeding sr=200 makes them match.
+   resamples to 200 Hz); vftx divides by native rate. Feeding sr=200 makes them match.
 
 2. **Detector** (`tests/test_qrs_osea.py`): the reference OSEA detector is built WITHOUT
    libwfdb via `setup_osea.py` — OSEA needs only WFDB *header* constants, stubbed in
@@ -465,8 +465,8 @@ Candidates for follow-up:
 - ~~Validate `ptsa.emd` vs `PyEMD`~~ — **done**: PyEMD diverges from ptsa on IMF_LZ by up
   to ~26% (a valid but different EMD). Backend is now selectable (`emd_backend`), default
   ptsa to keep reference-matching.
-- Add `OseaDetector` / `NeuroKitDetector` concrete classes outside `algo/` for QRS
-- Wire `algo/extract.py` into the main `feature_extraction.py` driver as an optional backend
+- Add `OseaDetector` / `NeuroKitDetector` concrete classes outside `vftx/` for QRS
+- Wire `vftx/extract.py` into the main `feature_extraction.py` driver as an optional backend
 
 ---
 
@@ -478,7 +478,7 @@ Candidates for follow-up:
       *different* EMD: IMF_LZ [17–21] diverge from the reference by up to ~26%.
 - [x] **Sample entropy**: replicated **pyeeg** directly in `sample_entropy.py` — no
       `antropy` dependency; exact match with the reference is guaranteed.
-- [x] **QRS detector**: **`wfdb.processing.xqrs_detect`** via `algo/wfdb_detector.py`.
+- [x] **QRS detector**: **`wfdb.processing.xqrs_detect`** via `vftx/wfdb_detector.py`.
       All beats returned as `'N'`; UR and VR are always 0.0 until a beat classifier is
       added.  OSEA also only distinguishes N vs V (with Q for unclassified); xqrs omits
       that distinction entirely for now.

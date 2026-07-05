@@ -1,4 +1,4 @@
-"""Numerical agreement of algo/ vs the reference Cython implementation.
+"""Numerical agreement of vftx/ vs the reference Cython implementation.
 
 Hermetic: reads cached signals + reference vectors from tests/data/ (produced by
 tests/gen_fixtures.py). No network, libwfdb, or Cython needed at test time.
@@ -23,8 +23,8 @@ PROJ = os.path.dirname(HERE)
 DATA = os.path.join(HERE, "data")
 sys.path.insert(0, PROJ)
 
-from algo.extract import extract_features as algo_extract  # noqa: E402
-from algo.types import Features, SegmentConfig, SignalConfig  # noqa: E402
+from vftx.extract import extract_features as vftx_extract  # noqa: E402
+from vftx.types import Features, SegmentConfig, SignalConfig  # noqa: E402
 
 NAMES = Features.NAMES
 
@@ -38,7 +38,7 @@ _RTOL_COMPLEXITY, _ATOL_COMPLEXITY = 1e-3, 1e-6
 # With reference_bug_compat=True, 26/27 features match the reference bit-for-bit.
 # [11] spen is PERMANENTLY xfail against the reference: the reference's
 # pyeeg.samp_entropy uses as_strided on a non-contiguous slice and is wrong +
-# non-deterministic (no stable ground truth). algo's SpEn is correct and is
+# non-deterministic (no stable ground truth). vftx's SpEn is correct and is
 # validated independently in test_sample_entropy.py. See memory:
 # reference-spen-nondeterministic.
 XFAIL_FEATURES = {11}
@@ -63,18 +63,18 @@ _CACHE = np.load(_NPZ)
 with open(_JSON) as _fh:
     _META = json.load(_fh)
 
-# Cache algo output per segment so each of the 27 parametrized cases is cheap.
+# Cache vftx output per segment so each of the 27 parametrized cases is cheap.
 _ALGO = {}
 
 
-def _algo_vector(seg_id, fs):
+def _vftx_vector(seg_id, fs):
     if seg_id not in _ALGO:
         sig = _CACHE[f"{seg_id}__sig"]
-        # reference_bug_compat reproduces the TCSC in-place mutation so algo can
+        # reference_bug_compat reproduces the TCSC in-place mutation so vftx can
         # be validated bit-for-bit against the (buggy) reference.
         cfg = SegmentConfig(signal=SignalConfig(sampling_rate=float(fs)),
                             reference_bug_compat=True)
-        _ALGO[seg_id] = algo_extract(sig, cfg, qrs_detector=None).to_array()
+        _ALGO[seg_id] = vftx_extract(sig, cfg, qrs_detector=None).to_array()
     return _ALGO[seg_id]
 
 
@@ -96,7 +96,7 @@ def _params():
 @pytest.mark.parametrize("seg_id,fs,idx", _params())
 def test_feature_matches_reference(seg_id, fs, idx):
     ref = _CACHE[f"{seg_id}__ref"][idx]
-    got = _algo_vector(seg_id, fs)[idx]
+    got = _vftx_vector(seg_id, fs)[idx]
     rtol, atol = _tol(idx)
     assert got == pytest.approx(ref, rel=rtol, abs=atol), (
-        f"{NAMES[idx]}: reference={ref!r} algo={got!r}")
+        f"{NAMES[idx]}: reference={ref!r} vftx={got!r}")

@@ -14,9 +14,9 @@ import pytest
 PROJ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, PROJ)
 
-from algo.imf_lz import compute_imf_lz  # noqa: E402
-from algo.preprocessing import preprocess  # noqa: E402
-from algo.types import ComplexityConfig, SegmentConfig, SignalConfig  # noqa: E402
+from vftx.imf_lz import compute_imf_lz  # noqa: E402
+from vftx.preprocessing import preprocess  # noqa: E402
+from vftx.types import ComplexityConfig, SegmentConfig, SignalConfig  # noqa: E402
 
 _CACHE = np.load(os.path.join(PROJ, "tests", "data", "fixtures.npz"))
 

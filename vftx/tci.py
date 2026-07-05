@@ -14,7 +14,7 @@ Algorithm:
 
 import numpy as np
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def _find_threshold_crossing(segment: np.ndarray, threshold_ratio: float):

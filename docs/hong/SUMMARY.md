@@ -113,7 +113,7 @@ Count1–3 require 250 Hz; segments are resampled before these features. SpEn al
 ## 7. Thesis → Code Mapping
 
 Source files below are the original thesis implementation, now under `hong/`
-(e.g. `hong/vf_features.pyx`). The pure-Python reimplementation is in `algo/`.
+(e.g. `hong/vf_features.pyx`). The pure-Python reimplementation is in `vftx/`.
 
 | Thesis section | Primary source file |
 |----------------|---------------------|

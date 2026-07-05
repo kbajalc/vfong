@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from algo.types import PreprocessedSignal, QRSDetector, SegmentConfig
+from vftx.types import PreprocessedSignal, QRSDetector, SegmentConfig
 
 
 def compute_qrs_features(

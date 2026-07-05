@@ -14,7 +14,7 @@ is added.
 import numpy as np
 import wfdb.processing
 
-from algo.types import QRSDetector  # noqa: F401 — used for isinstance checks
+from vftx.types import QRSDetector  # noqa: F401 — used for isinstance checks
 
 
 class WfdbXqrsDetector:

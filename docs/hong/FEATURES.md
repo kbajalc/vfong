@@ -2,7 +2,7 @@
 
 > **Paths:** this describes the original thesis code, now under `hong/`
 > (`hong/feature_extraction.py`, `hong/vf_features.pyx`, …); run from inside
-> `hong/`. The pure-Python reimplementation is `algo/` (see `algo/PLAN.md`).
+> `hong/`. The pure-Python reimplementation is `vftx/` (see `vftx/PLAN.md`).
 
 ## Purpose
 

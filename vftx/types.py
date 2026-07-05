@@ -1,5 +1,5 @@
 """
-Shared data types for the algo/ feature extraction package.
+Shared data types for the vftx/ feature extraction package.
 """
 
 from dataclasses import dataclass, field
@@ -94,7 +94,7 @@ class SegmentConfig:
     # reference TCSC multiplies overlapping windows of the shared preprocessed
     # signal by a Tukey window *in place* (vf_features.pyx:84), corrupting its own
     # later windows and every feature computed after it. The clean default leaves
-    # each feature working on the uncorrupted signal. See algo/PLAN.md "Phase 4".
+    # each feature working on the uncorrupted signal. See vftx/PLAN.md "Phase 4".
     reference_bug_compat: bool = False
 
 

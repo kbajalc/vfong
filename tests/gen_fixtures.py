@@ -1,4 +1,4 @@
-"""Generate hermetic test fixtures for the algo/ agreement suite.
+"""Generate hermetic test fixtures for the vftx/ agreement suite.
 
 Run ONCE per change to the reference or the segment set. Requires the reference
 build + network (PhysioNet); the resulting cache lets test_agreement.py run with
@@ -14,7 +14,7 @@ Writes:
     tests/data/fixtures.json  — ordered list of {id, label, record, pn_dir, fs, sampfrom}
 
 Reference QRS features (idx 22-26) are 0 here because qrs_detect is stubbed; the
-algo side is run with qrs_detector=None so those indices match trivially.
+vftx side is run with qrs_detector=None so those indices match trivially.
 """
 import json
 import os

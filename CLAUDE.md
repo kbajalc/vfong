@@ -15,9 +15,9 @@ hong/     Hong's original Cython implementation (the reference): all .pyx +
           vf_features_native.c, setup.py, Makefile, thesis Python drivers
           (feature_extraction.py, vf_tests.py, extract_one.py, …), .sh scripts,
           file_lists/, corrections_s8.txt, README.
-algo/     Clean pure-Python reimplementation of all 27 features (see below).
-tests/    Agreement + unit tests (validate algo/ against hong/).
-ptsa/  pyeeg/  osea/   Vendored third-party deps, shared by hong/ and algo/.
+vftx/     Clean pure-Python reimplementation of all 27 features (see below).
+tests/    Agreement + unit tests (validate vftx/ against hong/).
+ptsa/  pyeeg/  osea/   Vendored third-party deps, shared by hong/ and vftx/.
 docs/     Project documentation.  setup_ref.py / setup_osea.py  build hong/'s
           reference extensions for the tests (kept at root, sources point into hong/).
 ```
@@ -42,7 +42,7 @@ sudo apt-get install libwfdb-dev
 ```bash
 pip install Cython numpy scipy matplotlib joblib scikit-learn wfdb
 # Pyro4 only needed for distributed mode
-# wfdb required for algo/ pure-Python feature extraction (xqrs detector)
+# wfdb required for vftx/ pure-Python feature extraction (xqrs detector)
 ```
 
 ### Makefile targets
@@ -141,20 +141,21 @@ No parallelism, no joblib. Set a breakpoint on the `vf_features.extract_features
 - `pyeeg/__init__.py` — bundled PyEEG library (sample entropy `samp_entropy`)
 - `ptsa/` — bundled PTSA library (empirical mode decomposition `emd`)
 
-### `algo/` — pure-Python feature extraction package
+### `vftx/` — pure-Python feature extraction package
 
-A clean reimplementation of all 27 features with no Cython or C dependencies.
-The Cython extensions are kept intact as the reference; `algo/` is a parallel implementation.
+`vftx` = **V**entricular **T**achyarrhythmias **F**eatures. A clean reimplementation of
+all 27 features with no Cython or C dependencies. The Cython extensions (in `hong/`) are
+kept intact as the reference; `vftx/` is a parallel implementation.
 
 | Module | Role |
 |---|---|
-| `algo/types.py` | `SegmentConfig`, `PreprocessedSignal`, `Features` (all 27 fields), `QRSDetector` protocol |
-| `algo/preprocessing.py` | 5-step signal conditioning pipeline |
-| `algo/extract.py` | `extract_features(signal_mv, cfg, qrs_detector?)` — main entry point |
-| `algo/wfdb_detector.py` | `WfdbXqrsDetector` — concrete `QRSDetector` using `wfdb.processing.xqrs_detect`; all beats typed `'N'` (UR=VR=0) |
-| `algo/<feature>.py` | One file per feature or natural group (`imf_lz.py` for IMF1–5, `qrs_features.py` for RR/UR/VR) |
-| `algo/_count_helpers.py` | Shared IIR bandpass filter for Count1–3 |
-| `algo/PLAN.md` | Implementation plan, difficulty assessment, known gotchas |
+| `vftx/types.py` | `SegmentConfig`, `PreprocessedSignal`, `Features` (all 27 fields), `QRSDetector` protocol |
+| `vftx/preprocessing.py` | 5-step signal conditioning pipeline |
+| `vftx/extract.py` | `extract_features(signal_mv, cfg, qrs_detector?)` — main entry point |
+| `vftx/wfdb_detector.py` | `WfdbXqrsDetector` — concrete `QRSDetector` using `wfdb.processing.xqrs_detect`; all beats typed `'N'` (UR=VR=0) |
+| `vftx/<feature>.py` | One file per feature or natural group (`imf_lz.py` for IMF1–5, `qrs_features.py` for RR/UR/VR) |
+| `vftx/_count_helpers.py` | Shared IIR bandpass filter for Count1–3 |
+| `vftx/PLAN.md` | Implementation plan, difficulty assessment, known gotchas |
 
 Dependencies: `numpy`, `scipy`, `wfdb` (xqrs detector), `ptsa/` (bundled, default EMD
 backend for IMF features). The EMD backend is selectable via
@@ -162,9 +163,9 @@ backend for IMF features). The EMD backend is selectable via
 `"pyemd"` (the pip-installable `EMD-signal` package — a valid but different EMD, so IMF_LZ
 [17–21] diverge from the reference by up to ~26%).
 
-#### Validating `algo/` against the reference (Phase 4 — complete)
+#### Validating `vftx/` against the reference (Phase 4 — complete)
 
-Status and full findings: `algo/PLAN.md` "Phase 4" section. **26/27 features match the
+Status and full findings: `vftx/PLAN.md` "Phase 4" section. **26/27 features match the
 reference bit-for-bit; SpEn is correct but unmatchable (non-deterministic reference).**
 
 Run the hermetic suite (no network/libwfdb/Cython needed — uses cached fixtures):
@@ -181,16 +182,16 @@ To regenerate fixtures or the side-by-side table (needs the reference build + ne
 pip install Cython setuptools wfdb            # one-time
 python setup_ref.py build_ext --inplace       # builds signal_processing + vf_features .so
 python tests/gen_fixtures.py                   # refresh tests/data/fixtures.{npz,json}
-python tests/compare_reference.py              # side-by-side reference vs algo table
+python tests/compare_reference.py              # side-by-side reference vs vftx table
 ```
 
-Key mechanism — **`SegmentConfig.reference_bug_compat`** (default `False`): `algo/` is a
+Key mechanism — **`SegmentConfig.reference_bug_compat`** (default `False`): `vftx/` is a
 clean/correct reimplementation by default; the flag reproduces reference bugs so the suite
 can bit-match. Bugs found and gated: TCSC multiplies overlapping windows of the shared
 signal by a Tukey window *in place* (corrupts all downstream features — the master cause);
 vf_leak uses `argmax` on the complex FFT. Config fix (clean): `highpass_hz` 0.5→1.0.
 SpEn: reference `pyeeg.samp_entropy` uses `as_strided` on non-contiguous input → wrong +
-non-deterministic; algo's SpEn is correct and validated independently in
+non-deterministic; vftx's SpEn is correct and validated independently in
 `tests/test_sample_entropy.py`. Also: LZ76 rewritten with `bytes.find` (bit-identical,
 ~150× faster). `tests/_refstub/qrs_detect.py` stubs OSEA so `vf_features` imports without
 libwfdb (reference QRS features come out 0). The real OSEA detector is also buildable
@@ -236,7 +237,7 @@ It is **not** simply `(max − min) / 2`.
 
 **QRS detection** (Cython pipeline only) runs twice on the raw mV signal: a 5-second
 warm-up pass (results discarded) then a full pass — this compensates for OSEA's
-initialisation latency.  The `algo/` package uses `WfdbXqrsDetector` instead.
+initialisation latency.  The `vftx/` package uses `WfdbXqrsDetector` instead.
 
 ---
 
@@ -262,7 +263,7 @@ VS Code `launch.json` already has three configurations for `extract_one.py` and 
 | `develop` | Documentation additions (`docs/`) — frozen |
 | `codex` | Active development: bug fixes, modernisation, documentation |
 
-Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation; `algo/` pure-Python feature extraction package (all 27 features). See `docs/hong/HISTORY.md` for the full narrative.
+Applied on `codex`: `info.resample_rate` → `info.sampling_rate` AttributeError; per-record checkpointing; sklearn deprecated API updates (`cross_validation`/`grid_search` → `model_selection`); THESIS.md restoration; docs reorganisation; `vftx/` pure-Python feature extraction package (all 27 features). See `docs/hong/HISTORY.md` for the full narrative.
 
 ---
 

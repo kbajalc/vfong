@@ -17,7 +17,7 @@ The caller is responsible for ADC→mV conversion before calling preprocess().
 import numpy as np
 import scipy.signal as ss
 
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 
 def _drift_suppression(data: np.ndarray, cutoff_hz: float, fs: float) -> np.ndarray:

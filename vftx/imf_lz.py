@@ -18,8 +18,8 @@ The 12-bit encoding: for each uint16 value v, bits are stored at positions
 import numpy as np
 import scipy.signal as ss
 
-from algo.lz import _lz76
-from algo.types import PreprocessedSignal, SegmentConfig
+from vftx.lz import _lz76
+from vftx.types import PreprocessedSignal, SegmentConfig
 
 try:
     from ptsa.ptsa.emd import emd as _ptsa_emd
