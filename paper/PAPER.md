@@ -187,41 +187,135 @@ evaluating them here.
 
 ### 3.1 Databases
 
-> Phase 2. VFDB, CUDB, AHADB, MITDB: what each contributes, sampling rates, why the
-> combination. Pull from DRAFT.md "Databases". Note the AHADB licence and the record
-> selection settled in Phase 2. Cite MITDB, CUDB, VFDB, AHADB.
+Four PhysioNet databases are used, read through a common reader at a uniform 250 Hz. For each
+record the reader selects the best available channel, preferring lead II (MLII, ML2, or II)
+and otherwise the nearest lead (V5, V2, and so on), rather than a fixed channel index.
+
+The MIT-BIH Malignant Ventricular Arrhythmia Database (VFDB) holds 22 two-channel records of
+about 35 minutes, from patients with sustained VT, VFL, and VF. Its rhythm annotations mark
+the ventricular episodes this study targets [VFDB].
+
+The Creighton University Ventricular Tachyarrhythmia Database (CUDB) holds 35 single-channel
+records of 8 minutes, also from patients with sustained ventricular arrhythmias. Its episodes
+are short, which is one reason for the 4-second window test [CUDB].
+
+The MIT-BIH Arrhythmia Database (MITDB) holds 48 two-channel records of about 30 minutes,
+spanning normal sinus rhythm and a range of non-shockable rhythms: atrial fibrillation and
+flutter, bundle branch blocks, paced rhythms, and ectopic beats. It is the main source of
+non-shockable diversity and carries few ventricular episodes. Its native 360 Hz is resampled
+to 250 Hz [MITDB].
+
+The American Heart Association Database (AHADB) holds 30-minute two-channel records and
+requires a licence from ECRI. Only part of it carries ventricular arrhythmias, so the record
+list is curated to the relevant subset (about 79 records, the 8200-series being the
+ventricular ones) for the benchmark, while the full annotated set is kept for the Phase 4
+tuning. This is the same AHA ventricular material used by Jekova and Krasteva [JEKOVA-2004,
+AHADB].
+
+Together the four give rich shockable content (VFDB, CUDB, and the AHADB subset) against a
+broad non-shockable background (MITDB), matching the combination used in the benchmark
+literature [COMP55-2005].
 
 ### 3.2 Signal preprocessing
 
-> Phase 2. Two stages. Once per record: the vfta SignalFilter (Lynn band-pass plus median
-> baseline), matching the real-time exg-core pipeline, so filtering is not repeated per window.
-> Per window: convert to millivolts (integer counts / 200 standard gain), then vftx conditioning
-> with its own frequency filtering off (mean subtraction, min-max normalization, moving-average,
-> and a zero-mean re-center in place of the high-pass). Unify at 250 Hz. Cite COMP55-2005.
+Preprocessing runs in two stages, once per record and once per window.
+
+Per record, the signal is conditioned in a single pass: a moving-median baseline removal
+(596 ms window) followed by a Lynn recursive band-pass (48 ms window). This matches the
+real-time exg-core pipeline, where baseline removal and band-limiting run once as the signal
+streams in, not per analysis window. Filtering the whole record once, rather than each
+overlapping window, also avoids repeating the same work on the seven seconds that two adjacent
+8-second windows share.
+
+Per window, the integer signal is converted to millivolts by dividing by the standard gain of
+200. It is then conditioned for the feature functions by the steps the feature math needs:
+mean subtraction, min-max normalisation to unit peak-to-peak, order-5 moving-average
+smoothing, and a re-centering to zero mean. The frequency filtering that the reference
+pipeline applies (a 1 Hz high-pass and a 30 Hz low-pass [COMP55-2005]) is turned off here,
+because the record is already band-limited from the per-record stage. The zero-mean
+re-centering stands in for the high-pass, so features that assume an oscillation around zero
+(the leakage, spectral, and phase-space measures) behave correctly.
+
+All records are unified at 250 Hz (MITDB resampled from 360 Hz), so every feature works at one
+sampling rate.
 
 ### 3.3 Segmentation and labeling
 
-> Phase 2. Overlapping windows with a 1 s step, at two window lengths: 8 s for the benchmark
-> (matches the windows most of these algorithms were defined on) and 4 s for the short-episode
-> test (MITDB carries brief episodes). Rhythm labels from the annotations; derive the shockable
-> class and the VT/VFL/VF sub-labels. Majority-vote smoothing turns per-window decisions into
-> reference episode labels. The three VFL configurations. Endpoint vs coverage labeling for
-> transition windows.
+Each record is scanned with overlapping windows at a 1-second step, at two lengths: 8 seconds
+(2000 samples), the length most of the benchmark algorithms were defined on, and 4 seconds
+(1000 samples), which catches the short episodes CUDB and MITDB contain. Each window position
+produces one row, written to a per-record tab-separated file.
+
+A row holds identifiers (database, record, window start and end), episode-duration labels,
+beat counts, and the feature columns. The episode labels record how many samples of the window
+each annotated rhythm covers: normal sinus, bigeminy, trigeminy, VT, VFL, the bracketed VF
+onset marker, VF, atrial flutter, atrial fibrillation, and an "other" bucket. The beat counts
+tally the annotation marks in the window by type. Storing durations and counts, rather than one
+collapsed label, keeps the raw evidence in the file, so the target definitions below can change
+without rebuilding.
+
+A window is assigned the rhythm class of its dominant episode when that episode covers at least
+90% of the window; otherwise the window is marked MIX. This gives clean, morphologically
+homogeneous windows for the analysis and keeps VT, VFL, and VF as distinct classes. The
+shockable class is VT, VFL, and VF against everything else, matching the published benchmark
+target [COMP55-2005]. Because VFL sits between VT and VF and the databases annotate it
+separately, the three VFL configurations (VFL shockable, VFL non-shockable, VFL excluded) are
+all available from the same file. The clean windows are used for the feature analysis and
+tuning; evaluation uses all windows, MIX included, since a deployed detector cannot skip
+boundary windows.
+
+Per-window decisions become reference episode annotations by majority voting. Each sample
+belongs to several overlapping windows and takes the majority label across them; contiguous
+runs of the same label collapse into episodes with start and end times. This smooths isolated
+errors and produces the interval output the standard WFDB tools compare against. The window and
+class counts from the build are reported in Results (4.1).
 
 ### 3.4 Feature set and candidate detectors
 
-> Phase 3. The vftx features, grouped by category as in section 2, with a compact table
-> (name, index, what it measures); point to vftx as the validated reference implementation.
-> Two families are excluded and this is stated plainly: QRS-derived features (RR and beat
-> ratios) because a QRS detector must blank during VF/VFL, so a signal-only VF/VFL detector
-> cannot depend on it without circularity; and the EMD-based IMF-LZ features because EMD costs
-> about 2 s/window, too slow for the real-time target. So the candidate pool is the cheap,
-> signal-only features. Then the five candidate detectors (TCSC, VFLEAK, SPEC, plus HILB and
-> MEA), each a feature plus a decision rule, with a note on each one's compute cost. Say why
-> these five: Amann's finding (via Hong) that time-domain features perform best motivates MEA,
-> HILB is the strongest classical single algorithm, and complexity/entropy is left out because
-> it performs poorly above 80% specificity. Cite TCSC-2009, VFLEAK-1978, SPEC-1989, HILB-2005,
-> COMP55-2005, HONG-2016.
+Each window is described by 16 signal-only features, computed by a validated pure-Python
+reimplementation of the feature set from Hong's thesis [HONG-2016]. They fall into the same
+categories as the review in section 2.
+
+| Feature | Category | What it measures |
+|---|---|---|
+| TCSC | threshold crossing | fraction of samples whose amplitude exceeds a normalised threshold; high in VF |
+| TCI | threshold crossing | mean interval between threshold crossings; short in VF |
+| STE | amplitude shape | intersections of the signal with a standard decaying exponential envelope |
+| MEA | amplitude shape | same idea with a modified envelope that separates VF better [COMP55-2005] |
+| MAV | amplitude shape | mean absolute amplitude of the window |
+| PSR | phase space | fraction of a grid filled by the time-delay phase-space trajectory |
+| HILB | phase space | fraction of a grid filled by the Hilbert-transform phase-space trajectory [HILB-2005] |
+| VF_LEAK | spectral | residual after half-period cancellation; low for a sine-like VF/VFL signal [VFLEAK-1978] |
+| M | spectral | first-moment spectral parameter of the amplitude spectrum |
+| A2 | spectral | energy in a band around the dominant frequency; high for narrow-band VF |
+| FM | spectral | amplitude-weighted mean frequency of the spectrum |
+| LZ | complexity | Lempel-Ziv complexity of the binarised signal; high for disordered VF |
+| Count1 | count | samples in the upper half of the amplitude range |
+| Count2 | count | samples above the mean |
+| Count3 | count | samples within the mean plus or minus the mean deviation |
+| Amplitude | amplitude | peak-to-peak amplitude in millivolts |
+
+Sample entropy (how predictable the signal is) is also available but off by default, because at
+about 55 ms/window it is the slowest of the kept features; it is computed only when a step
+needs it.
+
+Two feature families are excluded, and the reasons matter for the paper's claim to be a
+signal-only, real-time detector. QRS-derived features (mean RR interval and beat-type ratios)
+are dropped because a QRS detector must blank during VF and VFL: there is no QRS to detect, so
+a VF/VFL detector that consumed QRS output would be circular and would fail exactly when it is
+needed. The EMD-based IMF-LZ features are dropped because empirical mode decomposition costs
+about 2 seconds per window, which cannot keep up with a real-time 1-second step. Both families
+exist in the reference set but have no place in a signal-only real-time detector.
+
+The five candidate detectors are each one feature plus a threshold decision. TCSC, VFLEAK, and
+SPEC come from the benchmark literature [TCSC-2009, VFLEAK-1978, SPEC-1989]; HILB and MEA are
+added to span the phase-space and amplitude-shape families [HILB-2005, COMP55-2005]. The choice
+follows what Hong's review of Amann et al. reports: time-domain features perform best (which
+motivates MEA), the Hilbert phase-space method is the strongest single classical algorithm
+(HILB), and complexity and entropy measures are left out of the candidate set because they
+perform poorly wherever specificity must stay above 80% [HONG-2016, COMP55-2005]. Each
+candidate's decision threshold is set and tuned in Phase 3 and Phase 4; the tuned values and
+the per-window compute cost are reported in Results.
 
 ### 3.5 Screen and candidate shootout
 
