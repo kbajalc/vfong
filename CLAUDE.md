@@ -6,6 +6,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 A research pipeline (2016 NTU master thesis) for detecting life-threatening cardiac arrhythmias (VF/VT) in 8-second ECG segments. The system reads PhysioNet WFDB records, extracts 27 handcrafted signal-processing features via Cython extensions, and trains/evaluates scikit-learn classifiers using AHA reporting rules (shockable / intermediate / non-shockable).
 
+The repo also hosts a paper-writing project (`paper/`); see `paper/NOTES.md` for its status.
+
+---
+
+## Writing style
+
+Prose we write in this repo (the paper in `paper/`, the docs, commit messages, any narrative
+text) follows the rules in `STYLE.md`. The goal is human-friendly writing without mechanical
+AI tells. The flagship rule: do not use em dashes (`—`); use a comma, a colon, parentheses,
+or two sentences instead. Read `STYLE.md` before writing or editing paper or doc text, and
+run its self-check before committing prose.
+
 ---
 
 ## Repository layout
