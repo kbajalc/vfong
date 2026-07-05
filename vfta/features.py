@@ -95,6 +95,22 @@ def feature_names(spen: bool = False, jekova: bool = False) -> list[str]:
 pass #def
 
 
+_SIGNED_COUNTS = ("count1", "count2", "count3")
+
+
+def screen_features() -> list[str]:
+    """The analysis feature list, with the JEKOVA absolute counts as the band-pass family.
+
+    vftx computes the band-pass counts on the signed filter output (``count1/2/3``),
+    where ``count2`` is degenerate (near 0.5 for every rhythm). The JEKOVA candidate,
+    and therefore the screen and shootout, uses the paper-faithful absolute-output
+    counts (``jc1/jc2/jc3``) instead; the signed counts stay in the TSV as vftx
+    reference features but are not analysed. See :mod:`vfta.jekova`.
+    """
+    return ["jc" + n[-1] if n in _SIGNED_COUNTS else n for n in feature_names()]
+pass #def
+
+
 def default_config(sampling_rate: float = 250.0) -> SegmentConfig:
     """vftx config for vfta extraction: filtering off, since records are pre-filtered."""
     return SegmentConfig(signal=SignalConfig(sampling_rate=sampling_rate, apply_filters=False))

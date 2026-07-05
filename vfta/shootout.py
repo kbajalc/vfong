@@ -31,16 +31,18 @@ import pandas as pd
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import precision_recall_curve, roc_auc_score
 
+from vfta import jekova
 from vfta.features import _CHEAP, default_config
 from vftx.preprocessing import preprocess
 
-# Detector -> its vftx feature column(s). Order matches paper/PLAN.md.
+# Detector -> its feature column(s). Order matches paper/PLAN.md. JEKOVA uses the
+# absolute-output counts jc1/jc2/jc3 (paper-faithful), not vftx's signed count1/2/3.
 CANDIDATES: dict[str, list[str]] = {
     "TCSC": ["tcsc"],
     "VFLEAK": ["vf_leak"],
     "SPEC": ["m", "a2", "fm"],
     "HILB": ["hilb"],
-    "JEKOVA": ["count1", "count2", "count3"],
+    "JEKOVA": ["jc1", "jc2", "jc3"],
 }
 
 # Rough cost tier for each detector (for the discussion; measured cost is exact).
@@ -136,6 +138,9 @@ def cost_per_window(window_sec: float = 8.0, fs: int = 250, n: int = 200,
     for name, fn in _CHEAP:
         times[name] = _median_ms(lambda w, fn=fn: fn(w, cfg), pp, repeats)
     pass #for
+    # JEKOVA's three absolute counts come from one band-pass pass; charge them one cost.
+    jc = _median_ms(lambda w: jekova.abs_counts(w, cfg), pp, repeats)
+    times["jc1"] = times["jc2"] = times["jc3"] = jc
     return pd.Series(times)
 pass #def
 

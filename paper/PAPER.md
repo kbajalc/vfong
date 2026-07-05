@@ -293,14 +293,18 @@ categories as the review in section 2.
 | A2 | spectral | energy in a band around the dominant frequency; high for narrow-band VF |
 | FM | spectral | amplitude-weighted mean frequency of the spectrum |
 | LZ | complexity | Lempel-Ziv complexity of the binarised signal; high for disordered VF |
-| Count1 | band-pass | samples in the upper half of the 14.6 Hz band-pass output [JEKOVA-2004] |
-| Count2 | band-pass | samples above the mean of the band-pass output [JEKOVA-2004] |
-| Count3 | band-pass | samples within the mean plus or minus the mean deviation of the band-pass output [JEKOVA-2004] |
+| jc1 | band-pass | samples in the upper half [0.5·max, max] of the absolute 14.6 Hz band-pass output [JEKOVA-2004] |
+| jc2 | band-pass | samples above the mean of the absolute band-pass output [JEKOVA-2004] |
+| jc3 | band-pass | samples within the mean plus or minus the mean deviation of the absolute band-pass output; low in VF [JEKOVA-2004] |
 | Amplitude | amplitude | peak-to-peak amplitude in millivolts |
 
-Sample entropy (how predictable the signal is) is also available but off by default, because at
-about 55 ms/window it is the slowest of the kept features; it is computed only when a step
-needs it.
+The three band-pass counts (jc1, jc2, jc3) are computed on the absolute filter output, as
+Jekova and Krasteva specify [JEKOVA-2004]. The vftx reference set also computes them on the
+signed filter output (count1, count2, count3), and those columns are kept in the data, but the
+signed second count is degenerate (about half the samples sit above a near-zero mean for every
+rhythm), so the JEKOVA candidate, and the feature screen, use the absolute-output counts. Sample
+entropy (how predictable the signal is) is also available but off by default, because at about
+55 ms/window it is the slowest of the kept features; it is computed only when a step needs it.
 
 Two feature families are excluded, and the reasons matter for the paper's claim to be a
 signal-only, real-time detector. QRS-derived features (mean RR interval and beat-type ratios)
@@ -319,7 +323,7 @@ features above plus a threshold decision. Each maps onto a distinct method famil
 | VFLEAK | vf_leak | spectral, leakage | [VFLEAK-1978] |
 | SPEC | m, a2, fm | spectral, FFT descriptors | [SPEC-1989] |
 | HILB | hilb | phase space | [HILB-2005] |
-| JEKOVA | count1, count2, count3 | 14.6 Hz band-pass | [JEKOVA-2004] |
+| JEKOVA | jc1, jc2, jc3 | 14.6 Hz band-pass | [JEKOVA-2004] |
 
 TCSC, VFLEAK, and SPEC come from the benchmark literature. HILB is added as the strongest
 single classical algorithm [HILB-2005]. The fifth slot first held MEA (the amplitude-shape
@@ -420,29 +424,26 @@ that produced the shootout AUC, now read at a chosen operating point rather than
 
 JEKOVA is not a single threshold but the cascade of count rules from the original paper
 [JEKOVA-2004]: two rules that declare a segment non-shockable, two that declare it shockable,
-and a combined term Count1·Count2/Count3, with anything unmatched left "not classified" for a
-later wave-detection stage. Reproducing this faithfully needed two adjustments, both recorded so
-the tuning stays honest. First, the counts. The screen and shootout used the vftx counts, which
-follow Hong's reimplementation on the signed band-pass output; on that signed output the second
-count is degenerate (about half the samples sit above a near-zero mean, for every rhythm), and
-the cascade relies on exactly that count's spread. The original paper counts the absolute
-band-pass output, so the detector here recomputes the three counts on the absolute output, where
-the second count regains its discriminating spread. Second, the window length. The paper's
-constants are raw sample counts over a 10-second epoch, so they do not transfer to an 8 or
-4-second window; the counts are normalised to fractions of the window sample count, which are
-comparable across window lengths, and the published constants are expressed on the same
-fractional scale. The cascade thresholds are then grid-searched for best F1, with the
-published-constant cascade reported as a baseline. The "not classified" branch cannot use the
-paper's wave detection without a peak detector, which a signal-only detector avoids by design
-(section 3.4), so those windows fall back to a threshold on the third count, the strongest of
-the three; that fallback is one of the grid-searched parameters.
+and a combined term jc1·jc2/jc3, with anything unmatched left "not classified" for a later
+wave-detection stage. Two adjustments make the published cascade transfer to this study, both
+recorded so the tuning stays honest. First, the counts use the absolute band-pass output
+(section 3.4), not vftx's signed counts, because the signed second count is degenerate and the
+cascade relies on exactly that count's spread. Second, the window length: the paper's constants
+are raw sample counts over a 10-second epoch, so they do not transfer to an 8 or 4-second window;
+the counts are normalised to fractions of the window sample count, which are comparable across
+window lengths, and the published constants are expressed on the same fractional scale. The
+cascade thresholds are then grid-searched for best F1, with the published-constant cascade
+reported as a baseline. The "not classified" branch cannot use the paper's wave detection without
+a peak detector, which a signal-only detector avoids by design (section 3.4), so those windows
+fall back to a threshold on jc3, which is low for shockable rhythms; that fallback is one of the
+grid-searched parameters.
 
 The winning detector then gets one further test: does a cheap feature separate flutter from
 fibrillation? The two are physiologically distinct, VFL being a fast, regular, near-sinusoidal
 oscillation and VF being disorganised, so spectral-concentration and regularity measures should
 carry the split. Using the rhythm label, the VFL and VF windows are scored by the oriented AUC
 of each candidate feature (spectral concentration a2, leakage vf_leak, the phase-space fills
-psr and hilb, and the band-pass count). Hong's answer to the related VF-versus-VT question was
+psr and hilb, and the band-pass count jc3). Hong's answer to the related VF-versus-VT question was
 Lempel-Ziv complexity on the empirical-mode-decomposition modes [HONG-2016], but that is out of
 scope here because EMD is too slow for the real-time target (section 3.4). Flutter is rare in
 these databases (about 470 windows at 8 seconds), so this result is indicative rather than
@@ -515,10 +516,11 @@ and mutual information alongside.
 
 | Feature | Point-biserial | AUC | Mutual information |
 |---|---|---|---|
-| Count3 | -0.722 | 0.986 | 0.237 |
+| jc2 | 0.722 | 0.986 | 0.237 |
+| jc3 | -0.710 | 0.985 | 0.229 |
+| jc1 | 0.784 | 0.974 | 0.222 |
 | TCSC | 0.623 | 0.964 | 0.185 |
 | MAV | 0.643 | 0.964 | 0.189 |
-| Count1 | 0.714 | 0.957 | 0.203 |
 | HILB | 0.614 | 0.954 | 0.183 |
 | PSR | 0.616 | 0.944 | 0.167 |
 | A2 | 0.656 | 0.940 | 0.172 |
@@ -529,17 +531,16 @@ and mutual information alongside.
 | FM | -0.276 | 0.781 | 0.051 |
 | MEA | 0.292 | 0.778 | 0.049 |
 | STE | 0.286 | 0.732 | 0.040 |
-| Count2 | -0.048 | 0.573 | 0.012 |
 | Amplitude | 0.142 | 0.538 | 0.066 |
 
-The three measures agree on the overall ordering. The band-pass count Count3 leads on all three
-(AUC 0.986), and the top of the table is filled by the threshold-crossing, band-pass, amplitude,
-and phase-space families, with the spectral features close behind. The complexity measure LZ,
-the amplitude-shape measures MEA and STE, and the raw peak-to-peak Amplitude sit at the bottom,
-and Count2 is near chance on its own. This confirms the two decisions the candidate set rests
-on: the band-pass counts are the strongest single features, which is why JEKOVA replaced MEA in
-the fifth slot, and the complexity and amplitude-shape measures discriminate poorly, matching
-Amann et al.'s finding that they fail wherever specificity must stay high [COMP55-2005]. The
+The three measures agree on the overall ordering. The three band-pass counts lead on all three
+metrics (AUC 0.986, 0.985, 0.974 for jc2, jc3, jc1), and the rest of the top is filled by the
+threshold-crossing, amplitude, and phase-space families, with the spectral features close behind.
+The complexity measure LZ, the amplitude-shape measures MEA and STE, and the raw peak-to-peak
+Amplitude sit at the bottom. This confirms the two decisions the candidate set rests on: the
+band-pass counts are the strongest single features, which is why JEKOVA replaced MEA in the fifth
+slot, and the complexity and amplitude-shape measures discriminate poorly, matching Amann et
+al.'s finding that they fail wherever specificity must stay high [COMP55-2005]. The
 feature-feature correlation heatmap (Figure, from PAPER.ipynb) shows the strong features are not
 independent: the threshold-crossing, band-pass, and phase-space measures form a correlated
 block, so they largely re-measure the same underlying property (how much of the window departs
@@ -549,36 +550,36 @@ The shootout compares the five candidates as detectors. At 8 seconds:
 
 | Detector | Primary feature | AUC | Mutual information | Best F1 | Cost (ms/1000 win) |
 |---|---|---|---|---|---|
-| JEKOVA | count3 | 0.986 | 0.236 | 0.843 | 693 |
-| TCSC | tcsc | 0.964 | 0.186 | 0.707 | 47 |
-| HILB | hilb | 0.954 | 0.182 | 0.723 | 55 |
-| SPEC | a2 | 0.940 | 0.172 | 0.719 | 55 |
-| VFLEAK | vf_leak | 0.924 | 0.154 | 0.692 | 55 |
+| JEKOVA | jc2 | 0.986 | 0.237 | 0.846 | 1318 |
+| TCSC | tcsc | 0.964 | 0.186 | 0.707 | 94 |
+| HILB | hilb | 0.954 | 0.182 | 0.723 | 109 |
+| SPEC | a2 | 0.940 | 0.172 | 0.719 | 114 |
+| VFLEAK | vf_leak | 0.924 | 0.154 | 0.692 | 111 |
 
-JEKOVA leads every discrimination column by a clear margin, most visibly on best F1 (0.843
-against 0.71 or below for the rest), so the hypothesis that TCSC would top the shootout does not
+JEKOVA leads every discrimination column by a clear margin, most visibly on best F1 (0.846
+against 0.72 or below for the rest), so the hypothesis that TCSC would top the shootout does not
 hold: TCSC is strong and comes second on AUC, but the band-pass detector is better. The cost
-column tells the other half of the story. TCSC is the cheapest by an order of magnitude (47 ms
-per 1000 windows against JEKOVA's 693), because it is a single normalised-threshold count over
-the window, whereas JEKOVA has to run the sample-by-sample recursive band-pass filter first.
-The three FFT and leakage detectors sit together near 55 ms. On the discrimination-versus-cost
+column tells the other half of the story. TCSC is the cheapest by more than an order of magnitude
+(94 ms per 1000 windows against JEKOVA's 1318), because it is a single normalised-threshold count
+over the window, whereas JEKOVA has to run the sample-by-sample recursive band-pass filter first.
+The three FFT and leakage detectors sit together near 110 ms. On the discrimination-versus-cost
 scatter (Figure, from PAPER.ipynb) JEKOVA sits at the top right (best, most expensive) and TCSC
 at the far left (cheapest, second-best), with the others clustered between them, which is
 exactly the tradeoff that makes the winner an argued choice rather than a lookup of the top
-score.
+score. The cost numbers are pure-Python timings on one machine and shift with load, so only their
+ratios carry meaning: JEKOVA costs about fourteen times TCSC at both window lengths.
 
-The 4-second rerun holds the picture. JEKOVA still leads (AUC 0.982, best F1 0.823), the
-ordering of the rest barely moves (HILB and TCSC swap by a hair on AUC), and every cost drops
-with the shorter window (JEKOVA 350, TCSC 29 ms per 1000 windows), so the ranking is not an
-artifact of the 8-second length.
+The 4-second rerun holds the picture. JEKOVA still leads (AUC 0.982, best F1 0.826), the
+ordering of the rest barely moves (HILB and TCSC swap by a hair on AUC), and every cost roughly
+halves with the shorter window, so the ranking is not an artifact of the 8-second length.
 
 | Detector | AUC (8 s) | F1 (8 s) | Cost (8 s) | AUC (4 s) | F1 (4 s) | Cost (4 s) |
 |---|---|---|---|---|---|---|
-| JEKOVA | 0.986 | 0.843 | 693 | 0.982 | 0.823 | 350 |
-| TCSC | 0.964 | 0.707 | 47 | 0.955 | 0.681 | 29 |
-| HILB | 0.954 | 0.723 | 55 | 0.960 | 0.731 | 47 |
-| SPEC | 0.940 | 0.719 | 55 | 0.938 | 0.707 | 39 |
-| VFLEAK | 0.924 | 0.692 | 55 | 0.926 | 0.680 | 38 |
+| JEKOVA | 0.986 | 0.846 | 1318 | 0.982 | 0.826 | 660 |
+| TCSC | 0.964 | 0.707 | 94 | 0.955 | 0.681 | 55 |
+| HILB | 0.954 | 0.723 | 109 | 0.960 | 0.731 | 91 |
+| SPEC | 0.940 | 0.719 | 114 | 0.938 | 0.707 | 77 |
+| VFLEAK | 0.924 | 0.692 | 111 | 0.926 | 0.680 | 74 |
 
 Because the two axes point at different candidates (JEKOVA on discrimination, TCSC on cost), both
 are carried into Phase 4 and tuned in full, and the choice between a single detector and a
@@ -630,11 +631,10 @@ floor, both outside the scope of this feature study.
 
 ### 4.4 Flutter vs fibrillation, for the winner
 
-The winning detector, JEKOVA, is built on the band-pass count, which does not separate flutter
-from fibrillation at all: on the VFL and VF windows the count3 fraction gives an oriented AUC of
-just 0.549 at 8 seconds, essentially chance. This is expected, since the count measures how much
-14.6 Hz band energy is absent, which both flutter and fibrillation share, so it cannot tell the
-two apart. Cheap spectral-concentration and regularity features do better, though only modestly.
+The winning detector, JEKOVA, is built on the band-pass counts, which barely separate flutter
+from fibrillation: on the VFL and VF windows the jc3 fraction gives an oriented AUC of only 0.603
+at 8 seconds, close to chance. This is expected, since the count measures how much 14.6 Hz band
+energy is absent, which both flutter and fibrillation share, so it cannot tell the two apart. Cheap spectral-concentration and regularity features do better, though only modestly.
 Scoring VF against VFL by oriented AUC on the 474 flutter and 10,569 fibrillation windows at
 8 seconds, the threshold-crossing count TCSC leads at 0.735, followed by the phase-space fill PSR
 at 0.722 and the leakage measure VF_LEAK at 0.706, with the spectral concentration A2 at 0.682;
