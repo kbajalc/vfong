@@ -63,13 +63,17 @@ def preprocess(signal_mv: np.ndarray, cfg: SegmentConfig) -> PreprocessedSignal:
     order = sc.moving_avg_order
     s = np.convolve(s, np.ones(order) / order, mode="same")
 
-    # 4. drift suppression (1 Hz high-pass)
-    s = _drift_suppression(s, sc.highpass_hz, sc.sampling_rate)
+    # Steps 4-5 are frequency filtering. Skip them when the record is already
+    # filtered upstream (cfg.signal.apply_filters=False); see SignalConfig.
+    if sc.apply_filters:
+        # 4. drift suppression (1 Hz high-pass)
+        s = _drift_suppression(s, sc.highpass_hz, sc.sampling_rate)
 
-    # 5. Butterworth low-pass
-    nyq = 0.5 * sc.sampling_rate
-    b, a = ss.butter(5, sc.lowpass_hz / nyq, btype="lowpass") # type: ignore
-    s = ss.filtfilt(b, a, s)
+        # 5. Butterworth low-pass
+        nyq = 0.5 * sc.sampling_rate
+        b, a = ss.butter(5, sc.lowpass_hz / nyq, btype="lowpass") # type: ignore
+        s = ss.filtfilt(b, a, s)
+    pass #if
 
     return PreprocessedSignal(
         raw_mv=signal_mv.astype(np.float64),

@@ -19,6 +19,10 @@ class SignalConfig:
     highpass_hz: float = 1.0        # drift-suppression high-pass cutoff (reference: 1 Hz)
     lowpass_hz: float = 30.0        # anti-alias low-pass cutoff
     moving_avg_order: int = 5       # moving-average smoothing kernel size
+    apply_filters: bool = True      # preprocessing steps 4-5 (1 Hz high-pass, 30 Hz low-pass);
+                                    # set False when the record is already filtered upstream
+                                    # (e.g. the vfta record-level SignalFilter). Mean subtraction,
+                                    # normalisation and moving-average smoothing always run.
 pass #class
 
 

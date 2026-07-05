@@ -127,18 +127,34 @@ raw signal (thesis section 2.3). So if the winning feature does not separate VFL
 its own, the IMF-LZ features are the documented fallback for that sub-analysis. This is
 reported for the winner only, not for the whole candidate set.
 
+### Dataset and feature-extraction decisions (Phase 2)
+
+Settled for the dataset build in `vfta/`:
+
+- vftx filtering off. The record is filtered once upstream by the `vfta` `SignalFilter`
+  (Lynn band-pass plus median baseline), matching the real-time `exg-core` pipeline, so
+  vftx's own frequency filtering (drift suppression and low-pass, preprocessing steps 4-5) is
+  not used. It is now optional via `SignalConfig.apply_filters` (default `True` for the
+  reference suite; `vfta` sets it `False`). Mean subtraction, normalisation, and
+  moving-average smoothing still run, since the feature math needs them.
+- Signal units. The cbor signal is 12-bit integers at a standard gain of 200. Convert to
+  millivolts per segment for feature extraction by dividing by 200.
+- QRS features skipped for now. RR, RR_Std, RR_CV, UR, VR [22-26] are left out of this
+  dataset. Neither OSEA nor xqrs is used: the target algorithm is `exg-core`, and its EXG
+  beat annotations will be exposed as the beat source and wired in later. vftx already skips
+  these features when no detector is passed.
+
 ## Open items to confirm during the phases
 
-- Exact AHADB record selection (which recordings to include or exclude) is settled in
-  Phase 2 against the licence and annotation quality.
+- AHADB record use. Only some AHADB records carry ventricular arrhythmias; many have none, so
+  the full database is overkill for the benchmark. Jekova used the AHA ventricular series
+  (A8001-A8010) [JEKOVA-2004]; the cbor `ahadb/RECORDS` is already curated (about 79 active
+  records, the 8200-series being the ventricular ones) and `CborDatabase` skips the commented
+  rest. Confirm the benchmark subset in Phase 3. The full annotated AHADB is kept for the
+  Phase 4 fine-tuning.
 - Whether both window lengths (8 s and 4 s) run for all five candidates, or 4 s runs only for
   the leaders, depends on how heavy the overlapping-window dataset build turns out to be.
   Decide in Phase 2 when the dataset is constructed.
-- Whether to skip `vftx`'s per-segment filtering. The Phase 2 plan filters once at the record
-  level (matching the real-time `exg-core` pipeline), which means turning off the
-  drift-suppression and low-pass steps inside `vftx`. This changes what `vftx` computes
-  relative to its reference-validated default, so confirm which `vftx` preprocessing steps stay
-  on and check the effect on the features. Decide in Phase 2.
 
 ## Phases
 
