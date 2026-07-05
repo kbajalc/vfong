@@ -104,6 +104,8 @@ def build_record(
         outdir = default_outdir(window_sec)
     pass #if
 
+    # chn=0 (the default) tells cbor to pick the best channel: lead II (MLII/ML2/II)
+    # where present, otherwise the nearest lead. It is not channel index 0.
     rec = CborRecord(db, rid, atr="atr", chn=chn, freq=fs)
     rec.Signal = signal_filter(rec.Signal.astype(float), w=lyn, m=med, h=hi)
 
