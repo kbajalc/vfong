@@ -8,6 +8,26 @@ A research pipeline (2016 NTU master thesis) for detecting life-threatening card
 
 ---
 
+## Repository layout
+
+```
+hong/     Hong's original Cython implementation (the reference): all .pyx +
+          vf_features_native.c, setup.py, Makefile, thesis Python drivers
+          (feature_extraction.py, vf_tests.py, extract_one.py, …), .sh scripts,
+          file_lists/, corrections_s8.txt, README.
+algo/     Clean pure-Python reimplementation of all 27 features (see below).
+tests/    Agreement + unit tests (validate algo/ against hong/).
+ptsa/  pyeeg/  osea20-gcc/   Vendored third-party deps, shared by hong/ and algo/.
+docs/     Project documentation.  setup_ref.py / setup_osea.py  build hong/'s
+          reference extensions for the tests (kept at root, sources point into hong/).
+```
+
+Hong's build and thesis commands below run from inside `hong/` (e.g. `cd hong && make
+build`, `python hong/feature_extraction.py …`). The `.so` files still build to the repo
+root so `import vf_features` works with the root on `sys.path`.
+
+---
+
 ## Build
 
 ### Prerequisites
@@ -26,6 +46,8 @@ pip install Cython numpy scipy matplotlib joblib scikit-learn wfdb
 ```
 
 ### Makefile targets
+
+Run from inside `hong/` (`cd hong`), where the Makefile and `setup.py` live:
 
 ```bash
 make build      # normal optimised release build (-O3)
@@ -98,7 +120,7 @@ No parallelism, no joblib. Set a breakpoint on the `vf_features.extract_features
 
 ## Code architecture
 
-### Cython extensions (`setup.py`)
+### Cython extensions (`hong/setup.py`)
 
 | Extension | Sources | Role |
 |---|---|---|

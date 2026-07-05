@@ -12,12 +12,12 @@ import numpy as np
 extensions = [
     Extension(
         name="signal_processing",
-        sources=["signal_processing.pyx"],
+        sources=["hong/signal_processing.pyx"],
         extra_compile_args=["-O3"],
     ),
     Extension(
         name="vf_features",
-        sources=["vf_features.pyx", "vf_features_native.c"],
+        sources=["hong/vf_features.pyx", "hong/vf_features_native.c"],
         libraries=["m"],
         extra_compile_args=["-O3"],
     ),

@@ -23,7 +23,7 @@ osea_sources = [
 
 ext = Extension(
     name="qrs_detect",
-    sources=["qrs_detect.pyx"] + osea_sources,
+    sources=["hong/qrs_detect.pyx"] + osea_sources,
     libraries=["m"],                       # NOTE: no "wfdb"
     include_dirs=[np.get_include(), "tests/_osea", OSEA],
     extra_compile_args=["-O3"],
