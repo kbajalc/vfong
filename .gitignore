@@ -14,3 +14,6 @@ signal_processing.c
 vf_data.c
 wfdb_reader.c
 vf_features.c
+
+# vfta dataset build artifacts
+data/
