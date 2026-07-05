@@ -28,6 +28,29 @@ except ImportError:
     _HAS_PTSA = False
 
 
+def _run_emd(emd_input: np.ndarray, backend: str) -> list:
+    """Decompose ``emd_input`` into intrinsic mode functions (max 5).
+
+    ``backend``:
+      "ptsa"  — bundled PTSA EMD (default); matches the reference bit-for-bit.
+      "pyemd" — the standard EMD-signal package; a valid but different EMD, so
+                the resulting IMF_LZ features diverge from the reference.
+    """
+    if backend == "ptsa":
+        if not _HAS_PTSA:
+            raise ImportError("emd_backend='ptsa' but the bundled ptsa package is unavailable")
+        return _ptsa_emd(emd_input, max_modes=5)  # type: ignore
+    if backend == "pyemd":
+        try:
+            from PyEMD import EMD
+        except ImportError as exc:  # pragma: no cover - optional dependency
+            raise ImportError(
+                "emd_backend='pyemd' requires the EMD-signal package "
+                "(pip install EMD-signal)") from exc
+        return list(EMD()(emd_input.astype(np.float64), max_imf=5))
+    raise ValueError(f"unknown emd_backend {backend!r} (expected 'ptsa' or 'pyemd')")
+
+
 def _imf_lz_complexity(imf: np.ndarray) -> float:
     """Replicate vf_features_native.c:imf_lempel_ziv_complexity().
 
@@ -57,16 +80,13 @@ def compute_imf_lz(
     sig:
         Preprocessed signal (use ``sig.processed``).
     cfg:
-        Uses ``cfg.signal.sampling_rate``.
+        Uses ``cfg.signal.sampling_rate`` and ``cfg.complexity.emd_backend``.
 
     Returns
     -------
     tuple of five floats
         ``(imf1_lz, imf2_lz, imf3_lz, imf4_lz, imf5_lz)``
     """
-    if not _HAS_PTSA:
-        return 0.0, 0.0, 0.0, 0.0, 0.0
-
     samples = sig.processed
     sr = sig.sampling_rate
 
@@ -85,8 +105,8 @@ def compute_imf_lz(
     # 3. Scale to 12-bit uint16
     emd_input = (normalised * (2 ** 12)).astype(np.uint16)
 
-    # 4. EMD — all 5 modes in one call
-    imfs = _ptsa_emd(emd_input, max_modes=5) # type: ignore
+    # 4. EMD — all 5 modes in one call (backend selectable, default ptsa)
+    imfs = _run_emd(emd_input, cfg.complexity.emd_backend)
 
     results: list[float] = []
     for i in range(5):

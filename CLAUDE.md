@@ -156,7 +156,11 @@ The Cython extensions are kept intact as the reference; `algo/` is a parallel im
 | `algo/_count_helpers.py` | Shared IIR bandpass filter for Count1–3 |
 | `algo/PLAN.md` | Implementation plan, difficulty assessment, known gotchas |
 
-Dependencies: `numpy`, `scipy`, `wfdb` (xqrs detector), `ptsa/` (bundled, EMD for IMF features).
+Dependencies: `numpy`, `scipy`, `wfdb` (xqrs detector), `ptsa/` (bundled, default EMD
+backend for IMF features). The EMD backend is selectable via
+`SegmentConfig.complexity.emd_backend`: `"ptsa"` (default, matches the reference) or
+`"pyemd"` (the pip-installable `EMD-signal` package — a valid but different EMD, so IMF_LZ
+[17–21] diverge from the reference by up to ~26%).
 
 #### Validating `algo/` against the reference (Phase 4 — complete)
 

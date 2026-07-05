@@ -461,7 +461,9 @@ Two layers, both done:
 Candidates for follow-up:
 - ~~Replace pure-Python LZ with a `bytes`-based or Cython port~~ — **done** in Phase 4
   (`bytes.find`, bit-identical, ~150× faster)
-- Validate `ptsa.emd` vs `PyEMD` on the test segments; switch if PTSA diverges
+- ~~Validate `ptsa.emd` vs `PyEMD`~~ — **done**: PyEMD diverges from ptsa on IMF_LZ by up
+  to ~26% (a valid but different EMD). Backend is now selectable (`emd_backend`), default
+  ptsa to keep reference-matching.
 - Add `OseaDetector` / `NeuroKitDetector` concrete classes outside `algo/` for QRS
 - Wire `algo/extract.py` into the main `feature_extraction.py` driver as an optional backend
 
@@ -469,8 +471,10 @@ Candidates for follow-up:
 
 ## Open decisions
 
-- [x] **EMD library**: chose bundled **PTSA** (`ptsa/ptsa/emd.py`) — no pip dependency,
-      matches the reference.  PyEMD is a drop-in fallback if PTSA proves inaccurate.
+- [x] **EMD library**: **selectable backend** (`ComplexityConfig.emd_backend`), default
+      **PTSA** (`ptsa/ptsa/emd.py`, bundled, no pip dep) — matches the reference bit-for-bit.
+      `"pyemd"` (the standard `EMD-signal` package) is available as an alternative but is a
+      *different* EMD: IMF_LZ [17–21] diverge from the reference by up to ~26%.
 - [x] **Sample entropy**: replicated **pyeeg** directly in `sample_entropy.py` — no
       `antropy` dependency; exact match with the reference is guaranteed.
 - [x] **QRS detector**: **`wfdb.processing.xqrs_detect`** via `algo/wfdb_detector.py`.

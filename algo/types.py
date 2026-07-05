@@ -63,6 +63,12 @@ class ComplexityConfig:
     spen_m: int = 2                 # embedding dimension
     spen_r: float = 0.2             # tolerance as fraction of signal std
 
+    # IMF1-5 LZ [17-21] — EMD backend for the intrinsic mode functions.
+    # "ptsa"  = bundled PTSA (default): matches the reference bit-for-bit.
+    # "pyemd" = the standard EMD-signal package (pip install EMD-signal); a valid
+    #           but different EMD, so IMF_LZ values diverge from the reference.
+    emd_backend: str = "ptsa"
+
 
 @dataclass
 class SegmentConfig:
