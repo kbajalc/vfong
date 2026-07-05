@@ -340,12 +340,25 @@ the per-window compute cost are reported in Results.
 > swept threshold) and a rough compute cost per window, at 8 s, with the leaders rerun at 4 s.
 > State how the winner is chosen: discrimination weighed against cost, not the top score alone.
 >
-> Justify the three screen metrics with a one-line description of each: point-biserial
-> correlation (linear, signed association of a feature with the binary shockable label, so it
-> shows direction), mutual information (any dependence, including non-monotonic), and
-> single-feature AUC (threshold-free separability, the natural match to a single-threshold
-> detector). Before writing, check the feature-selection literature for other common measures
-> (Fisher score, ReliefF, Kolmogorov-Smirnov statistic) and note why they are or are not added.
+> Give each screen metric a proper, self-contained treatment, a short paragraph rather than one
+> line: what it measures, how it is computed, its range and interpretation, and why it fits this
+> problem. The paper is teaching-oriented and self-contained, so define the metrics in the text
+> instead of deferring to references.
+>   - Point-biserial correlation: the Pearson correlation between a feature and the binary
+>     shockable label, in [-1, 1]. Signed, so it shows the direction of the effect (whether the
+>     feature rises or falls for shockable rhythms). Simple and familiar, but it only captures
+>     linear, monotonic association.
+>   - Mutual information: how much knowing the feature reduces uncertainty about the label,
+>     zero only when the two are independent. It catches non-linear and non-monotonic relations
+>     that correlation misses, at the cost of a density estimate.
+>   - Single-feature AUC: the area under the ROC curve when the label is decided by thresholding
+>     that one feature, in [0.5, 1] after orientation. Threshold-free, it is the natural match
+>     to a single-threshold detector and is directly comparable to the AUC values the benchmark
+>     papers report.
+> Together they give a linear, an information-theoretic, and a decision-oriented view, so a
+> feature has to look good under all three to be trusted. Before writing, check the
+> feature-selection literature for other common measures (Fisher score, ReliefF, the
+> Kolmogorov-Smirnov statistic) and say why they are or are not added.
 
 ### 3.6 Candidate tuning and flutter-vs-fibrillation test
 
