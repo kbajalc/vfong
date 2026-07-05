@@ -320,12 +320,13 @@ All 27 features are implemented across three difficulty groups:
 
 ### Known limitations and gotchas for testing
 
-1. **LZ is pure Python** — O(n²) substring search; expect ~seconds per segment at 2000 samples.
-   Can be accelerated with a bytes-based approach if needed.
+1. **LZ is pure Python** — the LZ76 substring search now uses `bytes.find` (C-implemented),
+   bit-identical to the naive O(n²) numpy loop but ~150× faster (resolved in Phase 4).
 
-2. **IMF LZ requires `ptsa`** — bundled in the repo at `ptsa/ptsa/emd.py`.  Falls back to
-   all-zeros if the import fails.  `ptsa.emd` and `PyEMD` may produce slightly different IMFs
-   (different sifting stopping criteria); test against the reference to confirm agreement.
+2. **IMF LZ EMD backend** — default `ptsa` (bundled at `ptsa/ptsa/emd.py`) matches the
+   reference bit-for-bit; `pyemd` is selectable via `ComplexityConfig.emd_backend` but is a
+   different EMD (different sifting criteria) so its IMF_LZ values diverge by up to ~26%
+   (confirmed in Phase 4).
 
 3. **QRS features — sample indices at native SR** — `WfdbXqrsDetector` returns indices in
    the signal's native sampling rate, which is what `qrs_features.py` expects (divides by
@@ -481,5 +482,7 @@ Candidates for follow-up:
       All beats returned as `'N'`; UR and VR are always 0.0 until a beat classifier is
       added.  OSEA also only distinguishes N vs V (with Q for unclassified); xqrs omits
       that distinction entirely for now.
-- [ ] **LZ speed**: pure-Python O(n²) implementation — optimisation **deferred**.
-      Correct results are more important than speed at this stage.
+- [x] **LZ speed**: **resolved** in Phase 4. `lz.py:_lz76` uses `bytes.find` for the
+      substring search — bit-identical to the naive O(n²) numpy loop, ~150× faster.
+      This unblocked `imf_lz` (24000-bit sequences × 5 IMFs), which had been
+      multi-minute per segment. `imf_lz.py` reuses the same `_lz76`.
