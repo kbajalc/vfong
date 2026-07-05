@@ -339,16 +339,27 @@ the per-window compute cost are reported in Results.
 > shootout: for each of the five candidates report discrimination (same scores plus F1 at a
 > swept threshold) and a rough compute cost per window, at 8 s, with the leaders rerun at 4 s.
 > State how the winner is chosen: discrimination weighed against cost, not the top score alone.
+>
+> Justify the three screen metrics with a one-line description of each: point-biserial
+> correlation (linear, signed association of a feature with the binary shockable label, so it
+> shows direction), mutual information (any dependence, including non-monotonic), and
+> single-feature AUC (threshold-free separability, the natural match to a single-threshold
+> detector). Before writing, check the feature-selection literature for other common measures
+> (Fisher score, ReliefF, Kolmogorov-Smirnov statistic) and note why they are or are not added.
 
-### 3.6 Winner tuning and flutter-vs-fibrillation test
+### 3.6 Candidate tuning and flutter-vs-fibrillation test
 
-> Phase 4. Take the winning candidate (hypothesis: TCSC). Threshold sweep, ROC construction,
-> operating-point selection at both window lengths and the three VFL configurations. Then the
-> winner-only sub-analysis: does the winning feature also separate VFL from VF, which have very
-> different signatures? Note that VT and VFL are usually short transient phases toward VF. Use
-> cheap features for this split (spectral concentration and regularity, for example a2, vf_leak,
-> the phase-space fill): Hong's IMF-LZ answer to VF-vs-VT is out, because EMD is too slow for
-> the real-time target. Cite TCSC-2009, COMP55-2005, HONG-2016.
+> Phase 4. Tune two candidates, not one: TCSC, the established classical design already
+> confirmed in practice (find a reference), and JEKOVA, a newer but still simple, real-time
+> friendly design that topped the screen. For each, sweep its decision threshold(s), build the
+> ROC curve, and pick operating points at both window lengths and the three VFL configurations.
+> JEKOVA needs a small grid search over its three count thresholds; TCSC a single-threshold ROC
+> sweep as in COMP55-2005. Then the sub-analysis on the leading candidate: does its feature
+> separate VFL from VF? VFL is fast, near-sinusoidal, regular; VF is disorganized; VT and VFL
+> are usually short transient phases toward VF. Use cheap features for the split (spectral
+> concentration and regularity, for example a2, vf_leak, the phase-space fill); Hong's IMF-LZ
+> answer to VF-vs-VT is out, EMD being too slow for real time. Cite TCSC-2009, COMP55-2005,
+> JEKOVA-2004, HONG-2016.
 
 ### 3.7 Evaluation metrics
 
@@ -370,11 +381,14 @@ the per-window compute cost are reported in Results.
 > tradeoff. Supporting figures: mutual-information bar chart, feature-feature correlation
 > heatmap, discrimination-vs-cost scatter.
 
-### 4.3 Tuned winner
+### 4.3 Tuned candidates
 
-> Phase 4 output. ROC figure for the winning feature; operating-point table with F1/Se/Sp/
-> PPV/Acc/G-Mean under the three VFL configurations and both window lengths; comparison to the
-> published numbers for that algorithm.
+> Phase 4 output. For each tuned candidate (TCSC and JEKOVA): a ROC figure and an
+> operating-point table (F1/Se/Sp/PPV/Acc/G-Mean) under the three VFL configurations and both
+> window lengths, with the grid-searched thresholds (JEKOVA's three counts, TCSC's single
+> threshold, per COMP55-2005) and a comparison to each algorithm's published numbers. The final
+> choice of a single detector, or an ensemble of them, is left to future work, as it goes beyond
+> the scope of this paper.
 
 ### 4.4 Flutter vs fibrillation, for the winner
 

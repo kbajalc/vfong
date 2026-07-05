@@ -65,7 +65,7 @@ the ones that changed or were newly settled for this paper.
 | Benchmark target | All candidates are benchmarked on shockable (VT/VFL/VF) vs non-shockable. This matches the published purpose of these algorithms and keeps the shootout comparable to the literature. |
 | Winner sub-analysis | The winning candidate gets one extra test: can it separate flutter (VFL) from fibrillation (VF), which have very different signatures? See "Why VFL vs VF, for the winner only" below. |
 | Candidate set | Five detectors: the three from `DRAFT.md` (VFLEAK, SPEC, TCSC) plus HILB (phase space) and JEKOVA (14.6 Hz band-pass counts). MEA was the fifth but was dropped after the feature screen; see "Candidate detectors and winner selection". |
-| Winner selection | Data-driven, weighing discrimination against computational cost. Not the single best score if it is far more expensive. TCSC is the stated hypothesis for the winner (cheap and strong). |
+| Candidate tuning | The shootout narrows to two tuned candidates, not one: TCSC (established classical design, cheap) and JEKOVA (newer, real-time-friendly, top of the screen). Both are tuned and reported; the final single-detector-or-ensemble choice is deferred to future work. Selection still weighs discrimination against compute cost. |
 | Databases | Full set: VFDB + CUDB + AHADB (licensed, available) + MITDB, matching the COMP55-2005 combination for comparability. |
 | Windowing | Overlapping windows with a 1 s step, and a majority-vote smoothing to turn per-window decisions into reference episode labels (the `DRAFT.md` post-processing). Two window lengths, 8 s (benchmark, matches the original papers) and 4 s (short-episode test, MITDB). Both run for all five candidates if the dataset build allows; confirmed in Phase 2. |
 | Proposed method (was DRAFT Q9) | Not a new algorithm. The contribution is the candidate shootout plus a tuned deterministic detector on the winning feature. No learned classifier. |
@@ -255,17 +255,19 @@ heatmap for redundancy), and the discrimination-vs-cost comparison.
 Deliverables: screen and shootout tables and figures for Results sections 4.2-4.3;
 `PAPER.md` sections 3.4-3.5 drafted.
 
-### Phase 4: Winner tuning and VFL-vs-VF test
+### Phase 4: Candidate tuning and VFL-vs-VF test
 
-Goal: pick the winner, tune it, and test the flutter-vs-fibrillation split.
+Goal: tune the two leading candidates and test the flutter-vs-fibrillation split.
 Inputs: the Phase 3 shootout (discrimination and cost).
-Work: choose the winner by weighing discrimination against compute cost (hypothesis: TCSC).
-Sweep its threshold, build the ROC curve, and pick operating points. Report F1, Se, Sp, PPV,
-Acc, and G-Mean at the chosen point, with TP/FP/TN/FN as durations in ms, under the three VFL
-configurations and at both window lengths. Compare the tuned operating point against the
-published numbers for that algorithm. Then the winner-only sub-analysis: test whether the
-winning feature separates VFL from VF, and report that result.
-Deliverables: the ROC figure, the operating-point table, and the VFL-vs-VF result for
+Work: tune two candidates, TCSC and JEKOVA. For each, sweep its decision threshold(s) and build
+the ROC curve. TCSC is a single-threshold ROC sweep as in COMP55-2005; JEKOVA needs a small
+grid search over its three count thresholds. Pick operating points and report F1, Se, Sp, PPV,
+Acc, and G-Mean, with TP/FP/TN/FN as durations in ms, under the three VFL configurations and at
+both window lengths, compared against each algorithm's published numbers. The final choice of a
+single detector or an ensemble is left to future work. Then the sub-analysis on the leading
+candidate: test whether its feature separates VFL from VF, using cheap spectral and regularity
+features, and report that result.
+Deliverables: the ROC figures, the operating-point tables, and the VFL-vs-VF result for
 Results section 4.4; `PAPER.md` sections 3.6-3.7 drafted.
 
 ### Phase 5: Write-up, figures, and finalization
