@@ -2,6 +2,10 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    //
+    // Hong's scripts live in hong/; cwd is set to hong/ so file_lists/ and
+    // pyximport resolve. justMyCode:false is required to step into .pyx frames
+    // (see docs/DEBUG.md; build with `cd hong && make trace` first).
     "version": "0.2.0",
     "configurations": [
         {
@@ -9,7 +13,38 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${file}",
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "extract_one: mitdb/100 seg 0",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/hong/extract_one.py",
+            "args": ["-r", "mitdb/100", "-n", "0"],
+            "cwd": "${workspaceFolder}/hong",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "extract_one: vfdb/422 begin 385788",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/hong/extract_one.py",
+            "args": ["-r", "vfdb/422", "-b", "385788", "-s", "8"],
+            "cwd": "${workspaceFolder}/hong",
+            "console": "integratedTerminal",
+            "justMyCode": false
+        },
+        {
+            "name": "feature_extraction (no parallelism)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/hong/feature_extraction.py",
+            "args": ["-o", "features/features_s8_debug.dat", "-s", "8", "-j", "1"],
+            "cwd": "${workspaceFolder}/hong",
+            "console": "integratedTerminal",
+            "justMyCode": false
         }
     ]
 }

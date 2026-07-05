@@ -5,6 +5,11 @@ This project mixes Python scripts, Cython extensions (`.pyx`), and C code
 There are two independent debugging modes depending on what level you need
 to inspect, plus a VS Code setup that gets very close to pure-Python comfort.
 
+> **Note:** The original Cython implementation now lives in `hong/`. Run all
+> `make …` targets and the `extract_one.py` / `feature_extraction.py` commands
+> below from inside `hong/` (`cd hong`). The VS Code launch configs already set
+> `cwd` to `hong/`.
+
 ---
 
 ## Quick reference
@@ -184,7 +189,9 @@ numbers will be wrong.
 
 ### launch.json
 
-Create `.vscode/launch.json` with this content:
+`.vscode/launch.json` ships with these configurations. Hong's scripts live in `hong/`,
+so `program` points there and `cwd` is set to `hong/` (so `file_lists/` and pyximport
+resolve):
 
 ```json
 {
@@ -194,8 +201,9 @@ Create `.vscode/launch.json` with this content:
             "name": "extract_one: mitdb/100 seg 0",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/extract_one.py",
+            "program": "${workspaceFolder}/hong/extract_one.py",
             "args": ["-r", "mitdb/100", "-n", "0"],
+            "cwd": "${workspaceFolder}/hong",
             "console": "integratedTerminal",
             "justMyCode": false
         },
@@ -203,8 +211,9 @@ Create `.vscode/launch.json` with this content:
             "name": "extract_one: vfdb/422 begin 385788",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/extract_one.py",
+            "program": "${workspaceFolder}/hong/extract_one.py",
             "args": ["-r", "vfdb/422", "-b", "385788", "-s", "8"],
+            "cwd": "${workspaceFolder}/hong",
             "console": "integratedTerminal",
             "justMyCode": false
         },
@@ -212,8 +221,9 @@ Create `.vscode/launch.json` with this content:
             "name": "feature_extraction (no parallelism)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/feature_extraction.py",
+            "program": "${workspaceFolder}/hong/feature_extraction.py",
             "args": ["-o", "features/features_s8_debug.dat", "-s", "8", "-j", "1"],
+            "cwd": "${workspaceFolder}/hong",
             "console": "integratedTerminal",
             "justMyCode": false
         }
