@@ -120,11 +120,12 @@ irregular. VT and VFL are usually short, transient phases that often, but not al
 into VF. For the winning detector we therefore add one analysis: does its feature also
 separate VFL from VF?
 
-Hong's thesis points at the tool for this. To tell VF from VT in his multiclass setting, Hong
-added Lempel-Ziv complexity computed on the EMD intrinsic mode functions (the IMF-LZ features
-[17-21]), following Xia et al. 2014, because that separates the rhythms better than LZ on the
-raw signal (thesis section 2.3). So if the winning feature does not separate VFL from VF on
-its own, the IMF-LZ features are the documented fallback for that sub-analysis. This is
+Hong's thesis reached for Lempel-Ziv complexity on the EMD intrinsic mode functions (IMF-LZ)
+to tell VF from VT (thesis section 2.3, after Xia et al. 2014), but EMD is too slow for a
+real-time detector, so IMF-LZ is out here (see the Phase 2 decisions above). The VFL-vs-VF
+sub-analysis therefore uses cheap features: VFL is a fast, regular, near-sinusoidal
+oscillation and VF is disorganized, so spectral concentration and regularity measures (for
+example a2, vf_leak, the phase-space fill, spectral entropy) should carry the split. This is
 reported for the winner only, not for the whole candidate set.
 
 ### Dataset and feature-extraction decisions (Phase 2)
@@ -134,15 +135,26 @@ Settled for the dataset build in `vfta/`:
 - vftx filtering off. The record is filtered once upstream by the `vfta` `SignalFilter`
   (Lynn band-pass plus median baseline), matching the real-time `exg-core` pipeline, so
   vftx's own frequency filtering (drift suppression and low-pass, preprocessing steps 4-5) is
-  not used. It is now optional via `SignalConfig.apply_filters` (default `True` for the
-  reference suite; `vfta` sets it `False`). Mean subtraction, normalisation, and
-  moving-average smoothing still run, since the feature math needs them.
+  not used. It is optional via `SignalConfig.apply_filters` (default `True` for the reference
+  suite; `vfta` sets it `False`). With the filters off, preprocessing re-centers the signal to
+  zero mean (a DC removal, not a frequency filter) in place of what the high-pass would give:
+  min-max normalisation leaves the signal in [0, 1], and features that assume an oscillation
+  around zero (vf_leak, spectral, phase-space) need the offset removed. Mean subtraction,
+  normalisation, and moving-average smoothing still run.
 - Signal units. The cbor signal is 12-bit integers at a standard gain of 200. Convert to
   millivolts per segment for feature extraction by dividing by 200.
-- QRS features skipped for now. RR, RR_Std, RR_CV, UR, VR [22-26] are left out of this
-  dataset. Neither OSEA nor xqrs is used: the target algorithm is `exg-core`, and its EXG
-  beat annotations will be exposed as the beat source and wired in later. vftx already skips
-  these features when no detector is passed.
+- QRS features excluded by design. RR, RR_Std, RR_CV, UR, VR [22-26] are not computed. The
+  detector is signal-only, and this is a correctness requirement, not a shortcut: by the AED
+  standards a QRS detector must blank (shut down) during VF/VFL, because there is no QRS to
+  detect, so a VF/VFL detector that consumed QRS output would be circular and would fail
+  exactly when it matters. Neither OSEA nor xqrs is used. If `exg-core` EXG beat annotations
+  are wired in later, they stay as metadata, not as detector inputs.
+- EMD (IMF_LZ) excluded. The IMF_LZ features [17-21] cost about 2 s/window (EMD sifting), which
+  cannot keep up with a real-time 1 s window step, and the downstream target is a real-time
+  detector. They are dropped entirely, not deferred. This removes the IMF_LZ fallback that had
+  been planned for the VFL-vs-VF sub-analysis (see below); that analysis uses cheap features
+  instead. SpEn [11] (about 55 ms/window) is real-time feasible but off by default in the bulk
+  build to keep it cheap (~9 ms/window); it is available via a flag for the feature screen.
 
 ## Open items to confirm during the phases
 
@@ -269,9 +281,9 @@ rule on top of a feature) are thin wrappers to add during Phases 3-4:
 | MEA (modified exponential) | `mea` [3] | Amplitude envelope; add the threshold. Cheap. |
 
 The five candidates already map onto existing `vftx` features, so no new feature math is
-needed, only the thin threshold-and-decision wrappers and the cost measurement. The IMF-LZ
-features [17-21], the fallback for the winner's VFL-vs-VF sub-analysis, are also already in
-`vftx`.
+needed, only the thin threshold-and-decision wrappers and the cost measurement. The dataset
+build computes the cheap non-QRS features (16 by default, plus SpEn on request); QRS and EMD
+features are excluded (see the Phase 2 decisions).
 
 ## New reference to add
 

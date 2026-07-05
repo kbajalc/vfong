@@ -193,9 +193,11 @@ evaluating them here.
 
 ### 3.2 Signal preprocessing
 
-> Phase 2. The pipeline as implemented in vftx: ADC to mV, mean subtraction, normalization,
-> moving-average smoothing, 1 Hz high-pass drift suppression, 30 Hz Butterworth low-pass.
-> Unify at 250 Hz (resample MITDB). Cite COMP55-2005.
+> Phase 2. Two stages. Once per record: the vfta SignalFilter (Lynn band-pass plus median
+> baseline), matching the real-time exg-core pipeline, so filtering is not repeated per window.
+> Per window: convert to millivolts (integer counts / 200 standard gain), then vftx conditioning
+> with its own frequency filtering off (mean subtraction, min-max normalization, moving-average,
+> and a zero-mean re-center in place of the high-pass). Unify at 250 Hz. Cite COMP55-2005.
 
 ### 3.3 Segmentation and labeling
 
@@ -208,14 +210,18 @@ evaluating them here.
 
 ### 3.4 Feature set and candidate detectors
 
-> Phase 3. The 27 vftx features, grouped by category as in section 2, with a compact table
+> Phase 3. The vftx features, grouped by category as in section 2, with a compact table
 > (name, index, what it measures); point to vftx as the validated reference implementation.
-> Then the five candidate detectors (TCSC, VFLEAK, SPEC, plus HILB and MEA), each a feature
-> plus a decision rule, with a note on each one's compute cost. Say why these five: Amann's
-> finding (via Hong) that time-domain features perform best motivates MEA, HILB is the
-> strongest classical single algorithm, and complexity/entropy is left out because it performs
-> poorly above 80% specificity. Cite TCSC-2009, VFLEAK-1978, SPEC-1989, HILB-2005, COMP55-2005,
-> HONG-2016.
+> Two families are excluded and this is stated plainly: QRS-derived features (RR and beat
+> ratios) because a QRS detector must blank during VF/VFL, so a signal-only VF/VFL detector
+> cannot depend on it without circularity; and the EMD-based IMF-LZ features because EMD costs
+> about 2 s/window, too slow for the real-time target. So the candidate pool is the cheap,
+> signal-only features. Then the five candidate detectors (TCSC, VFLEAK, SPEC, plus HILB and
+> MEA), each a feature plus a decision rule, with a note on each one's compute cost. Say why
+> these five: Amann's finding (via Hong) that time-domain features perform best motivates MEA,
+> HILB is the strongest classical single algorithm, and complexity/entropy is left out because
+> it performs poorly above 80% specificity. Cite TCSC-2009, VFLEAK-1978, SPEC-1989, HILB-2005,
+> COMP55-2005, HONG-2016.
 
 ### 3.5 Screen and candidate shootout
 
@@ -231,10 +237,10 @@ evaluating them here.
 > Phase 4. Take the winning candidate (hypothesis: TCSC). Threshold sweep, ROC construction,
 > operating-point selection at both window lengths and the three VFL configurations. Then the
 > winner-only sub-analysis: does the winning feature also separate VFL from VF, which have very
-> different signatures? Note that VT and VFL are usually short transient phases toward VF. If
-> the winning feature cannot, fall back to the IMF-LZ features (LZ on EMD modes), which Hong
-> added for exactly the VF-vs-VT distinction after Xia et al. 2014. Cite TCSC-2009,
-> COMP55-2005, HONG-2016.
+> different signatures? Note that VT and VFL are usually short transient phases toward VF. Use
+> cheap features for this split (spectral concentration and regularity, for example a2, vf_leak,
+> the phase-space fill): Hong's IMF-LZ answer to VF-vs-VT is out, because EMD is too slow for
+> the real-time target. Cite TCSC-2009, COMP55-2005, HONG-2016.
 
 ### 3.7 Evaluation metrics
 
