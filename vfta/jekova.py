@@ -59,8 +59,8 @@ DEFAULT_PARAMS: dict[str, float] = {
     "c2_hi": 950 / 2500,    # 0.380
     "c2_top": 1100 / 2500,  # 0.440
     "ratio": 210 / 2500,    # 0.084
-    "c3_fallback": 0.50,    # substitutes the paper's Step 5 wave-detection branch
-}
+    "c3_fallback": 0.70,    # substitutes the paper's Step 5 wave-detection branch
+}                           # (shockable when Count3 fraction <= this; low Count3 = shockable)
 
 
 def counts(pp: PreprocessedSignal, cfg: SegmentConfig) -> tuple[int, int, int]:
@@ -149,7 +149,8 @@ def decide(f1, f2, f3, params: dict[str, float]) -> np.ndarray:
     The non-shockable rules (R1, R2) and shockable rules (R3, R4) are mutually
     exclusive on their count conditions, so rule order does not matter; windows
     matching neither fall back to a Count3 threshold in place of the paper's
-    wave-detection branch.
+    wave-detection branch. Count3 is low for shockable rhythms (concentration
+    drops), so the fallback flags shockable when ``f3 <= c3_fallback``.
     """
     f1 = np.asarray(f1, dtype=float)
     f2 = np.asarray(f2, dtype=float)
@@ -160,7 +161,7 @@ def decide(f1, f2, f3, params: dict[str, float]) -> np.ndarray:
     non = (((f1 < p["c1_lo"]) & (f2 > p["c2_hi"]) & (ratio < p["ratio"]))
            | ((f1 >= p["c1_lo"]) & (f1 < p["c1_hi"]) & (f2 < p["c2_lo"]) & (ratio < p["ratio"])))
     shock = ((f1 >= p["c1_lo"]) & (f2 > p["c2_hi"])) | (f2 >= p["c2_top"])
-    fallback = f3 >= p["c3_fallback"]
+    fallback = f3 <= p["c3_fallback"]
 
     return np.where(non, False, np.where(shock, True, fallback))
 pass #def

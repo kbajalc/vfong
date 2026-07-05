@@ -586,18 +586,67 @@ combination of the two is left to that stage and to future work.
 
 ### 4.3 Tuned candidates
 
-> Phase 4 output. For each tuned candidate (TCSC and JEKOVA): a ROC figure and an
-> operating-point table (F1/Se/Sp/PPV/Acc/G-Mean) under the three VFL configurations and both
-> window lengths, with the grid-searched thresholds (JEKOVA's three counts, TCSC's single
-> threshold, per COMP55-2005) and a comparison to each algorithm's published numbers. The final
-> choice of a single detector, or an ensemble of them, is left to future work, as it goes beyond
-> the scope of this paper.
+Both candidates were tuned on the clean set at each window length and under the three VFL
+configurations. The operating points below are for the shockable configuration (flutter counts
+as shockable); the other two configurations move every number by less than a percentage point,
+because flutter is rare, so only the shockable configuration is tabulated here.
+
+| Window | Detector | Se | Sp | PPV | F1 | Acc | G-Mean |
+|---|---|---|---|---|---|---|---|
+| 8 s | TCSC (tuned) | 0.827 | 0.945 | 0.617 | 0.706 | 0.933 | 0.884 |
+| 8 s | JEKOVA (published) | 0.973 | 0.900 | 0.511 | 0.670 | 0.907 | 0.936 |
+| 8 s | JEKOVA (tuned) | 0.898 | 0.976 | 0.802 | 0.847 | 0.969 | 0.936 |
+| 4 s | TCSC (tuned) | 0.778 | 0.944 | 0.605 | 0.681 | 0.928 | 0.857 |
+| 4 s | JEKOVA (published) | 0.962 | 0.893 | 0.497 | 0.656 | 0.900 | 0.927 |
+| 4 s | JEKOVA (tuned) | 0.875 | 0.973 | 0.783 | 0.826 | 0.964 | 0.923 |
+
+Two things stand out. First, the published JEKOVA cascade, reproduced on our absolute-output
+counts with its constants only rescaled to the window length, already reaches Se 0.973 and
+Sp 0.900 at 8 seconds. That is close to the Se 0.959 and Sp 0.944 the original paper reports on
+the AHA and MIT databases [JEKOVA-2004], which is a strong independent check that the cascade and
+the absolute counts were reproduced correctly, given that our counts follow Hong's band-pass and
+our evaluation scores every window of every recording rather than curated 10-second episodes. The
+small specificity gap (our 0.900 against the paper's 0.944) is the expected cost of scoring the
+full continuous recording, including the noisy MITDB background, without the paper's separate
+noise and asystole gates.
+
+Second, tuning moves JEKOVA along its operating curve: the grid search trades a little
+sensitivity (0.973 to 0.898) for a large gain in specificity (0.900 to 0.976) and precision
+(0.511 to 0.802), which lifts F1 from 0.670 to 0.847, the best of any detector at either window
+length. The tuned thresholds are the same at 8 and 4 seconds (the fraction normalisation makes
+them transfer), which is a useful robustness property for deployment. TCSC tuned to its best-F1
+threshold reaches F1 0.706 at 8 seconds, below tuned JEKOVA on every metric except that both keep
+specificity high; its strength is elsewhere, in cost (section 4.2). The ROC figure (from
+PAPER.ipynb) shows the TCSC sweep as a curve with the two JEKOVA cascade points marked: the tuned
+point sits up and to the left of the published one, and both JEKOVA points sit above the TCSC
+curve, so at matched specificity JEKOVA reaches higher sensitivity. All numbers drop by one to
+three points at 4 seconds, as expected from the shorter evidence window, without changing the
+ordering.
+
+Reading the two axes together (section 4.2 and this table), JEKOVA is the accuracy choice and
+TCSC the cost choice. Which one, or which combination, an exg-core deployment should carry is left
+to future work, since it depends on the embedded compute budget and the required sensitivity
+floor, both outside the scope of this feature study.
 
 ### 4.4 Flutter vs fibrillation, for the winner
 
-> Phase 4 output. Whether the winning feature separates VFL from VF, and how well. Table or
-> figure. Tie back to their different signatures (VFL near-sinusoidal and regular, VF
-> disorganized) and their transient nature.
+The winning detector, JEKOVA, is built on the band-pass count, which does not separate flutter
+from fibrillation at all: on the VFL and VF windows the count3 fraction gives an oriented AUC of
+just 0.549 at 8 seconds, essentially chance. This is expected, since the count measures how much
+14.6 Hz band energy is absent, which both flutter and fibrillation share, so it cannot tell the
+two apart. Cheap spectral-concentration and regularity features do better, though only modestly.
+Scoring VF against VFL by oriented AUC on the 474 flutter and 10,569 fibrillation windows at
+8 seconds, the threshold-crossing count TCSC leads at 0.735, followed by the phase-space fill PSR
+at 0.722 and the leakage measure VF_LEAK at 0.706, with the spectral concentration A2 at 0.682;
+the 4-second window gives the same ordering (TCSC 0.740, VF_LEAK 0.706, PSR 0.697). The
+distribution figure (from PAPER.ipynb) shows the separation is real but with heavy overlap, which
+matches the physiology: flutter is the fast, regular, near-sinusoidal precursor and fibrillation
+the disorganised end state, but the two form a continuum and flutter often degrades into
+fibrillation within the same episode. Flutter is also rare in these databases, so this is an
+indicative result rather than a tuned flutter-versus-fibrillation detector. The practical reading
+is that a deployed detector would need a second, regularity-oriented feature (TCSC or the
+phase-space fill) on top of the band-pass count to attempt the flutter split, and even then only
+partially.
 
 ## 5. Discussion
 
