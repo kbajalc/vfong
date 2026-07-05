@@ -1,0 +1,313 @@
+\begin{thebibliography}{10}
+
+\bibitem{priori2002clinical}
+Silvia~G Priori, Carlo Napolitano, Mirella Memmi, Barbara Colombi, Fabrizio
+  Drago, Maurizio Gasparini, Luciano DeSimone, Fernando Coltorti, Raffaella
+  Bloise, Roberto Keegan, et~al.
+\newblock Clinical and molecular characterization of patients with
+  catecholaminergic polymorphic ventricular tachycardia.
+\newblock {\em Circulation}, 106(1):69--74, 2002.
+
+\bibitem{baldzizhar2016ventricular}
+Aksana Baldzizhar, Ekaterina Manuylova, Roman Marchenko, Yury Kryvalap, and
+  Mary~G Carey.
+\newblock Ventricular tachycardias: Characteristics and management.
+\newblock {\em Critical Care Nursing Clinics}, 28(3):317--329, 2016.
+
+\bibitem{li2012algorithm}
+Yongqin Li, Joe Bisera, Max~Harry Weil, and Wanchun Tang.
+\newblock An algorithm used for ventricular fibrillation detection without
+  interrupting chest compression.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 59(1):78--86,
+  2012.
+
+\bibitem{thakor1990ventricular}
+Nitish~V Thakor, Y-S Zhu, and K-Y Pan.
+\newblock Ventricular tachycardia and fibrillation detection by a sequential
+  hypothesis testing algorithm.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 37(9):837--843,
+  1990.
+
+\bibitem{chen1987ventricular}
+S~Chen, NV~Thakor, and MM~Mower.
+\newblock Ventricular fibrillation detection by a regression test on the
+  autocorrelation function.
+\newblock {\em Medical and Biological Engineering and Computing},
+  25(3):241--249, 1987.
+
+\bibitem{kuo1978computer}
+S~Kuo.
+\newblock Computer detection of ventricular fibrillation.
+\newblock {\em Proc. of Computers in Cardiology, IEEE Comupter Society}, pages
+  347--349, 1978.
+
+\bibitem{barro1989algorithmic}
+S~Barro, R~Ruiz, D~Cabello, and J~Mira.
+\newblock Algorithmic sequential decision-making in the frequency domain for
+  life threatening ventricular arrhythmias and imitative artefacts: a
+  diagnostic system.
+\newblock {\em Journal of biomedical engineering}, 11(4):320--328, 1989.
+
+\bibitem{zhang1999detecting}
+Xu-Sheng Zhang, Yi-Sheng Zhu, Nitish~V Thakor, and Zhi-Zhong Wang.
+\newblock Detecting ventricular tachycardia and fibrillation by complexity
+  measure.
+\newblock {\em IEEE Transactions on biomedical engineering}, 46(5):548--555,
+  1999.
+
+\bibitem{arafat2009detection}
+Muhammad~Abdullah Arafat, Jubair Sieed, and Md~Kamrul Hasan.
+\newblock Detection of ventricular fibrillation using empirical mode
+  decomposition and bayes decision theory.
+\newblock {\em Computers in Biology and Medicine}, 39(11):1051--1057, 2009.
+
+\bibitem{anas2011exploiting}
+Emran Mohammad~Abu Anas, Soo~Yeol Lee, and Md~Kamrul Hasan.
+\newblock Exploiting correlation of ecg with certain emd functions for
+  discrimination of ventricular fibrillation.
+\newblock {\em Computers in biology and medicine}, 41(2):110--114, 2011.
+
+\bibitem{amann2005new}
+Anton Amann, Robert Tratnig, and Karl Unterkofler.
+\newblock A new ventricular fibrillation detection algorithm for automated
+  external defibrillators.
+\newblock In {\em Computers in Cardiology, 2005}, pages 559--562. IEEE, 2005.
+
+\bibitem{amann2007detecting}
+Anton Amann, Robert Tratnig, and Karl Unterkofler.
+\newblock Detecting ventricular fibrillation by time-delay methods.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 54(1):174--177,
+  2007.
+
+\bibitem{amann2005reliability}
+Anton Amann, Robert Tratnig, and Karl Unterkofler.
+\newblock Reliability of old and new ventricular fibrillation detection
+  algorithms for automated external defibrillators.
+\newblock {\em Biomedical engineering online}, 4(1):60, 2005.
+
+\bibitem{alonso2012feature}
+Felipe Alonso-Atienza, Jos{\'e}~Luis Rojo-{\'A}lvarez, Alfredo
+  Rosado-Mu{\~n}oz, Juan~J Vinagre, Arcadi Garc{\'\i}a-Alberola, and Gustavo
+  Camps-Valls.
+\newblock Feature selection using support vector machines and bootstrap methods
+  for ventricular fibrillation detection.
+\newblock {\em Expert Systems with Applications}, 39(2):1956--1967, 2012.
+
+\bibitem{alonso2014detection}
+Felipe Alonso-Atienza, Eduardo Morgado, Lorena Fernandez-Martinez, Arcadi
+  Garc{\'\i}a-Alberola, and Jos{\'e}~Luis Rojo-Alvarez.
+\newblock Detection of life-threatening arrhythmias using feature selection and
+  support vector machines.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 61(3):832--840,
+  2014.
+
+\bibitem{li2014ventricular}
+Qiao Li, Cadathur Rajagopalan, and Gari~D Clifford.
+\newblock Ventricular fibrillation and tachycardia classification using a
+  machine learning approach.
+\newblock {\em IEEE Transactions on Biomedical Engineering}, 61(6):1607--1613,
+  2014.
+
+\bibitem{verma2016detection}
+Anurag Verma and Xiaodai Dong.
+\newblock Detection of ventricular fibrillation using random forest classifier.
+\newblock {\em Journal of Biomedical Science and Engineering}, 9(05):259, 2016.
+
+\bibitem{song2005support}
+Mi~Hye Song, Jeon Lee, Sung~Pil Cho, Kyoung~Joung Lee, and Sun~Kook Yoo.
+\newblock Support vector machine based arrhythmia classification using reduced
+  features.
+\newblock {\em International Journal of Control Automation and Systems},
+  3(4):571, 2005.
+
+\bibitem{asl2008support}
+Babak~Mohammadzadeh Asl, Seyed~Kamaledin Setarehdan, and Maryam Mohebbi.
+\newblock Support vector machine-based arrhythmia classification using reduced
+  features of heart rate variability signal.
+\newblock {\em Artificial intelligence in medicine}, 44(1):51--64, 2008.
+
+\bibitem{clayton1994recognition}
+RH~Clayton, A~Murray, and RWF Campbell.
+\newblock Recognition of ventricular fibrillation using neural networks.
+\newblock {\em Medical and Biological Engineering and Computing},
+  32(2):217--220, 1994.
+
+\bibitem{jones2009ecg}
+Shirley~A Jones.
+\newblock {\em ECG notes: Interpretation and management guide}.
+\newblock FA Davis, 2009.
+
+\bibitem{greenwald1986development}
+Scott~David Greenwald.
+\newblock {\em The development and analysis of a ventricular fibrillation
+  detector}.
+\newblock PhD thesis, Massachusetts Institute of Technology, 1986.
+
+\bibitem{nolle1986crei}
+FM~Nolle, FK~Badura, JM~Catlett, RW~Bowser, and MH~Sketch.
+\newblock Crei-gard, a new concept in computerized arrhythmia monitoring
+  systems.
+\newblock {\em Computers in Cardiology}, 13:515--518, 1986.
+
+\bibitem{goldberger2000physiobank}
+Ary~L Goldberger, Luis~AN Amaral, Leon Glass, Jeffrey~M Hausdorff, Plamen~Ch
+  Ivanov, Roger~G Mark, Joseph~E Mietus, George~B Moody, Chung-Kang Peng, and
+  H~Eugene Stanley.
+\newblock Physiobank, physiotoolkit, and physionet.
+\newblock {\em Circulation}, 101(23):e215--e220, 2000.
+
+\bibitem{huang1998empirical}
+Norden~E Huang, Zheng Shen, Steven~R Long, Manli~C Wu, Hsing~H Shih, Quanan
+  Zheng, Nai-Chyuan Yen, Chi~Chao Tung, and Henry~H Liu.
+\newblock The empirical mode decomposition and the hilbert spectrum for
+  nonlinear and non-stationary time series analysis.
+\newblock In {\em Proceedings of the Royal Society of London A: mathematical,
+  physical and engineering sciences}, volume 454, pages 903--995. The Royal
+  Society, 1998.
+
+\bibitem{oppenheim1999discrete}
+Alan~V Oppenheim.
+\newblock {\em Discrete-time signal processing}.
+\newblock Pearson Education India, 1999.
+
+\bibitem{ho1995random}
+Tin~Kam Ho.
+\newblock Random decision forests.
+\newblock In {\em Document analysis and recognition, 1995., proceedings of the
+  third international conference on}, volume~1, pages 278--282. IEEE, 1995.
+
+\bibitem{breiman2001random}
+Leo Breiman.
+\newblock Random forests.
+\newblock {\em Machine learning}, 45(1):5--32, 2001.
+
+\bibitem{diaz2006gene}
+Ram{\'o}n D{\'\i}az-Uriarte and Sara~Alvarez De~Andres.
+\newblock Gene selection and classification of microarray data using random
+  forest.
+\newblock {\em BMC bioinformatics}, 7(1):3, 2006.
+
+\bibitem{menze2009comparison}
+Bjoern~H Menze, B~Michael Kelm, Ralf Masuch, Uwe Himmelreich, Peter Bachert,
+  Wolfgang Petrich, and Fred~A Hamprecht.
+\newblock A comparison of random forest and its gini importance with standard
+  chemometric methods for the feature selection and classification of spectral
+  data.
+\newblock {\em BMC bioinformatics}, 10(1):213, 2009.
+
+\bibitem{cortes1995support}
+Corinna Cortes and Vladimir Vapnik.
+\newblock Support-vector networks.
+\newblock {\em Machine learning}, 20(3):273--297, 1995.
+
+\bibitem{boser1992training}
+Bernhard~E Boser, Isabelle~M Guyon, and Vladimir~N Vapnik.
+\newblock A training algorithm for optimal margin classifiers.
+\newblock In {\em Proceedings of the fifth annual workshop on Computational
+  learning theory}, pages 144--152. ACM, 1992.
+
+\bibitem{keerthi2003asymptotic}
+S~Sathiya Keerthi and Chih-Jen Lin.
+\newblock Asymptotic behaviors of support vector machines with gaussian kernel.
+\newblock {\em Neural computation}, 15(7):1667--1689, 2003.
+
+\bibitem{van2007python}
+Guido Van~Rossum et~al.
+\newblock Python programming language.
+\newblock In {\em USENIX Annual Technical Conference}, volume~41, page~36,
+  2007.
+
+\bibitem{walt2011numpy}
+St{\'e}fan van~der Walt, S~Chris Colbert, and Gael Varoquaux.
+\newblock The numpy array: a structure for efficient numerical computation.
+\newblock {\em Computing in Science \& Engineering}, 13(2):22--30, 2011.
+
+\bibitem{jones2014scipy}
+Eric Jones, Travis Oliphant, and Pearu Peterson.
+\newblock $\{$SciPy$\}$: open source scientific tools for $\{$Python$\}$.
+\newblock 2014.
+
+\bibitem{laszuk2017pyemd}
+Dawid Laszuk.
+\newblock Python implementation of empirical mode decomposition algorithm,
+  2017.
+
+\bibitem{pedregosa2011scikit}
+Fabian Pedregosa, Ga{\"e}l Varoquaux, Alexandre Gramfort, Vincent Michel,
+  Bertrand Thirion, Olivier Grisel, Mathieu Blondel, Peter Prettenhofer, Ron
+  Weiss, Vincent Dubourg, et~al.
+\newblock Scikit-learn: Machine learning in python.
+\newblock {\em Journal of machine learning research}, 12(Oct):2825--2830, 2011.
+
+\bibitem{lemaitre2017imbalanced}
+Guillaume Lema{\^\i}tre, Fernando Nogueira, and Christos~K Aridas.
+\newblock Imbalanced-learn: A python toolbox to tackle the curse of imbalanced
+  datasets in machine learning.
+\newblock {\em Journal of Machine Learning Research}, 18(17):1--5, 2017.
+
+\bibitem{hunter2007matplotlib}
+John~D Hunter.
+\newblock Matplotlib: A 2d graphics environment.
+\newblock {\em Computing in science \& engineering}, 9(3):90--95, 2007.
+
+\bibitem{silva2014open}
+Ikaro Silva and George~B Moody.
+\newblock An open-source toolbox for analysing and processing physionet
+  databases in matlab and octave.
+\newblock {\em Journal of open research software}, 2(1), 2014.
+
+\bibitem{acharya2017automated}
+U~Rajendra Acharya, Hamido Fujita, Oh~Shu Lih, Yuki Hagiwara, Jen~Hong Tan, and
+  Muhammad Adam.
+\newblock Automated detection of arrhythmias using different intervals of
+  tachycardia ecg segments with convolutional neural network.
+\newblock {\em Information sciences}, 405:81--90, 2017.
+
+\bibitem{barandela2003strategies}
+Ricardo Barandela, Jos{\'e}~Salvador S{\'a}nchez, Vicente Garc{\i}a, and Edgar
+  Rangel.
+\newblock Strategies for learning in class imbalance problems.
+\newblock {\em Pattern Recognition}, 36(3):849--851, 2003.
+
+\bibitem{he2009learning}
+Haibo He and Edwardo~A Garcia.
+\newblock Learning from imbalanced data.
+\newblock {\em IEEE Transactions on knowledge and data engineering},
+  21(9):1263--1284, 2009.
+
+\bibitem{mease2007boosted}
+David Mease, Abraham~J Wyner, and Andreas Buja.
+\newblock Boosted classification trees and class probability/quantile
+  estimation.
+\newblock {\em Journal of Machine Learning Research}, 8(Mar):409--439, 2007.
+
+\bibitem{chawla2002smote}
+Nitesh~V Chawla, Kevin~W Bowyer, Lawrence~O Hall, and W~Philip Kegelmeyer.
+\newblock Smote: synthetic minority over-sampling technique.
+\newblock {\em Journal of artificial intelligence research}, 16:321--357, 2002.
+
+\bibitem{kohavi1995study}
+Ron Kohavi et~al.
+\newblock A study of cross-validation and bootstrap for accuracy estimation and
+  model selection.
+\newblock In {\em Ijcai}, volume~14, pages 1137--1145. Montreal, Canada, 1995.
+
+\bibitem{li1995detection}
+Cuiwei Li, Chongxun Zheng, and Changfeng Tai.
+\newblock Detection of ecg characteristic points using wavelet transforms.
+\newblock {\em IEEE Transactions on biomedical Engineering}, 42(1):21--28,
+  1995.
+
+\bibitem{pan1985real}
+Jiapu Pan and Willis~J Tompkins.
+\newblock A real-time qrs detection algorithm.
+\newblock {\em IEEE transactions on biomedical engineering}, (3):230--236,
+  1985.
+
+\bibitem{chou2011some}
+Kuo-Chen Chou.
+\newblock Some remarks on protein attribute prediction and pseudo amino acid
+  composition.
+\newblock {\em Journal of theoretical biology}, 273(1):236--247, 2011.
+
+\end{thebibliography}

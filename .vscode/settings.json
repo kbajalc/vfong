@@ -6,5 +6,24 @@
         "**/bower_components": true,
         "**/dist": true,
         "**/*.so": true,
-    }
+
+        "**/__pycache__": true,
+        "**/work/**": true,
+
+        "tsconfig.json": true,
+        "package.json": true,
+        "package-lock.json": true,
+        "node_modules": true,
+        "exg": true,
+    },
+    "python.analysis.extraPaths": [
+        "~/Projects/exg-rad"
+    ],
+    "python-envs.pythonProjects": [
+        {
+            "path": ".",
+            "envManager": "ms-python.python:conda",
+            "packageManager": "ms-python.python:conda"
+        }
+    ]
 }

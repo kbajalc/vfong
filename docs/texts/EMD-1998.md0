@@ -1,0 +1,110 @@
+# The Empirical Mode Decomposition and the Hilbert Spectrum for Nonlinear and Non-stationary Time Series Analysis
+
+**Authors:** Norden E. Huang, Zheng Shen, Steven R. Long, Manli C. Wu, Hsing H. Shih, Quanan Zheng, Nai-Chyuan Yen, Chi Chao Tung, Henry H. Liu
+**Journal:** Proceedings of the Royal Society of London A, 1998, 454:903–995
+**DOI:** https://doi.org/10.1098/rspa.1998.0193
+**Note:** Foundational paper introducing Empirical Mode Decomposition (EMD) and Hilbert-Huang Transform (HHT).
+
+---
+
+## Abstract
+
+A new method for analysing nonlinear and non-stationary data based on the Empirical Mode Decomposition (EMD) method. Any complicated dataset can be decomposed into a finite, often small number of Intrinsic Mode Functions (IMFs) that admit well-behaved Hilbert transforms. The decomposition is adaptive — based on the local characteristic time scale of the data — applicable to nonlinear and non-stationary processes. The final presentation is an energy–frequency–time distribution (Hilbert spectrum).
+
+**Keywords:** non-stationary time series; nonlinear differential equations; frequency–time spectrum; Hilbert spectral analysis; intrinsic time scale; empirical mode decomposition
+
+---
+
+## Motivation: Limitations of Classical Methods
+
+Standard methods (Fourier, wavelet, Wigner-Ville, EOF) are inadequate for nonlinear/non-stationary data:
+
+- **Fourier:** Requires linearity + strict stationarity; spreads non-stationary energy across spurious harmonics; negative energy components
+- **Wavelet:** Adjustable-window Fourier analysis; non-adaptive (basis chosen a priori); Morlet wavelet leakage; cannot resolve intrawave FM
+- **Wigner-Ville:** Cross terms (negative power); equivalent to windowed Fourier analysis
+- **EOF/PCA:** Adaptive but non-unique decomposition; no physical frequency meaning
+
+Required properties for a good basis for nonlinear/non-stationary data: complete, orthogonal, **local**, and **adaptive**.
+
+---
+
+## Instantaneous Frequency
+
+For any real signal X(t), the Hilbert transform Y(t):
+$$Y(t) = \frac{1}{\pi} P \int_{-\infty}^{\infty} \frac{X(t')}{t-t'} dt'$$
+
+Analytic signal: Z(t) = X(t) + iY(t) = a(t)e^{iθ(t)}
+
+where a(t) = [X²(t)+Y²(t)]^{1/2}, θ(t) = arctan(Y(t)/X(t)).
+
+Instantaneous frequency: ω = dθ(t)/dt
+
+**Key insight:** Instantaneous frequency is only meaningful for monocomponent signals. EMD decomposes the signal into monocomponent IMFs first.
+
+---
+
+## Intrinsic Mode Functions (IMFs)
+
+An IMF satisfies two conditions:
+1. The number of extrema and the number of zero crossings must be equal or differ at most by one
+2. At any point, the mean value of the envelopes defined by the local maxima and minima is zero
+
+These conditions ensure the instantaneous frequency is well-defined and physically meaningful.
+
+---
+
+## Empirical Mode Decomposition (EMD): The Sifting Process
+
+The algorithm to extract IMFs from a signal x(t):
+
+1. Identify all local maxima and minima of x(t)
+2. Interpolate local maxima with cubic spline → upper envelope e_max(t)
+3. Interpolate local minima with cubic spline → lower envelope e_min(t)
+4. Compute mean envelope: m(t) = [e_max(t) + e_min(t)] / 2
+5. Subtract: h(t) = x(t) − m(t)
+6. Check IMF conditions. If not satisfied, repeat sifting with h as input
+7. When h satisfies IMF conditions → first IMF: c₁(t) = h(t)
+8. Residual: r₁(t) = x(t) − c₁(t)
+9. Repeat on r₁(t) to extract c₂(t), etc.
+
+Decomposition:
+$$x(t) = \sum_{j=1}^{n} c_j(t) + r_n(t)$$
+
+where c_j are IMFs (from highest to lowest frequency oscillatory behavior) and r_n is the residue (trend).
+
+**Properties:**
+- Data-driven and adaptive (basis derived from the data itself)
+- Complete (signal perfectly reconstructed from IMFs + residue)
+- Nearly orthogonal
+- Local (each IMF captures a specific time-scale band)
+- No assumption of stationarity or linearity required
+
+---
+
+## The Hilbert Spectrum
+
+After EMD, apply Hilbert transform to each IMF c_j(t) to obtain instantaneous amplitude a_j(t) and instantaneous frequency ω_j(t):
+
+$$H(\omega, t) = \text{Re}\sum_{j=1}^n a_j(t) e^{i\int \omega_j(t) dt}$$
+
+This is the Hilbert spectrum: an energy–frequency–time distribution. Unlike the Fourier spectrum (energy as function of fixed frequency), the Hilbert spectrum shows how energy is distributed in the time-frequency plane, resolving intra-wave frequency modulations.
+
+**Marginal spectrum:** Integrating over time gives the marginal Hilbert spectrum, analogous to (but physically different from) the Fourier power spectrum.
+
+---
+
+## Application Context for ECG/VF Detection
+
+EMD has been applied to ECG signal analysis in subsequent works, including:
+- VFPred [VFPRED-2018]: Uses first 1-2 IMF components + Residue to distinguish VF (QRS-absent) from non-VF (QRS-present) signals; cosine similarity of IMF₁ with original signal is high for VF (~0.995) and low for non-VF (~0.002)
+- TCSC [TCSC-2009] references EMD-based approaches as competing methods
+- EMD captures the dominant oscillatory content of VF (3–5 Hz fundamental) without assumptions about stationarity
+
+---
+
+## Notes
+
+- This is a highly cited foundational paper (>20,000 citations)
+- Huang et al. are NASA scientists; original application was to oceanographic and geophysical data
+- The stopping criterion for the sifting process is critical: too many iterations → IMF becomes a pure FM signal; paper uses SD < 0.2–0.3 between successive iterations
+- EEMD (Ensemble EMD) and CEEMDAN are later variants that address mode mixing

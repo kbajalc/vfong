@@ -1,0 +1,213 @@
+**********************
+1
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5033
+trueVF : 5108
+falseNotVF : 1
+falseVF : 76
+Specificity : 98.5124290467802
+Sensitivity : 99.98042669798394
+Accuracy : 99.24642787238207
+**********************
+
+**********************
+2
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5046
+trueVF : 5108
+falseNotVF : 1
+falseVF : 63
+Specificity : 98.76688197298884
+Sensitivity : 99.98042669798394
+Accuracy : 99.37365433548639
+**********************
+
+**********************
+3
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5013
+trueVF : 5109
+falseNotVF : 0
+falseVF : 96
+Specificity : 98.12096300645919
+Sensitivity : 100.0
+Accuracy : 99.0604815032296
+**********************
+
+**********************
+4
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5013
+trueVF : 5108
+falseNotVF : 1
+falseVF : 96
+Specificity : 98.12096300645919
+Sensitivity : 99.98042669798394
+Accuracy : 99.05069485222157
+**********************
+
+**********************
+5
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5020
+trueVF : 5109
+falseNotVF : 0
+falseVF : 89
+Specificity : 98.25797612057154
+Sensitivity : 100.0
+Accuracy : 99.12898806028576
+**********************
+
+**********************
+6
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5032
+trueVF : 5109
+falseNotVF : 0
+falseVF : 77
+Specificity : 98.49285574476414
+Sensitivity : 100.0
+Accuracy : 99.24642787238207
+**********************
+
+**********************
+7
+Training
+trueNotVF : 45978
+trueVF : 45978
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5028
+trueVF : 5108
+falseNotVF : 1
+falseVF : 81
+Specificity : 98.41456253669995
+Sensitivity : 99.98042669798394
+Accuracy : 99.19749461734195
+**********************
+
+**********************
+8
+Training
+trueNotVF : 45979
+trueVF : 45979
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5029
+trueVF : 5108
+falseNotVF : 0
+falseVF : 79
+Specificity : 98.45340642129992
+Sensitivity : 100.0
+Accuracy : 99.22670321064996
+**********************
+
+**********************
+9
+Training
+trueNotVF : 45979
+trueVF : 45979
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5022
+trueVF : 5108
+falseNotVF : 0
+falseVF : 86
+Specificity : 98.31636648394675
+Sensitivity : 100.0
+Accuracy : 99.15818324197338
+**********************
+
+**********************
+10
+Training
+trueNotVF : 45979
+trueVF : 45979
+falseNotVF : 0
+falseVF : 0
+Specificity : 100.0
+Sensitivity : 100.0
+Accuracy : 100.0
+Testing
+trueNotVF : 5031
+trueVF : 5108
+falseNotVF : 0
+falseVF : 77
+Specificity : 98.49256068911511
+Sensitivity : 100.0
+Accuracy : 99.24628034455756
+**********************
+
+
+[98.49256068911511,98.31636648394675,98.45340642129992,98.41456253669995,98.49285574476414,98.25797612057154,98.12096300645919,98.12096300645919,98.76688197298884,98.5124290467802]
+[99.98042669798394,99.98042669798394,100,99.98042669798394,100.0,100.0,99.98042669798394,100,100,100]
+[99.24642787238207,99.37365433548639,99.0604815032296,99.05069485222157,99.12898806028576,99.24642787238207,99.19749461734195,99.22670321064996,99.15818324197338,99.24628034455756]
+
+
+Sp = (98.39489650290848, 0.1871162297928084)
+
+Sn= (99.99217067919358, 0.009588920504145296)
+
+Ac=(99.19353359105102, 0.09244390843955778)
+
+GM=(99.19027471805505, 0.09563822814397685)
