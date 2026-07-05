@@ -79,11 +79,13 @@ def feature_names(spen: bool = False) -> list[str]:
         names.append(_SPEN_NAME)
     pass #if
     return names
+pass #def
 
 
 def default_config(sampling_rate: float = 250.0) -> SegmentConfig:
     """vftx config for vfta extraction: filtering off, since records are pre-filtered."""
     return SegmentConfig(signal=SignalConfig(sampling_rate=sampling_rate, apply_filters=False))
+pass #def
 
 
 def window_features(sig_win, cfg: SegmentConfig, spen: bool = False) -> list[float]:
@@ -99,3 +101,4 @@ def window_features(sig_win, cfg: SegmentConfig, spen: bool = False) -> list[flo
         vals.append(compute_sample_entropy(pp, cfg))
     pass #if
     return vals
+pass #def

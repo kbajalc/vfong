@@ -333,32 +333,76 @@ the per-window compute cost are reported in Results.
 
 ### 3.5 Screen and candidate shootout
 
-> Phase 3. Two passes. The broad screen: score each of the 27 features against the shockable
-> label with point-biserial correlation, mutual information, and single-feature AUC; this
-> confirms the two added candidates and flags redundancy (feature-feature correlation). The
-> shootout: for each of the five candidates report discrimination (same scores plus F1 at a
-> swept threshold) and a rough compute cost per window, at 8 s, with the leaders rerun at 4 s.
-> State how the winner is chosen: discrimination weighed against cost, not the top score alone.
->
-> Give each screen metric a proper, self-contained treatment, a short paragraph rather than one
-> line: what it measures, how it is computed, its range and interpretation, and why it fits this
-> problem. The paper is teaching-oriented and self-contained, so define the metrics in the text
-> instead of deferring to references.
->   - Point-biserial correlation: the Pearson correlation between a feature and the binary
->     shockable label, in [-1, 1]. Signed, so it shows the direction of the effect (whether the
->     feature rises or falls for shockable rhythms). Simple and familiar, but it only captures
->     linear, monotonic association.
->   - Mutual information: how much knowing the feature reduces uncertainty about the label,
->     zero only when the two are independent. It catches non-linear and non-monotonic relations
->     that correlation misses, at the cost of a density estimate.
->   - Single-feature AUC: the area under the ROC curve when the label is decided by thresholding
->     that one feature, in [0.5, 1] after orientation. Threshold-free, it is the natural match
->     to a single-threshold detector and is directly comparable to the AUC values the benchmark
->     papers report.
-> Together they give a linear, an information-theoretic, and a decision-oriented view, so a
-> feature has to look good under all three to be trusted. Before writing, check the
-> feature-selection literature for other common measures (Fisher score, ReliefF, the
-> Kolmogorov-Smirnov statistic) and say why they are or are not added.
+The feature analysis runs in two passes on the clean windows (shockable versus non-shockable,
+with the MIX transition windows dropped): a broad screen that ranks every feature on its own,
+then a shootout that compares the five candidate detectors on discrimination and compute cost.
+Working on the clean set keeps the ranking honest, since the boundary windows have no single
+correct label. The screen scores each of the 16 signal-only features against the binary
+shockable label by three complementary measures, chosen so that a feature has to look good
+from three different angles (a linear one, an information-theoretic one, and a decision one) to
+be trusted.
+
+Point-biserial correlation is the Pearson correlation coefficient between a continuous feature
+and the binary label, which is the ordinary product-moment correlation with the label coded as
+0 and 1. It ranges over [-1, 1] and is signed, so it shows the direction of the effect: a
+positive value means the feature rises for shockable rhythms, a negative value means it falls.
+It is simple, familiar, and cheap to compute over the whole set, and its sign is what tells us
+which way to orient a threshold. Its weakness is that it only sees linear, monotonic
+association: a feature that separates the classes through a non-monotonic or non-linear
+relationship can score near zero even when it is highly informative, so it cannot be the only
+measure.
+
+Mutual information measures how much knowing the feature reduces uncertainty about the label,
+in the information-theoretic sense, and is zero only when feature and label are statistically
+independent. Unlike correlation it makes no assumption of linearity or monotonicity, so it
+captures any form of dependence, which is why it is included as a guard against the blind spot
+of the correlation. It is estimated here with a nearest-neighbour method on a random subsample
+of the windows, both to bound the cost of the density estimate and because that estimator does
+not need the data binned in advance. It is non-negative and unbounded, so it is read
+comparatively (higher means more informative) rather than against a fixed scale.
+
+Single-feature AUC is the area under the receiver operating characteristic curve obtained when
+the label is decided by thresholding that one feature and sweeping the threshold across its
+whole range. It equals the probability that a randomly chosen shockable window scores higher
+than a randomly chosen non-shockable one, so 0.5 is chance and 1.0 is perfect separation; a
+feature that separates the classes in the opposite direction gives an AUC below 0.5, so the
+value is oriented to max(AUC, 1 - AUC) and reported in [0.5, 1]. It is threshold-free, which
+makes it the natural match to a single-threshold detector, and it is directly comparable to
+the ROC-based figures the benchmark papers report [COMP55-2005, TCSC-2009]. Of the three it is
+the closest proxy for how the feature will behave as an actual detector.
+
+Other feature-selection scores were considered and not added, because they would not give a
+fourth independent view. The Fisher score and the Kolmogorov-Smirnov statistic both rank
+features by class separation in a way that single-feature AUC already captures monotonically,
+and ReliefF is an instance-based, neighbour-weighted measure whose extra cost buys little here,
+where each detector is ultimately a single global threshold rather than a local rule. A
+feature-feature Pearson correlation matrix over the clean set is computed alongside the screen
+to expose redundancy: features that carry the same information cluster into visibly correlated
+blocks, which explains why several strong single features do not add up to independent evidence.
+
+The shootout then treats each candidate as a deployable detector rather than a bare feature.
+Every candidate is a single feature (its primary feature, the strongest of the group by
+oriented AUC) plus one threshold, and its discrimination is reported three ways: the oriented
+single-feature AUC and mutual information from the screen, plus the best F1 score reached at
+any single threshold. F1, the harmonic mean of precision and recall, is used because the
+classes are heavily imbalanced (far more non-shockable than shockable windows), a setting in
+which plain accuracy is misleading; it is computed here as the maximum F1 over all thresholds
+and both orientations, so it reads as the best operating point a single threshold on that
+feature can reach. Full multi-threshold tuning of the multi-feature detectors is deferred to
+Phase 4; in the shootout each is fairly represented by its best sub-feature.
+
+Alongside discrimination each candidate carries a rough compute cost, reported as milliseconds
+per 1000 windows for readability. It is timed through the same feature path the dataset build
+uses (preprocess the window once, then compute the feature), and charged at the primary
+feature, which carries the detector's one shared heavy step exactly once: JEKOVA's 14.6 Hz
+band-pass, or SPEC's power spectrum. Summing the sub-features would redo that step and overstate
+a detector that a real implementation computes once. These are pure-Python, single-thread
+measurements on one machine, given only for relative scale between candidates, not as absolute
+or portable timings; an embedded C implementation would be far faster, and only the ordering
+between candidates carries over. The winner is argued from both axes together. Because the
+downstream target is a real-time, embedded extension of exg-core, a cheaper candidate that
+trails the best discrimination by a small margin can still be preferred, so the shootout reports
+the two axes side by side rather than collapsing them into one score.
 
 ### 3.6 Candidate tuning and flutter-vs-fibrillation test
 
@@ -383,16 +427,109 @@ the per-window compute cost are reported in Results.
 
 ### 4.1 Dataset composition
 
-> Phase 2 output. Table: segment counts per database, per class, and per window length (8 s
-> and 4 s), per VFL configuration.
+The build produced 167,783 windows at 8 seconds and 168,243 at 4 seconds across the four
+databases, stepping by 1 second and keeping the AHADB 8-series only. Under the benchmark
+labeling most windows are non-shockable, as expected from recordings that are mostly background
+rhythm with embedded ventricular events: 148,689 non-shockable, 16,036 shockable, and 3,058 MIX
+at 8 seconds. The shorter window straddles fewer episode boundaries, so at 4 seconds MIX falls
+to 1,851 while the shockable count rises slightly to 16,483. The per-database split shows where
+each class comes from: the shockable windows are supplied by VFDB, CUDB, and the AHADB subset,
+while MITDB contributes almost none but dominates the non-shockable background.
+
+| Database | NON (8 s) | SHOCK (8 s) | MIX (8 s) | NON (4 s) | SHOCK (4 s) | MIX (4 s) |
+|---|---|---|---|---|---|---|
+| VFDB | 37,417 | 6,835 | 1,772 | 37,889 | 7,096 | 1,127 |
+| CUDB | 13,432 | 3,513 | 590 | 13,704 | 3,664 | 307 |
+| AHADB (8-series) | 12,371 | 5,447 | 102 | 12,427 | 5,480 | 53 |
+| MITDB | 85,469 | 241 | 594 | 85,889 | 243 | 364 |
+| All | 148,689 | 16,036 | 3,058 | 149,909 | 16,483 | 1,851 |
+
+The separate rhythm label, which keeps the ventricular classes distinct for the
+flutter-versus-fibrillation analysis, shows how uneven the shockable material is inside itself.
+At 8 seconds the clean ventricular windows split into 10,569 VF, 4,937 VT, and only 474 VFL,
+against 77,932 normal-sinus and 41,313 other non-shockable windows (the remaining windows are
+MIX). Flutter is by far the rarest of the three, which is expected given how short-lived VFL is,
+and it sets the main limit on the VFL-versus-VF sub-analysis in section 4.4. The three VFL
+configurations (flutter shockable, non-shockable, or excluded) are all derived from this same
+labeling without rebuilding, since the file stores episode durations rather than one collapsed
+label.
 
 ### 4.2 Feature screen and candidate shootout
 
-> Phase 3 output. The 27-feature screen (ranking table: correlation, mutual information, AUC),
-> then the five-candidate shootout with discrimination and compute cost side by side. State
-> whether TCSC leads as hypothesized, and which candidate wins on the discrimination-vs-cost
-> tradeoff. Supporting figures: mutual-information bar chart, feature-feature correlation
-> heatmap, discrimination-vs-cost scatter.
+The screen was run on the 8-second clean set (16,036 shockable, 148,689 non-shockable). The
+16 features rank as follows, by oriented single-feature AUC, with point-biserial correlation
+and mutual information alongside.
+
+| Feature | Point-biserial | AUC | Mutual information |
+|---|---|---|---|
+| Count3 | -0.722 | 0.986 | 0.237 |
+| TCSC | 0.623 | 0.964 | 0.185 |
+| MAV | 0.643 | 0.964 | 0.189 |
+| Count1 | 0.714 | 0.957 | 0.203 |
+| HILB | 0.614 | 0.954 | 0.183 |
+| PSR | 0.616 | 0.944 | 0.167 |
+| A2 | 0.656 | 0.940 | 0.172 |
+| VF_LEAK | -0.605 | 0.924 | 0.154 |
+| M | -0.331 | 0.923 | 0.145 |
+| TCI | -0.229 | 0.900 | 0.115 |
+| LZ | 0.336 | 0.797 | 0.063 |
+| FM | -0.276 | 0.781 | 0.051 |
+| MEA | 0.292 | 0.778 | 0.049 |
+| STE | 0.286 | 0.732 | 0.040 |
+| Count2 | -0.048 | 0.573 | 0.012 |
+| Amplitude | 0.142 | 0.538 | 0.066 |
+
+The three measures agree on the overall ordering. The band-pass count Count3 leads on all three
+(AUC 0.986), and the top of the table is filled by the threshold-crossing, band-pass, amplitude,
+and phase-space families, with the spectral features close behind. The complexity measure LZ,
+the amplitude-shape measures MEA and STE, and the raw peak-to-peak Amplitude sit at the bottom,
+and Count2 is near chance on its own. This confirms the two decisions the candidate set rests
+on: the band-pass counts are the strongest single features, which is why JEKOVA replaced MEA in
+the fifth slot, and the complexity and amplitude-shape measures discriminate poorly, matching
+Amann et al.'s finding that they fail wherever specificity must stay high [COMP55-2005]. The
+feature-feature correlation heatmap (Figure, from PAPER.ipynb) shows the strong features are not
+independent: the threshold-crossing, band-pass, and phase-space measures form a correlated
+block, so they largely re-measure the same underlying property (how much of the window departs
+from baseline) rather than adding separate evidence.
+
+The shootout compares the five candidates as detectors. At 8 seconds:
+
+| Detector | Primary feature | AUC | Mutual information | Best F1 | Cost (ms/1000 win) |
+|---|---|---|---|---|---|
+| JEKOVA | count3 | 0.986 | 0.236 | 0.843 | 693 |
+| TCSC | tcsc | 0.964 | 0.186 | 0.707 | 47 |
+| HILB | hilb | 0.954 | 0.182 | 0.723 | 55 |
+| SPEC | a2 | 0.940 | 0.172 | 0.719 | 55 |
+| VFLEAK | vf_leak | 0.924 | 0.154 | 0.692 | 55 |
+
+JEKOVA leads every discrimination column by a clear margin, most visibly on best F1 (0.843
+against 0.71 or below for the rest), so the hypothesis that TCSC would top the shootout does not
+hold: TCSC is strong and comes second on AUC, but the band-pass detector is better. The cost
+column tells the other half of the story. TCSC is the cheapest by an order of magnitude (47 ms
+per 1000 windows against JEKOVA's 693), because it is a single normalised-threshold count over
+the window, whereas JEKOVA has to run the sample-by-sample recursive band-pass filter first.
+The three FFT and leakage detectors sit together near 55 ms. On the discrimination-versus-cost
+scatter (Figure, from PAPER.ipynb) JEKOVA sits at the top right (best, most expensive) and TCSC
+at the far left (cheapest, second-best), with the others clustered between them, which is
+exactly the tradeoff that makes the winner an argued choice rather than a lookup of the top
+score.
+
+The 4-second rerun holds the picture. JEKOVA still leads (AUC 0.982, best F1 0.823), the
+ordering of the rest barely moves (HILB and TCSC swap by a hair on AUC), and every cost drops
+with the shorter window (JEKOVA 350, TCSC 29 ms per 1000 windows), so the ranking is not an
+artifact of the 8-second length.
+
+| Detector | AUC (8 s) | F1 (8 s) | Cost (8 s) | AUC (4 s) | F1 (4 s) | Cost (4 s) |
+|---|---|---|---|---|---|---|
+| JEKOVA | 0.986 | 0.843 | 693 | 0.982 | 0.823 | 350 |
+| TCSC | 0.964 | 0.707 | 47 | 0.955 | 0.681 | 29 |
+| HILB | 0.954 | 0.723 | 55 | 0.960 | 0.731 | 47 |
+| SPEC | 0.940 | 0.719 | 55 | 0.938 | 0.707 | 39 |
+| VFLEAK | 0.924 | 0.692 | 55 | 0.926 | 0.680 | 38 |
+
+Because the two axes point at different candidates (JEKOVA on discrimination, TCSC on cost), both
+are carried into Phase 4 and tuned in full, and the choice between a single detector and a
+combination of the two is left to that stage and to future work.
 
 ### 4.3 Tuned candidates
 
