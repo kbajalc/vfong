@@ -1,18 +1,25 @@
 # Detection of Ventricular Tachyarrhythmias
 
-<!--
-Manuscript skeleton. Each section opens with an editorial note in a blockquote:
-what the section contains and which phase (see PLAN.md) fills it. Delete the notes
-as sections are written. Prose follows STYLE.md.
--->
-
 ## Abstract
 
-> To write last (Phase 5). One paragraph: the problem (detecting VT, VFL, VF from short ECG
-> segments), what we do (rank classical deterministic features on VFDB + CUDB + AHADB +
-> MITDB by how well they separate shockable rhythms, then tune the strongest into a
-> detector), the headline result (top feature and its tuned F1 / Se / Sp), and the scope
-> limit (deterministic methods only, for a regulated downstream use). No learned classifier.
+Life-threatening ventricular tachyarrhythmias (ventricular tachycardia, flutter, and
+fibrillation) must be detected from short ECG segments quickly and reliably enough for an
+automated defibrillator to decide whether to shock. This paper measures which classical,
+deterministic signal-processing features best separate shockable from non-shockable rhythms, then
+tunes the strongest into a detector. Using a validated pure-Python reimplementation of 27 features
+from Hong's thesis, we build a labeled sliding-window dataset from four PhysioNet databases (VFDB,
+CUDB, AHADB, MITDB) at 8-second and 4-second windows, screen 16 signal-only features against the
+shockable label, and run a five-candidate shootout (TCSC, VFLEAK, SPEC, HILB, JEKOVA) judged on
+both discrimination and compute cost. The 14.6 Hz band-pass counts of the JEKOVA algorithm lead
+the screen (single-feature AUC 0.986) and the shootout; tuning its published decision cascade
+reaches F1 0.847 (sensitivity 0.898, specificity 0.976), and the reproduced published cascade
+gives sensitivity 0.973 and specificity 0.900, close to the original report. TCSC is the cheapest
+candidate, about fourteen times faster, and second on discrimination (F1 0.706), so both are
+carried forward as an accuracy-first and a cost-first option. The winning feature does not
+separate flutter from fibrillation (AUC 0.603), which needs a regularity feature. The study stays
+deterministic on purpose: it is the feature-selection step for extending a beat-detection engine
+(exg-core) toward a regulatory submission, so learned classifiers are reviewed and named as future
+work but not evaluated.
 
 ## 1. Introduction
 
@@ -629,7 +636,7 @@ TCSC the cost choice. Which one, or which combination, an exg-core deployment sh
 to future work, since it depends on the embedded compute budget and the required sensitivity
 floor, both outside the scope of this feature study.
 
-### 4.4 Flutter vs fibrillation, for the winner
+### 4.4 Flutter vs fibrillation
 
 The winning detector, JEKOVA, is built on the band-pass counts, which barely separate flutter
 from fibrillation: on the VFL and VF windows the jc3 fraction gives an oriented AUC of only 0.603
@@ -650,23 +657,142 @@ partially.
 
 ## 5. Discussion
 
-> Phase 5. What the shootout says about which signal properties carry the discrimination, and
-> why the winner wins once cost is counted. How the tuned detector compares to the literature
-> and what its limits are. What the VFL-vs-VF result implies. Threats to validity (database
-> imbalance, annotation quality, window choice). Keep claims tied to the numbers.
+### 5.1 Which signal property carries the discrimination
+
+The screen and shootout point to a single property above all others: how much of the window's
+energy sits outside the narrow band where a normal ECG puts its sharp features. The three
+band-pass counts top the screen (AUC 0.986, 0.985, 0.974), ahead of the threshold-crossing
+count TCSC (0.964), the mean absolute amplitude MAV (0.964), and the phase-space fill HILB
+(0.954). These leading features are, at bottom, measuring the same thing from different angles:
+a normal ECG rests near baseline for most of the window with brief sharp excursions at the QRS
+complexes, whereas a shockable rhythm is in continuous motion. The correlation heatmap confirms
+it, since the threshold-crossing, band-pass, and phase-space features form one correlated block,
+so combining them adds little independent evidence. The spectral leakage and FFT descriptors
+(VF_LEAK 0.924, A2, M) trail slightly and measure a related property, spectral concentration.
+The features that measure something genuinely different, signal complexity (LZ 0.797) and
+amplitude shape (MEA 0.778, STE 0.732), discriminate worst, which matches Amann et al.'s finding
+that complexity measures fail wherever specificity must stay high [COMP55-2005]. The useful
+signal for the shockable decision is therefore concentrated on one axis, and the candidate that
+reads that axis most cleanly wins.
+
+### 5.2 Discrimination against cost
+
+The hypothesis going in was that TCSC, the established cheap design, would top the shootout. It
+did not. JEKOVA leads every discrimination metric (F1 0.846 against 0.72 or below), because its
+14.6 Hz band-pass isolates exactly the property above and its counts read it directly. But it is
+the most expensive candidate, about fourteen times TCSC, because the recursive filter runs sample
+by sample where TCSC is a single normalized-threshold pass. This gap is the crux for the
+downstream exg-core target: on an embedded processor a fourteenfold compute cost can weigh more
+than a fifteen-point F1 gap, so the paper deliberately keeps the two axes separate rather than
+folding them into one score. Both detectors go forward, JEKOVA as the accuracy-first option and
+TCSC as the cost-first one, and the deployment choice is left to the compute budget and the
+required sensitivity floor, which are outside a feature study.
+
+### 5.3 Comparison with the literature
+
+The tuned JEKOVA reaches F1 0.847 (Se 0.898, Sp 0.976) at 8 seconds. More telling than the tuned
+number is the reproduction check: the published cascade, run on our absolute counts with only its
+constants rescaled to the window length, gives Se 0.973 and Sp 0.900, close to the Se 0.959 and
+Sp 0.944 the original paper reports [JEKOVA-2004], despite a different count implementation and a
+stricter evaluation that scores every window of every recording rather than curated 10-second
+episodes. The small specificity gap is consistent with scoring the continuous MITDB background
+without the paper's separate noise and asystole gates. TCSC's tuned F1 of 0.706 sits below JEKOVA
+but keeps a solid specificity (0.945); the difference between them is precision (0.617 against
+0.802), that is, false positives, which the band-pass suppresses better. Neither single-feature
+detector reaches the AHA sensitivity goal here, but both are scored per window without the
+majority-vote episode smoothing a deployed system would add, so these are lower bounds rather than
+final operating numbers.
+
+### 5.4 Flutter versus fibrillation
+
+The winning detector's own feature cannot make this split (jc3 AUC 0.603), which is expected,
+since the band-pass measures a property that flutter and fibrillation share, the absence of
+14.6 Hz energy. Regularity and phase-space features do modestly better (TCSC 0.735, PSR 0.722,
+VF_LEAK 0.706), but with heavy distribution overlap. The practical implication is that separating
+flutter from fibrillation needs a second, regularity-oriented feature on top of the band-pass
+count, and even then the two rhythms form a physiological continuum that resists a clean boundary.
+This matters little for the shock decision, where both are shockable, but it limits any attempt to
+characterize the episode more finely.
+
+### 5.5 Threats to validity
+
+Three limits qualify these results. First, class imbalance: non-shockable windows outnumber
+shockable ones roughly nine to one, which inflates accuracy and depresses precision, so the paper
+leads with F1 and G-Mean and the absolute PPV figures should be read against that imbalance.
+Second, coverage: flutter is represented by only about 470 windows, so the flutter-versus-
+fibrillation result is indicative rather than settled, and the AHADB contribution is limited to
+its 8-series records, which narrows its non-shockable diversity. Third, the evaluation is
+per-window at a 1-second step with no majority-vote episode reconstruction, so the confusion
+counts are windows rather than episode durations in milliseconds; the published algorithms were
+scored on episode-level decisions, which smooth isolated errors, so the per-window numbers here
+are conservative by comparison. The 8-second versus 4-second comparison, by contrast, is robust:
+the ranking barely moves and the tuned JEKOVA thresholds are identical at both lengths, so the
+choice of window is not driving the conclusions.
 
 ## 6. Conclusion and future work
 
-> Phase 5. Short. The selected feature and its tuned performance. The path forward: the
-> deterministic detector as a component to extend exg-core toward an FDA submission, and the
-> learned methods (EMD + SVM, CNN) as the future-work direction that needs a separate
-> validation and regulatory track.
+Across a screen of 16 signal-only features and a five-candidate shootout on four PhysioNet
+databases, the property that best separates shockable from non-shockable rhythms is how much of
+the window departs from the narrow band of a normal ECG, and the detector that reads it best is
+the 14.6 Hz band-pass of the JEKOVA algorithm (single-feature AUC 0.986, tuned F1 0.847 with
+sensitivity 0.898 and specificity 0.976). TCSC is a cheaper second, about one-fourteenth the
+compute cost at F1 0.706, so the two are offered as an accuracy-first and a cost-first candidate
+rather than a single winner. The winning feature does not separate flutter from fibrillation
+(AUC 0.603); that split needs a regularity-oriented feature.
+
+The contribution is the feature-selection groundwork for extending the exg-core beat-detection
+engine toward a regulatory submission: a reproducible screen and shootout over classical,
+deterministic features, and two tuned deterministic detectors as concrete candidates. Staying
+deterministic was a deliberate scope choice tied to that regulatory path. The learned methods
+reviewed in section 2, empirical-mode decomposition with a support vector machine [VFPRED-2018]
+and convolutional or recurrent networks [MODERN-2024, DEEP-2023], report higher numbers but need
+a separate validation and approval track, so they remain future work. On the deterministic side,
+the immediate next steps are a majority-vote episode layer to turn the per-window decisions into
+episode-level output comparable to the published benchmarks, and a regularity feature to attempt
+the flutter-versus-fibrillation split for the winning detector.
 
 ## References
 
-> Phase 5. Merge the DRAFT.md reference list unchanged, plus the addition below. Keep the
-> DRAFT grouping (Databases, Comparative studies, Algorithm papers).
+### Databases
 
-[HONG-2016] Hong, Jen-Yee. Detecting Life-Threatening Arrhythmia with Machine Learning
-Algorithms. Master Thesis, Department of Computer Science and Information Engineering,
-National Taiwan University, July 2016.
+**[MITDB]** Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation [Online]. 101 (23), pp. e215–e220. RRID:SCR_007345. https://physionet.org/content/mitdb/1.0.0/
+
+**[CUDB]** Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation [Online]. 101 (23), pp. e215–e220. RRID:SCR_007345. https://physionet.org/content/cudb/1.0.0/
+
+**[VFDB]** Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation [Online]. 101 (23), pp. e215–e220. RRID:SCR_007345. https://physionet.org/content/vfdb/1.0.0/
+
+**[AHADB]** Goldberger, A., Amaral, L., Glass, L., Hausdorff, J., Ivanov, P. C., Mark, R., ... & Stanley, H. E. (2000). PhysioBank, PhysioToolkit, and PhysioNet: Components of a new research resource for complex physiologic signals. Circulation [Online]. 101 (23), pp. e215–e220. RRID:SCR_007345. https://physionet.org/content/ahadb/1.0.0/
+
+### Comparative studies
+
+**[COMP4-1993]** Clayton RH, Murray A, Campbell RW. Comparison of four techniques for recognition of ventricular fibrillation from the surface ECG. Med Biol Eng Comput. 1993 Mar;31(2):111-7. doi: https://doi.org/10.1007/BF02446668  PMID: 8331990.
+
+**[COMP5-2000]** Jekova I. Comparison of five algorithms for the detection of ventricular fibrillation from the surface ECG. Physiol Meas. 2000 Nov;21(4):429-39. doi: https://doi.org/10.1088/0967-3334/21/4/301  PMID: 11110242.
+
+**[COMP55-2005]** Amann, A., Tratnig, R. & Unterkofler, K. Reliability of old and new ventricular fibrillation detection algorithms for automated external defibrillators. BioMed Eng OnLine 4, 60 (2005). https://doi.org/10.1186/1475-925X-4-60
+
+**[MODERN-2024]** Fira, Monica & Costin, Hariton & Liviu, Goras. (2024). Ventricular Fibrillation Prediction and Detection: A Comprehensive Review of Modern Techniques. Applied Sciences. 14. 11167.  https://doi.org/10.3390/app142311167
+
+**[DEEP-2023]** Ansari Y, Mourad O, Qaraqe K, Serpedin E. Deep learning for ECG Arrhythmia detection and classification: an overview of progress for period 2017-2023. Front Physiol. 2023 Sep 15;14:1246746. doi: 10.3389/fphys.2023.1246746. PMID: 37791347; PMCID: PMC10542398. https://pmc.ncbi.nlm.nih.gov/articles/PMC10542398/
+
+### Algorithm papers
+
+**[VFLEAK-1978]** Kuo S and Dillman R 1978 Computer detection of ventricular fibrillation Proc. Computers in Cardiology 1978 (Long Beach, CA: IEEE Computer Society Press) pp 347–9
+
+**[SPEC-1989]** Barro S, Ruiz R, Cabello D, Mira J. Algorithmic sequential decision-making in the frequency domain for life threatening ventricular arrhythmias and imitative artefacts: a diagnostic system. J Biomed Eng. 1989;11:320–8. doi: https://doi.org/10.1016/0141-5425(89)90067-8
+
+**[EMD-1998]** Huang, Norden & Shen, Zheng & Long, Steven & Wu, Manli & Shih, Hsing & Zheng, Quanan & Yen, Nai-Chyuan & Tung, Chi-Chao & Liu, Henry. (1998). The empirical mode decomposition and the Hilbert spectrum for nonlinear and non-stationary time series analysis. Proceedings of the Royal Society of London. Series A: Mathematical, Physical and Engineering Sciences. 454. 903-995. https://doi.org/10.1098/rspa.1998.0193.
+
+**[EMD-2010]** A. Zeiler, R. Faltermeier, I. R. Keck, A. M. Tomé, C. G. Puntonet and E. W. Lang, "Empirical Mode Decomposition - an introduction," The 2010 International Joint Conference on Neural Networks (IJCNN), Barcelona, Spain, 2010, pp. 1-8, doi: https://doi.org/10.1109/IJCNN.2010.5596829.
+
+**[JEKOVA-2004]** Jekova I, Krasteva V. Real time detection of ventricular fibrillation and tachycardia. Physiol Meas. 2004 Oct;25(5):1167-78. doi: https://doi.org/10.1088/0967-3334/25/5/007 PMID: 15535182.
+
+**[HILB-2005]** Amann, Anton & Tratnig, R. & Unterkofler, Karl. (2005). A new ventricular fibrillation detection algorithm for automated external defibrillators. Computers in Cardiology. 32. 559 - 562. doi: https://doi.org/10.1109/CIC.2005.1588162
+
+**[TIME-2007]** Amann A, Tratnig R, Unterkofler K. Detecting ventricular fibrillation by time-delay methods. IEEE Trans Biomed Eng. 2007 Jan;54(1):174-7. doi: https://doi.org/10.1109/TBME.2006.880909  PMID: 17260872.
+
+**[TCSC-2009]** Arafat, M.A., Chowdhury, A.W. & Hasan, M.K. A simple time domain algorithm for the detection of ventricular fibrillation in electrocardiogram. SIViP 5, 1–10 (2011). https://doi.org/10.1007/s11760-009-0136-1
+
+**[VFPRED-2018]** A Fusion of Signal Processing and Machine Learning techniques in Detecting Ventricular Fibrillation from ECG Signals. https://ar5iv.labs.arxiv.org/html/1807.02684
+
+**[HONG-2016]** Hong, Jen-Yee. Detecting Life-Threatening Arrhythmia with Machine Learning Algorithms. Master Thesis, Department of Computer Science and Information Engineering, National Taiwan University, July 2016.

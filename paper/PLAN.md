@@ -299,6 +299,12 @@ Work: fold all results into `PAPER.md`; write Discussion and Conclusion; place f
 tables; merge the references (DRAFT set plus Hong); state the ML and deep-learning direction
 as future work and connect it to the `exg-core` and FDA path; run the STYLE self-check.
 Deliverables: complete `PAPER.md`.
+Status: done. Abstract, Discussion (§5, five subsections), Conclusion and future work (§6), and
+the merged reference list (DRAFT groups plus HONG-2016) are written; the editorial blockquote
+notes are removed and the STYLE em-dash check is clean. One standing item remains as an HTML
+comment in §1: the COMP5/COMP55 IROC figures quoted in the background section still need a
+verification pass against the source PDFs. Figures live in `PAPER.ipynb` and are referenced from
+the Results; embedding them as image files in the manuscript is a later production step.
 
 ## How vftx feeds the paper
 
