@@ -417,7 +417,7 @@ downstream target is a real-time, embedded extension of existing detector and cl
 a cheaper candidate that trails the best discrimination by a small margin can still be preferred, 
 so the shootout reports the two axes side by side rather than collapsing them into one score.
 
-### 3.7 Candidate tuning and flutter-vs-fibrillation test
+### 3.7 Candidate tuning
 
 The two candidates that lead on the two axes of the shootout are tuned in full: TCSC, the
 cheapest detector and the established threshold-crossing design [TCSC-2009], and JEKOVA, the
@@ -447,7 +447,9 @@ a peak detector, which a signal-only detector avoids by design (section 3.4), so
 fall back to a threshold on jc3, which is low for shockable rhythms; that fallback is one of the
 grid-searched parameters.
 
-The winning detector then gets one further test: does a cheap feature separate flutter from
+### 3.8 Flutter vs fibrillation
+
+The winning detector gets one further test: does a cheap feature separate flutter from
 fibrillation? The two are physiologically distinct, VFL being a fast, regular, near-sinusoidal
 oscillation and VF being disorganised, so spectral-concentration and regularity measures should
 carry the split. Using the rhythm label, the VFL and VF windows are scored by the oriented AUC
@@ -458,7 +460,7 @@ scope here because EMD is too slow for the real-time target (section 3.4). Flutt
 these databases (its window count is reported in section 4.1), so this result is indicative
 rather than definitive.
 
-### 3.8 Evaluation metrics
+### 3.9 Evaluation metrics
 
 Each detector produces a binary decision per window, which is compared against the window's
 shockable label to give the four confusion counts: true positives (TP, shockable windows
