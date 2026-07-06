@@ -10,9 +10,10 @@ The repo also hosts a paper-writing project (`paper/`). `paper/PLAN.md` is the w
 (refined scope, resolved decisions, the phases); `paper/PAPER.md` is the manuscript;
 `paper/DRAFT.md` is the earlier broad draft kept as a source of text and references;
 `paper/NOTES.md` is the takeover status report. The experiments run in `PAPER.ipynb` (repo
-root) on the `vfta/` pipeline (see below); Phases 1-4 are done (intro, dataset, feature
-screen, candidate shootout, TCSC + JEKOVA tuning, flutter-vs-fibrillation), Phase 5
-(Discussion, Conclusion, Abstract, references) remains.
+root) on the `vfta/` pipeline (see below). The manuscript is a complete draft (all phases
+done): intro, background, methods, results (feature screen, candidate shootout, TCSC + JEKOVA
+tuning, flutter-vs-fibrillation), discussion, an "AI as a research collaborator" chapter, and
+conclusion. Ten figures live in `paper/figures/` and are embedded in `paper/PAPER.md`.
 
 ---
 
