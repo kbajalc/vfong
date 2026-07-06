@@ -3,30 +3,23 @@
 ## Abstract
 
 Life-threatening ventricular tachyarrhythmias (ventricular tachycardia, flutter, and
-fibrillation) are a leading cause of sudden cardiac death, and detecting them from short ECG
-segments quickly and reliably is central to any monitoring or treatment device that has to act
-on them. This paper measures which classical, deterministic signal-processing features best
-separate shockable from non-shockable rhythms, then tunes the two strongest candidates into
-detectors. Using a validated pure-Python reimplementation of 27 features from Hong's thesis, we
-build a labeled sliding-window dataset from four PhysioNet databases (VFDB,
-CUDB, AHADB, MITDB) at 8-second and 4-second windows, screen 16 signal-only features against the
-shockable label, and run a five-candidate shootout (TCSC, VFLEAK, SPEC, HILB, JEKOVA) judged on
-both discrimination and compute cost. The 14.6 Hz band-pass counts of the JEKOVA algorithm lead
-the screen (single-feature AUC 0.986) and the shootout; tuning its published decision cascade
-reaches F1 0.847 (sensitivity 0.898, specificity 0.976), and the reproduced published cascade
-gives sensitivity 0.973 and specificity 0.900, close to the original report. TCSC is the cheapest
-candidate, about fourteen times faster, and second on discrimination (F1 0.706), so both are
-carried forward as an accuracy-first and a cost-first option. The winning feature does not
-separate flutter from fibrillation (AUC 0.603), which needs a regularity feature. The study stays
-deterministic on purpose: it is the feature-selection step for extending a beat-detection engine
-toward a regulatory submission, so learned classifiers are reviewed and named as future
-work but not evaluated.
+fibrillation) are a leading cause of sudden cardiac death, so detecting them from short ECG
+segments quickly and reliably matters for any device that has to act on them. This paper measures
+which classical, deterministic signal-processing features best separate shockable from
+non-shockable rhythms, then tunes the two strongest candidates into detectors. From four
+PhysioNet databases (VFDB, CUDB, AHADB, MITDB) we build a labeled sliding-window dataset at 8 and
+4 seconds, screen 16 signal-only features (a validated reimplementation of the 27 in Hong's
+thesis), and run a five-candidate shootout (TCSC, VFLEAK, SPEC, HILB, JEKOVA) on both
+discrimination and compute cost. JEKOVA's 14.6 Hz band-pass counts lead the screen (single-feature
+AUC 0.986) and the shootout; tuning its published decision cascade reaches F1 0.847 (Se 0.898,
+Sp 0.976), and the reproduced published cascade gives Se 0.973 and Sp 0.900, close to the
+original. TCSC is about fourteen times cheaper and second on discrimination (F1 0.706), so both go
+forward as an accuracy-first and a cost-first option. The winning feature does not separate
+flutter from fibrillation (AUC 0.603). The study stays deterministic by design, as the
+feature-selection step toward a regulatory submission, so learned classifiers are reviewed as
+future work, not evaluated.
 
 ## 1. Introduction
-
-<!-- First pass, Phase 1. Reuses DRAFT.md Introduction and Related Work and THESIS.md,
-     em dashes and AI tells removed. COMP5/COMP55 figures to be re-checked against the
-     source papers in a later pass. -->
 
 ### 1.1 The ventricular tachyarrhythmias
 
@@ -35,35 +28,56 @@ that sequence breaks down in the ventricles, the heart's main pumping chambers, 
 a group of dangerous rhythms called ventricular tachyarrhythmias. This paper looks at three of
 them: ventricular tachycardia (VT), ventricular flutter (VFL), and ventricular fibrillation
 (VF). They form a continuum of increasingly disorganized electrical activity, and where each
-sits on that continuum is what makes it easy or hard to detect.
+sits on that continuum is what makes it easy or hard to detect. For reference, Figure 1 shows a
+normal sinus rhythm and Figures 2 to 4 the three arrhythmias.
+
+![Normal sinus rhythm](figures/fig01_nsr.png)
+
+**Figure 1.** Normal sinus rhythm (15 s strip). Regularly spaced, narrow QRS complexes on a
+near-flat baseline; the detected beats are marked.
 
 VT is a fast but still organized rhythm, typically above 100 bpm, arising in the ventricles
 rather than the normal conduction path. The ECG still shows distinct QRS complexes, though
-they are wide and abnormal in shape, and the rhythm is regular or nearly so. Because
+they are wide and abnormal in shape, and the rhythm is regular or nearly so (Figure 2). Because
 individual beats stay identifiable, standard QRS detectors can follow VT, as long as they can
 tell it apart from other fast rhythms. Rates above 180 bpm are considered shockable
 [JEKOVA-2004].
 
+![Ventricular tachycardia](figures/fig02_vt.png)
+
+**Figure 2.** Ventricular tachycardia (15 s strip). Runs of fast, wide, abnormal ventricular
+complexes, with narrow normal beats before and after.
+
 VFL sits between VT and VF. The ventricular rate is very fast (200–350 bpm) and the ECG
 becomes a continuous, smooth, sine-wave-like oscillation in which individual beats can no
-longer be separated. VFL is usually short-lived and unstable, tending either to revert to a
-more organized rhythm or to deteriorate into VF.
+longer be separated (Figure 3). VFL is usually short-lived and unstable, tending either to revert
+to a more organized rhythm or to deteriorate into VF.
+
+![Ventricular flutter](figures/fig03_vfl.png)
+
+**Figure 3.** Ventricular flutter (15 s strip). A fast, smooth, near-sinusoidal oscillation with
+no separable QRS complexes.
 
 VF is the most severe form. The ventricles are activated chaotically by many independent
 wavefronts at once, and the ECG shows rapid, irregular, low-amplitude activity with no P
-waves, QRS complexes, or T waves. There is no effective pumping, and without immediate
+waves, QRS complexes, or T waves (Figure 4). There is no effective pumping, and without immediate
 defibrillation the patient dies within minutes. On the surface ECG, VF can resemble noise or
 motion artifact, which adds to the difficulty of recognizing it.
+
+![Ventricular fibrillation](figures/fig04_vf.png)
+
+**Figure 4.** Ventricular fibrillation (15 s strip). A few normal beats at the onset give way to
+rapid, irregular, low-amplitude activity with no QRS complexes.
 
 ### 1.2 Why detection matters
 
 These arrhythmias are a leading cause of sudden cardiac death (SCD). In the United States
-about 325,000 people suffer an out-of-hospital cardiac arrest each year, and VF is the initial
-rhythm in up to 75% of those cases [MODERN-2024]. SCD accounts for roughly half of all
-cardiovascular deaths [MODERN-2024]. Survival depends on how fast treatment arrives: for every
-minute without defibrillation the chance of survival falls by about 10% [MODERN-2024]. Rapid
-and reliable automatic detection is therefore central to any device that has to decide whether
-to treat.
+about 325,000 people suffer an out-of-hospital cardiac arrest each year, and VF is involved in
+about 75% of sudden cardiac arrest cases at the onset of the event [MODERN-2024]. SCD accounts
+for roughly half of all cardiovascular deaths [MODERN-2024]. Survival depends on how fast 
+treatment arrives: for every minute without defibrillation the chance of survival falls by 
+about 10% [MODERN-2024]. Rapid and reliable automatic detection is therefore central to any 
+device that has to decide whether to treat.
 
 Automated external defibrillators (AEDs) exist for this purpose. They recognize a shockable
 rhythm and deliver a shock without needing a trained clinician [JEKOVA-2004, COMP5-2000]. The
@@ -145,7 +159,8 @@ crossing rate. In sinus rhythm the amplitude is concentrated near zero with narr
 QRS complexes; in VF it is spread more evenly across the range. The standard and modified
 exponential algorithms (STE and MEA) count how the ECG intersects a decaying exponential
 envelope, capturing that property without an explicit threshold. On standard databases MEA
-reached an IROC of about 82%, better than STE's 67% [COMP55-2005].
+reached an IROC of about 82%, better than STE's 67% [COMP55-2005]. IROC is Amann et al.'s name
+for the area under the ROC curve, the same single-number measure this paper elsewhere calls AUC.
 
 ### 2.3 Complexity and entropy
 
@@ -249,10 +264,8 @@ smoothing, and a re-centering to zero mean. The frequency filtering that the ref
 pipeline applies (a 1 Hz high-pass and a 30 Hz low-pass [COMP55-2005]) is turned off here,
 because the record is already band-limited from the per-record stage. The zero-mean
 re-centering stands in for the high-pass, so features that assume an oscillation around zero
-(the leakage, spectral, and phase-space measures) behave correctly.
-
-All records are unified at 250 Hz (MITDB resampled from 360 Hz), so every feature works at one
-sampling rate.
+(the leakage, spectral, and phase-space measures) behave correctly. All records are unified 
+at 250 Hz (MITDB resampled from 360 Hz), so every feature works at one sampling rate.
 
 ### 3.3 Segmentation and labeling
 
@@ -342,15 +355,15 @@ features above plus a threshold decision. Each maps onto a distinct method famil
 
 TCSC, VFLEAK, and SPEC come from the benchmark literature. HILB is added to bring in the
 phase-space family, which the first three do not cover; it is a natural choice for that slot
-because it was the strongest single classical algorithm in Amann et al.'s comparative study
-(IROC about 95%) [HILB-2005, COMP55-2005], though on our data it lands mid-pack. The fifth slot
-first held MEA (the amplitude-shape family), but the feature screen (section 4.2) ranked MEA
-poorly and ranked JEKOVA's band-pass counts at the top, so JEKOVA takes the slot: it is a strong
-published detector (about 96% sensitivity and 94% specificity) that uses only integer arithmetic,
-which suits the real-time target [JEKOVA-2004]. Complexity and entropy measures are left out of the candidate set because
-they perform poorly wherever specificity must stay above 80% [HONG-2016, COMP55-2005]. Each
-candidate's decision threshold is set and tuned in Phase 3 and Phase 4; the tuned values and
-the per-window compute cost are reported in Results.
+because Amann et al. report it as the strongest single algorithm they tested (IROC about 95%,
+against 82 to 89 for the classical algorithms) [HILB-2005], though on our data it lands mid-pack.
+The fifth slot first held MEA (the amplitude-shape family), but the feature screen (section 4.2) 
+ranked MEA poorly and ranked JEKOVA's band-pass counts at the top, so JEKOVA takes the slot: it 
+is a strong published detector (about 96% sensitivity and 94% specificity) that uses only integer 
+arithmetic, which suits the real-time target [JEKOVA-2004]. Complexity and entropy measures are 
+left out of the candidate set because they perform poorly wherever specificity must stay above 80%
+[HONG-2016, COMP55-2005]. Each candidate's decision threshold is set in the shootout and tuned in
+the sections that follow; the tuned values and the per-window compute cost are reported in Results.
 
 ### 3.5 Feature screen
 
@@ -362,34 +375,27 @@ each of the 16 signal-only features against the binary shockable label by three 
 measures, chosen so that a feature has to look good from three different angles (a linear one, an
 information-theoretic one, and a decision one) to be trusted.
 
-Point-biserial correlation is the Pearson correlation coefficient between a continuous feature
-and the binary label, which is the ordinary product-moment correlation with the label coded as
-0 and 1. It ranges over [-1, 1] and is signed, so it shows the direction of the effect: a
-positive value means the feature rises for shockable rhythms, a negative value means it falls.
-It is simple, familiar, and cheap to compute over the whole set, and its sign is what tells us
-which way to orient a threshold. Its weakness is that it only sees linear, monotonic
-association: a feature that separates the classes through a non-monotonic or non-linear
-relationship can score near zero even when it is highly informative, so it cannot be the only
-measure.
+Point-biserial correlation is the Pearson correlation between a continuous feature and the binary
+label (coded 0 and 1). It ranges over [-1, 1] and is signed, so it gives the direction of the
+effect: positive means the feature rises for shockable rhythms, negative means it falls, which is
+what tells us how to orient a threshold. Its weakness is that it sees only linear, monotonic
+association, so a feature that separates the classes non-monotonically can score near zero even
+when it is highly informative; it cannot be the only measure.
 
-Mutual information measures how much knowing the feature reduces uncertainty about the label,
-in the information-theoretic sense, and is zero only when feature and label are statistically
-independent. Unlike correlation it makes no assumption of linearity or monotonicity, so it
-captures any form of dependence, which is why it is included as a guard against the blind spot
-of the correlation. It is estimated here with a nearest-neighbour method on a random subsample
-of the windows, both to bound the cost of the density estimate and because that estimator does
-not need the data binned in advance. It is non-negative and unbounded, so it is read
-comparatively (higher means more informative) rather than against a fixed scale.
+Mutual information measures how much knowing the feature reduces uncertainty about the label, and
+is zero only when the two are statistically independent. Unlike correlation it assumes neither
+linearity nor monotonicity, so it captures any form of dependence, which is why it guards the
+blind spot of the correlation. It is estimated with a nearest-neighbour method on a random
+subsample of the windows, and being non-negative and unbounded it is read comparatively (higher
+is more informative) rather than against a fixed scale.
 
-Single-feature AUC is the area under the receiver operating characteristic curve obtained when
-the label is decided by thresholding that one feature and sweeping the threshold across its
-whole range. It equals the probability that a randomly chosen shockable window scores higher
-than a randomly chosen non-shockable one, so 0.5 is chance and 1.0 is perfect separation; a
-feature that separates the classes in the opposite direction gives an AUC below 0.5, so the
-value is oriented to max(AUC, 1 - AUC) and reported in [0.5, 1]. It is threshold-free, which
-makes it the natural match to a single-threshold detector, and it is directly comparable to
-the ROC-based figures the benchmark papers report [COMP55-2005, TCSC-2009]. Of the three it is
-the closest proxy for how the feature will behave as an actual detector.
+Single-feature AUC is the area under the ROC curve obtained by thresholding that one feature and
+sweeping the threshold across its range. It equals the probability that a random shockable window
+scores above a random non-shockable one, so 0.5 is chance and 1.0 is perfect separation; a feature
+that separates in the opposite direction scores below 0.5, so the value is oriented to
+max(AUC, 1 - AUC). Being threshold-free it is the natural match to a single-threshold detector and
+is directly comparable to the ROC figures the benchmark papers report [COMP55-2005, TCSC-2009],
+which makes it, of the three, the closest proxy for how the feature behaves as a detector.
 
 ### 3.6 Candidate shootout
 
@@ -401,8 +407,8 @@ any single threshold. F1, the harmonic mean of precision and recall, is used bec
 classes are heavily imbalanced (far more non-shockable than shockable windows), a setting in
 which plain accuracy is misleading; it is computed here as the maximum F1 over all thresholds
 and both orientations, so it reads as the best operating point a single threshold on that
-feature can reach. Full multi-threshold tuning of the multi-feature detectors is deferred to
-Phase 4; in the shootout each is fairly represented by its best sub-feature.
+feature can reach. Full multi-threshold tuning of the multi-feature detectors is deferred to the
+tuning stage (section 3.7); in the shootout each is fairly represented by its best sub-feature.
 
 Alongside discrimination each candidate carries a rough compute cost, reported as milliseconds
 per 1000 windows for readability. It is timed through the same feature path the dataset build
@@ -412,10 +418,10 @@ band-pass, or SPEC's power spectrum. Summing the sub-features would redo that st
 a detector that a real implementation computes once. These are pure-Python, single-thread
 measurements on one machine, given only for relative scale between candidates, not as absolute
 or portable timings; an embedded C implementation would be far faster, and only the ordering
-between candidates carries over. The winner is argued from both axes together. Because the
-downstream target is a real-time, embedded extension of existing detector and classifier, 
-a cheaper candidate that trails the best discrimination by a small margin can still be preferred, 
-so the shootout reports the two axes side by side rather than collapsing them into one score.
+between candidates carries over. The winner is argued from both axes together, because the
+downstream target is a real-time, embedded detector: a cheaper candidate that trails the best
+discrimination by a small margin can still be preferred, so the shootout reports the two axes side
+by side rather than collapsing them into one score.
 
 ### 3.7 Candidate tuning
 
@@ -428,7 +434,7 @@ three VFL configurations.
 
 TCSC is a single feature with a single threshold. The threshold is swept across the whole range
 of the feature, and the operating point that maximises F1 is reported, together with the full
-ROC curve, in the manner of the COMP55-2005 single-threshold analysis. This is the same sweep
+ROC curve, in the manner of the [COMP55-2005] single-threshold analysis. This is the same sweep
 that produced the shootout AUC, now read at a chosen operating point rather than as an area.
 
 JEKOVA is not a single threshold but the cascade of count rules from the original paper
@@ -468,25 +474,22 @@ correctly flagged), false positives (FP, non-shockable windows wrongly flagged),
 (TN), and false negatives (FN, missed shockable windows). All the metrics below are functions of
 these four counts, and all are reported at the tuned operating point.
 
-Sensitivity (Se = TP / (TP + FN)) is the fraction of shockable windows caught; for an AED it is
-the safety-critical metric, since a false negative is a missed shock. Specificity
-(Sp = TN / (TN + FP)) is the fraction of non-shockable windows correctly passed over; a low
-specificity means inappropriate shocks. Positive predictive value (PPV = TP / (TP + FP)) is the
-fraction of flagged windows that were truly shockable, which matters here because the classes
-are imbalanced (far more non-shockable windows), so even a high specificity can still leave many
-false positives per true positive. Accuracy (Acc = (TP + TN) / total) is the overall fraction
-correct, reported for completeness but weak under class imbalance, where predicting the majority
-class alone already scores high.
+Sensitivity (Se = TP / (TP + FN)) is the fraction of shockable windows caught, the
+safety-critical metric since a false negative is a missed shock. Specificity (Sp = TN / (TN + FP))
+is the fraction of non-shockable windows correctly passed over; low specificity means
+inappropriate shocks. Positive predictive value (PPV = TP / (TP + FP)) is the fraction of flagged
+windows that were truly shockable, which matters under this imbalance, where even a high
+specificity can leave many false positives per true positive. Accuracy (Acc = (TP + TN) / total)
+is reported for completeness but is weak under imbalance, where predicting the majority class
+alone already scores high.
 
-The headline metric is F1, the harmonic mean of PPV and sensitivity
-(F1 = 2·PPV·Se / (PPV + Se)). It rewards a detector only when both are high, and unlike accuracy
-it is not inflated by the large non-shockable majority, which makes it the right single number
-for tuning on this imbalanced problem. The G-Mean, the geometric mean of sensitivity and
-specificity (sqrt(Se·Sp)), is reported alongside as a balance measure that, unlike F1, is
-symmetric in the two classes and so penalises sacrificing either one. The ROC curve (sensitivity
-against 1 minus specificity as the threshold sweeps) is used only for the winner tuning in this
-section, not for the whole shootout, where a single AUC per candidate already summarised the
-threshold-free separation.
+The headline metric is F1, the harmonic mean of PPV and sensitivity (F1 = 2·PPV·Se / (PPV + Se));
+it rewards a detector only when both are high and, unlike accuracy, is not inflated by the
+non-shockable majority, which makes it the right single number for tuning under imbalance. The
+G-Mean (sqrt(Se·Sp)) is reported alongside as a balance measure that, unlike F1, is symmetric in
+the two classes and so penalises sacrificing either one. The ROC curve (sensitivity against 1
+minus specificity as the threshold sweeps) is used only for the tuning here, not for the shootout,
+where a single AUC per candidate already summarised the threshold-free separation.
 
 ## 4. Results
 
@@ -544,18 +547,28 @@ and mutual information alongside.
 | STE | 0.286 | 0.732 | 0.040 |
 | Amplitude | 0.142 | 0.538 | 0.066 |
 
-The three measures agree on the overall ordering. The three band-pass counts lead on all three
-metrics (AUC 0.986, 0.985, 0.974 for jc2, jc3, jc1), and the rest of the top is filled by the
-threshold-crossing, amplitude, and phase-space families, with the spectral features close behind.
-The complexity measure LZ, the amplitude-shape measures MEA and STE, and the raw peak-to-peak
-Amplitude sit at the bottom. This confirms the two decisions the candidate set rests on: the
-band-pass counts are the strongest single features, which is why JEKOVA replaced MEA in the fifth
-slot, and the complexity and amplitude-shape measures discriminate poorly, matching Amann et
-al.'s finding that they fail wherever specificity must stay high [COMP55-2005]. The
-feature-feature correlation heatmap (Figure, from PAPER.ipynb) shows the strong features are not
+![Single-feature AUC and mutual information](figures/fig05_screen_ranking.png)
+
+**Figure 5.** Single-feature AUC (left) and mutual information (right) for each feature against the shockable label, sorted. The three band-pass counts (jc2, jc3, jc1) lead on both.
+
+The three measures agree on the overall ordering (Figure 5). The three band-pass counts lead on 
+all three metrics (AUC 0.986, 0.985, 0.974 for jc2, jc3, jc1), and the rest of the top is filled 
+by the threshold-crossing, amplitude, and phase-space families, with the spectral features close 
+behind. The complexity measure LZ, the amplitude-shape measures MEA and STE, and the raw 
+peak-to-peak Amplitude sit at the bottom. This confirms the two decisions the candidate set 
+rests on: the band-pass counts are the strongest single features, which is why JEKOVA replaced 
+MEA in the fifth slot, and the complexity and amplitude-shape measures discriminate poorly, 
+matching Amann et al.'s finding that they fail wherever specificity must stay high [COMP55-2005]. 
+The feature-feature correlation heatmap (Figure 6) shows the strong features are not
 independent: the threshold-crossing, band-pass, and phase-space measures form a correlated
 block, so they largely re-measure the same underlying property (how much of the window departs
 from baseline) rather than adding separate evidence.
+
+![Feature-feature correlation heatmap](figures/fig06_corr_heatmap.png)
+
+**Figure 6.** Feature-feature correlation over the clean set. The threshold-crossing, band-pass,
+and phase-space features form a correlated block, so their strong individual scores are not
+independent evidence.
 
 ### 4.3 Candidate shootout
 
@@ -571,16 +584,28 @@ The shootout compares the five candidates as detectors. At 8 seconds:
 
 JEKOVA leads every discrimination column by a clear margin, most visibly on best F1 (0.846
 against 0.72 or below for the rest), so the hypothesis that TCSC would top the shootout does not
-hold: TCSC is strong and comes second on AUC, but the band-pass detector is better. The cost
-column tells the other half of the story. TCSC is the cheapest by more than an order of magnitude
-(94 ms per 1000 windows against JEKOVA's 1318), because it is a single normalised-threshold count
-over the window, whereas JEKOVA has to run the sample-by-sample recursive band-pass filter first.
-The three FFT and leakage detectors sit together near 110 ms. On the discrimination-versus-cost
-scatter (Figure, from PAPER.ipynb) JEKOVA sits at the top right (best, most expensive) and TCSC
-at the far left (cheapest, second-best), with the others clustered between them, which is
-exactly the tradeoff that makes the winner an argued choice rather than a lookup of the top
-score. The cost numbers are pure-Python timings on one machine and shift with load, so only their
-ratios carry meaning: JEKOVA costs about fourteen times TCSC at both window lengths.
+hold: TCSC is strong and comes second on AUC, but the band-pass detector is better. Each
+detector's primary feature pulls the shockable and non-shockable windows apart visibly, most
+cleanly for JEKOVA's jc2 (Figure 7). The cost column tells the other half of the story. 
+TCSC is the cheapest by more than an order of magnitude (94 ms per 1000 windows against JEKOVA's 1318), 
+because it is a single normalised-threshold count over the window, whereas JEKOVA has to run the 
+sample-by-sample recursive band-pass filter first. The three FFT and leakage detectors sit 
+together near 110 ms. On the discrimination-versus-cost scatter (Figure 8) JEKOVA sits at 
+the top right (best, most expensive) and TCSC at the far left (cheapest, second-best), 
+with the others clustered between them, which is exactly the tradeoff that makes the winner 
+an argued choice rather than a lookup of the top score. The cost numbers are pure-Python 
+timings on one machine and shift with load, so only their ratios carry meaning: JEKOVA costs 
+about fourteen times TCSC at both window lengths.
+
+![Primary-feature separation](figures/fig07_primary_dists.png)
+
+**Figure 7.** Primary-feature separation, shockable versus non-shockable (clean set, 8 s), one
+panel per candidate. The shockable and non-shockable distributions overlap least for JEKOVA's jc2.
+
+![Discrimination versus compute cost](figures/fig08_disc_vs_cost.png)
+
+**Figure 8.** Discrimination (single-feature AUC) versus compute cost per candidate at 8 s, cost
+on a log axis. JEKOVA is best but most expensive; TCSC is the cheapest and second best.
 
 The 4-second rerun holds the picture. JEKOVA still leads (AUC 0.982, best F1 0.826), the
 ordering of the rest barely moves (HILB and TCSC swap by a hair on AUC), and every cost roughly
@@ -595,7 +620,7 @@ halves with the shorter window, so the ranking is not an artifact of the 8-secon
 | VFLEAK | 0.924 | 0.692 | 111 | 0.926 | 0.680 | 74 |
 
 Because the two axes point at different candidates (JEKOVA on discrimination, TCSC on cost), both
-are carried into Phase 4 and tuned in full, and the choice between a single detector and a
+are carried into the tuning of section 4.4, and the choice between a single detector and a
 combination of the two is left to that stage and to future work.
 
 ### 4.4 Tuned candidates
@@ -630,12 +655,17 @@ sensitivity (0.973 to 0.898) for a large gain in specificity (0.900 to 0.976) an
 length. The tuned thresholds are the same at 8 and 4 seconds (the fraction normalisation makes
 them transfer), which is a useful robustness property for deployment. TCSC tuned to its best-F1
 threshold reaches F1 0.706 at 8 seconds, below tuned JEKOVA on every metric except that both keep
-specificity high; its strength is elsewhere, in cost (section 4.3). The ROC figure (from
-PAPER.ipynb) shows the TCSC sweep as a curve with the two JEKOVA cascade points marked: the tuned
+specificity high; its strength is elsewhere, in cost (section 4.3). The ROC figure (Figure 9)
+shows the TCSC sweep as a curve with the two JEKOVA cascade points marked: the tuned
 point sits up and to the left of the published one, and both JEKOVA points sit above the TCSC
 curve, so at matched specificity JEKOVA reaches higher sensitivity. All numbers drop by one to
 three points at 4 seconds, as expected from the shorter evidence window, without changing the
 ordering.
+
+![Tuned operating points](figures/fig09_roc.png)
+
+**Figure 9.** TCSC ROC curve (8 s and 4 s) with the JEKOVA published and tuned cascade operating
+points marked. Both JEKOVA points sit above the TCSC curve.
 
 For reproducibility, the tuned thresholds are collected below. TCSC is a single threshold: it
 flags a window shockable when its sample-count feature exceeds 45.8 at 8 seconds (47.1 at
@@ -670,21 +700,24 @@ both outside the scope of this feature study.
 The winning detector, JEKOVA, is built on the band-pass counts, which barely separate flutter
 from fibrillation: on the VFL and VF windows the jc3 fraction gives an oriented AUC of only 0.603
 at 8 seconds, close to chance. This is expected, since the count measures how much 14.6 Hz band
-energy is absent, which both flutter and fibrillation share, so it cannot tell the two apart. 
-Cheap spectral-concentration and regularity features do better, though only modestly.
-Scoring VF against VFL by oriented AUC on the flutter and fibrillation windows (section 4.1) at
-8 seconds, the threshold-crossing count TCSC leads at 0.735, followed by the phase-space fill PSR
-at 0.722 and the leakage measure VF_LEAK at 0.706, with the spectral concentration A2 at 0.682;
-the 4-second window gives the same ordering (TCSC 0.740, VF_LEAK 0.706, PSR 0.697). The
-distribution figure (from PAPER.ipynb) shows the separation is real but with heavy overlap, which
-matches the physiology: flutter is the fast, regular, near-sinusoidal precursor and fibrillation
-the disorganised end state, but the two form a continuum and flutter often degrades into
-fibrillation within the same episode. As noted in section 4.1, flutter is rare in these
-databases, so this is an indicative result rather than a tuned flutter-versus-fibrillation
-detector. The practical reading
-is that a deployed detector would need a second, regularity-oriented feature (TCSC or the
-phase-space fill) on top of the band-pass count to attempt the flutter split, and even then only
-partially.
+energy is absent, which both flutter and fibrillation share, so it cannot tell the two apart.
+Cheap spectral-concentration and regularity features do better, though only modestly. Scoring VF
+against VFL by oriented AUC on the flutter and fibrillation windows (section 4.1) at 8 seconds,
+the threshold-crossing count TCSC leads at 0.735, followed by the phase-space fill PSR at 0.722
+and the leakage measure VF_LEAK at 0.706, with the spectral concentration A2 at 0.682; the
+4-second window gives the same ordering (TCSC 0.740, VF_LEAK 0.706, PSR 0.697). The distribution
+figure (Figure 10) shows the separation is real but with heavy overlap, which matches the
+physiology: flutter is the fast, regular, near-sinusoidal precursor and fibrillation the
+disorganised end state, but the two form a continuum and flutter often degrades into fibrillation
+within the same episode. Flutter is rare in these databases (section 4.1), so this is an
+indicative result rather than a tuned flutter-versus-fibrillation detector: a deployed detector
+would need a second, regularity-oriented feature (TCSC or the phase-space fill) on top of the
+band-pass count to attempt the split, and even then only partially.
+
+![Flutter versus fibrillation](figures/fig10_vfl_vs_vf.png)
+
+**Figure 10.** Flutter versus fibrillation: distribution of the best separating feature (TCSC) at
+8 s. The two classes separate, but with heavy overlap.
 
 ## 5. Discussion
 
@@ -721,46 +754,124 @@ required sensitivity floor, which are outside a feature study.
 
 ### 5.3 Comparison with the literature
 
-The tuned JEKOVA reaches F1 0.847 (Se 0.898, Sp 0.976) at 8 seconds. More telling than the tuned
-number is the reproduction check: the published cascade, run on our absolute counts with only its
-constants rescaled to the window length (section 4.4 lists the published and tuned threshold
-values), gives Se 0.973 and Sp 0.900, close to the Se 0.959 and Sp 0.944 the original paper
-reports [JEKOVA-2004], despite a different count implementation and a stricter evaluation that
-scores every window of every recording rather than curated 10-second episodes. The small specificity gap is consistent with scoring the continuous MITDB background
-without the paper's separate noise and asystole gates. TCSC's tuned F1 of 0.706 sits below JEKOVA
-but keeps a solid specificity (0.945); the difference between them is precision (0.617 against
-0.802), that is, false positives, which the band-pass suppresses better. Neither single-feature
-detector reaches the AHA sensitivity goal here, but both are scored per window without the
-majority-vote episode smoothing a deployed system would add, so these are lower bounds rather than
-final operating numbers.
+The strongest external check here is the reproduction of Jekova's published cascade (section 4.4):
+on our reimplemented counts and a stricter, whole-recording evaluation, it lands within a few
+points of the paper's reported sensitivity and specificity [JEKOVA-2004]. That says the feature
+math and the decision logic were reconstructed faithfully, which is the reproducibility gap of
+section 1.3 closed in miniature. Tuning then trades sensitivity for precision to maximise F1,
+which is the right move under this class imbalance but not under an AED sensitivity floor, where
+the higher-sensitivity published operating point would be preferred. TCSC trails JEKOVA mainly on
+precision, that is, on false positives, which the band-pass suppresses better. Neither
+single-feature detector reaches the AHA sensitivity goal, but both are scored per window without
+the majority-vote episode smoothing a deployed system would add, so these are lower bounds rather
+than final operating numbers.
 
 ### 5.4 Flutter versus fibrillation
 
-The winning detector's own feature cannot make this split (jc3 AUC 0.603), which is expected,
-since the band-pass measures a property that flutter and fibrillation share, the absence of
-14.6 Hz energy. Regularity and phase-space features do modestly better (TCSC 0.735, PSR 0.722,
-VF_LEAK 0.706), but with heavy distribution overlap. The practical implication is that separating
-flutter from fibrillation needs a second, regularity-oriented feature on top of the band-pass
-count, and even then the two rhythms form a physiological continuum that resists a clean boundary.
-This matters little for the shock decision, where both are shockable, but it limits any attempt to
-characterize the episode more finely.
+The band-pass detector cannot make this split, which is expected: it measures a property flutter
+and fibrillation share, the absence of 14.6 Hz energy. Regularity and phase-space features do
+modestly better but overlap heavily (section 4.5), so a clean flutter-versus-fibrillation boundary
+would need a dedicated regularity feature, and even then the two form a physiological continuum
+that resists one. This matters little for the shock decision, where both are shockable, but it
+limits any finer characterization of the episode.
 
 ### 5.5 Threats to validity
 
 Three limits qualify these results. First, class imbalance: non-shockable windows outnumber
 shockable ones roughly nine to one, which inflates accuracy and depresses precision, so the paper
 leads with F1 and G-Mean and the absolute PPV figures should be read against that imbalance.
-Second, coverage: flutter is represented by only a few hundred windows (section 4.1), so the flutter-versus-
-fibrillation result is indicative rather than settled, and the AHADB contribution is limited to
-its 8-series records, which narrows its non-shockable diversity. Third, the evaluation is
-per-window at a 1-second step with no majority-vote episode reconstruction, so the confusion
+Second, coverage: flutter is represented by only a few hundred windows (section 4.1), so the 
+flutter-versus-fibrillation result is indicative rather than settled, and the AHADB contribution 
+is limited to its 8-series records, which narrows its non-shockable diversity. Third, the evaluation
+is per-window at a 1-second step with no majority-vote episode reconstruction, so the confusion
 counts are windows rather than episode durations in milliseconds; the published algorithms were
 scored on episode-level decisions, which smooth isolated errors, so the per-window numbers here
 are conservative by comparison. The 8-second versus 4-second comparison, by contrast, is robust:
 the ranking barely moves and the tuned JEKOVA thresholds are identical at both lengths, so the
 choice of window is not driving the conclusions.
 
-## 6. Conclusion and future work
+## 6. AI as a research collaborator
+
+This study doubled as a test of method. Using an AI assistant was an objective from the
+start, not a convenience adopted along the way: the aim was to see how far a large language model
+can be folded into an academic workflow, from code to prose, while keeping the result honest and
+reproducible. This section records how that collaboration worked, because the process is part of
+what the paper reports. The assistant was Claude Opus 4.8 (model `claude-opus-4-8`, Anthropic),
+driven through the Claude Code extension for VS Code, with access to the repository, a Python
+environment, and the cached literature.
+
+### 6.1 A closed-world, grounded setup
+
+The author owned the questions and the evidence. The author chose the scope, the candidate
+detectors, the databases, and every reference, and collected the source papers into the repository
+(paper sources under `docs/papers/`), where each was extracted to plain text (`docs/texts/`). The
+assistant worked from that fixed corpus rather than from open-web recall, which turned the
+literature into a closed-world ground truth: a claim in the paper traces to a document the author
+had already vetted, not to the model's parametric memory. The feature mathematics was grounded the
+same way, through a reimplementation (the vftx package) validated feature by feature against a
+reference implementation, so the numbers rest on checkable code rather than on a prose description.
+
+### 6.2 A phased process with review
+
+The work ran in phases, recorded in `paper/PLAN.md`: scope and skeleton, introduction and
+literature review, dataset construction, the feature screen and shootout, candidate tuning, and
+the write-up. Each phase ended at a review point where the author read the output, gave feedback,
+and corrected direction before the next began; `paper/NOTES.md` and the version-control history
+track that progression. Several turns of the paper exist only because of that review: the move
+from a single tuned detector to two, the reframing of the JEKOVA candidate around its
+absolute-output counts after its signed counts were found degenerate, and the split of the results
+into separate screen and shootout sections all followed author feedback rather than the assistant
+acting on its own.
+
+### 6.3 Division of labour
+
+Within each phase the assistant did most of the mechanical work: it wrote the analysis pipeline
+and the notebook, ran the experiments, drafted the prose, and applied the house conventions (the
+block-closing style in the code, the writing rules in `STYLE.md`). The author supplied the
+structure, the content decisions, the scope of the claims, and the style, and made the judgement
+calls that shaped the argument. The assistant proposed; the author disposed. This division moved
+the work quickly through the laborious parts (building the dataset, timing the detectors,
+tabulating results) while keeping interpretation and scope under human control.
+
+### 6.4 Safeguards against fabrication
+
+The characteristic failure of this mode is a confident but false statement, and the assistant
+produced several. In this project a JEKOVA decision rule was written with an inverted threshold, a
+compute cost was inflated about threefold by charging a shared band-pass step once per count rather
+than once, and one reference was given a fabricated author. Each was caught, and how it was caught
+matters more than that it happened. Every quantitative result in the paper is produced by executing
+the notebook rather than typed by hand, so a wrong rule surfaces as a wrong number instead of
+hiding in prose: the inverted threshold showed up at once as a near-zero specificity. Every
+external figure is tied to a cited source in the closed corpus, and cross-checking those citations
+reconciled the IROC values in the background section, caught a score attributed to the wrong
+comparative study, and removed the invented author. Holding references and numbers consistent
+across a long document is where the assistant is strongest, and also where it fails quietly, so the
+executable notebook and the closed corpus are what make its mistakes visible rather than trusted.
+The whole exchange is auditable (the version history, the plan and status notes, and the notebook),
+so a reader can inspect the process and regenerate every number rather than take this account on
+faith. Where a fact could not be grounded in the corpus, it was softened or dropped rather than
+invented.
+
+### 6.5 What the collaboration shows
+
+The honest reading is that the assistant was a capable collaborator on everything downstream of a
+decision, and a poor substitute for the decisions themselves. It accelerated the implementation,
+enforced consistency, and handled the bookkeeping, but it needed a grounded corpus, an explicit
+scope, and steady review to stay truthful and on target. This is a single, uncontrolled case: the
+same work was not repeated without assistance, so nothing here measures a speed-up or an error
+rate, and the account should be read as a worked example rather than evidence that generalises.
+What it does show is narrower and still useful: used as a directed collaborator inside a closed
+world with human checkpoints, an AI assistant can be folded into an academic workflow without
+turning it into guesswork.
+
+### 6.6 Authorship and responsibility
+
+The assistant is a tool, not an author. The human author chose the problem and the evidence, made
+every scientific decision, and takes full responsibility for the content of this paper, including
+any error that survived review. This section is offered as a disclosure of how the assistant was
+used, in the spirit of the AI-use statements that journals increasingly require.
+
+## 7. Conclusion and future work
 
 Across a screen of 16 signal-only features and a five-candidate shootout on four PhysioNet
 databases, the property that best separates shockable from non-shockable rhythms is how much of
