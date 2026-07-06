@@ -637,17 +637,28 @@ curve, so at matched specificity JEKOVA reaches higher sensitivity. All numbers 
 three points at 4 seconds, as expected from the shorter evidence window, without changing the
 ordering.
 
-For reproducibility, the concrete thresholds are these. TCSC flags a window shockable when its
-sample-count feature exceeds 45.8 at 8 seconds, and 47.1 at 4 seconds. JEKOVA's cascade is
-expressed as fractions of the window sample count, so one set of thresholds applies to both
-window lengths. The published constants, Jekova's 10-second raw counts of 250 and 400 for the
-Count1 gates, 600, 950, and 1100 for the Count2 gates, and 210 for the Count1·Count2/Count3 term,
-correspond after division by the 2500-sample epoch to fractions of 0.10 and 0.16, 0.24, 0.38, and
-0.44, and 0.084. The grid search moved these to 0.16 and 0.20 for the Count1 gates, 0.24, 0.30,
-and 0.35 for the Count2 gates, and 0.08 for the ratio term, with the unclassified-branch fallback
-flagging shockable when the Count3 fraction is at or below 0.55. In effect the tuned cascade
-raises the lower Count1 and Count2 gates and lowers the shockable Count2 gate, which is what
-trades sensitivity for the specificity and precision gain above.
+For reproducibility, the tuned thresholds are collected below. TCSC is a single threshold: it
+flags a window shockable when its sample-count feature exceeds 45.8 at 8 seconds (47.1 at
+4 seconds). JEKOVA's cascade is expressed as fractions of the window sample count, so one set of
+thresholds applies to both window lengths; the published fractions are Jekova's 10-second raw
+counts divided by the 2500-sample epoch (Count1 gates 250 and 400, Count2 gates 600, 950, and
+1100, and 210 for the ratio term).
+
+| JEKOVA cascade parameter | Published | Tuned |
+|---|---|---|
+| Count1 lower gate | 0.10 | 0.16 |
+| Count1 upper gate | 0.16 | 0.20 |
+| Count2 lower gate | 0.24 | 0.24 |
+| Count2 upper gate | 0.38 | 0.30 |
+| Count2 shockable gate | 0.44 | 0.35 |
+| ratio term (jc1·jc2/jc3) | 0.084 | 0.08 |
+| Count3 fallback | 0.70 | 0.55 |
+
+The Count3 fallback is not one of Jekova's constants; it stands in for the paper's wave-detection
+branch on the unclassified windows, flagging shockable when the Count3 fraction is at or below the
+value shown. In effect the tuned cascade raises the lower Count1 and Count2 gates and lowers the
+shockable Count2 gate, which is what trades sensitivity for the specificity and precision gain
+above.
 
 Reading the two axes together (section 4.3 and this table), JEKOVA is the accuracy choice and
 TCSC the cost choice. Which one, or which combination, a deployment should carry is left to
