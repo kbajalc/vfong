@@ -677,7 +677,7 @@ partially.
 
 ## 5. Discussion
 
-### 5.1 Which signal property carries the discrimination
+### 5.1 Discriminative features
 
 The screen and shootout point to a single property above all others: how much of the window's
 energy sits outside the narrow band where a normal ECG puts its sharp features. The three
