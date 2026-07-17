@@ -189,7 +189,7 @@ Figure 3: Four subplots (a, b, c, d) showing ECG signals and their digital integ
 | MIT ( <i>cudb</i> ) | 1201     | 1128             | 307      | 280              | 93.92 | 91.21 |
 | Total databases     | 9726     | 9179             | 2528     | 2425             | 94.38 | 95.93 |
 
-for each 10 s time epoch is shown as \*\*\*N\*\*\* for non-shockable rhythm and \*\*\*S\*\*\* for shockable rhythm. The following text string is the output algorithm message, including the values of *Count1*, *Count2* and *Count3*.
+for each 10 s time epoch is shown as **N** for non-shockable rhythm and **S** for shockable rhythm. The following text string is the output algorithm message, including the values of *Count1*, *Count2* and *Count3*.
 
 ![Figure 4: Three histograms (a, b, c) comparing observed distributions for non-shockable and shockable rhythms against expected normal distributions. (a) COUNT1, (b) COUNT2, (c) COUNT1*COUNT2/COUNT3.](images/fig4_histograms.jpg)
 
@@ -213,10 +213,10 @@ Figure 4: Three histograms (a, b, c) comparing observed distributions for non-sh
 
 Figure 5 displays four examples of correctly detected non-shockable ECG signals, each showing a 10-second segment of the waveform (labeled '10 sec' on the x-axis) with a time scale from 0 to 10 minutes.
 
-- (a) **cu09.dat**: Title: \*\*\*N \*\*\* "Non-Shockable Rhythm" count1=223 count2=772 count3=1710. The x-axis is labeled '3 min :10 sec'. The y-axis is labeled '[mV]' and ranges from -2 to 2.
-- (b) **426d1.dat**: Title: \*\*\*N \*\*\* "Non-Shockable Rhythm" count1=196 count2=808 count3=1706. The x-axis is labeled '22 min :10 sec'. The y-axis is labeled '[mV]' and ranges from -1 to 1.
-- (c) **419d1.dat**: Title: \*\*\*N \*\*\* "Non-Shockable Rhythm" count1=248 count2=895 count3=1515. The x-axis is labeled '4 min :10 sec'. The y-axis is labeled '[mV]' and ranges from -1 to 1.
-- (d) **607d1.dat**: Title: \*\*\*N \*\*\* "Non-Shockable Rhythm" count1=173 count2=803 count3=1631. The x-axis is labeled '28 min :20 sec'. The y-axis is labeled '[mV]' and ranges from -2 to 2.
+- (a) **cu09.dat**: Title: **N ** "Non-Shockable Rhythm" count1=223 count2=772 count3=1710. The x-axis is labeled '3 min :10 sec'. The y-axis is labeled '[mV]' and ranges from -2 to 2.
+- (b) **426d1.dat**: Title: **N ** "Non-Shockable Rhythm" count1=196 count2=808 count3=1706. The x-axis is labeled '22 min :10 sec'. The y-axis is labeled '[mV]' and ranges from -1 to 1.
+- (c) **419d1.dat**: Title: **N ** "Non-Shockable Rhythm" count1=248 count2=895 count3=1515. The x-axis is labeled '4 min :10 sec'. The y-axis is labeled '[mV]' and ranges from -1 to 1.
+- (d) **607d1.dat**: Title: **N ** "Non-Shockable Rhythm" count1=173 count2=803 count3=1631. The x-axis is labeled '28 min :20 sec'. The y-axis is labeled '[mV]' and ranges from -2 to 2.
 
 Figure 5: Examples of correctly detected non-shockable ECG signals. The figure consists of four subplots (a, b, c, d) showing ECG waveforms over time. Each plot includes a title with counts and a file name.
 
