@@ -8,7 +8,7 @@
         "**/*.so": true,
 
         "**/__pycache__": true,
-        "**/work/**": true,
+        // "**/work/**": true,
 
         "tsconfig.json": true,
         "package.json": true,
