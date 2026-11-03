@@ -116,8 +116,12 @@ at once).
 
 - The runs used batch 256 and a full pass per epoch instead of batch 64 and 40,000 windows.
   No batch-64 control was run.
-- `jekova/JEKOVA5.ipynb` labels VT as `"#VT"`. Its table matches the vfnn baseline only with
-  VT as negative, which suggests that name does not match the VT episodes. Not checked.
+- `"#VT"` in `jekova/JEKOVA5.ipynb` marks VT as excluded, so its table is VF and VFL only by
+  design. For episode comparison (epicmp) only `[ ]` spans count, and in some databases they
+  can hold VT. Checked on the cbor annotations: mitdb's six spans (record 207) hold only
+  `(VFL` notes and `!` flutter waves, and no span in mitdb, cudb or ahadb contains a beat
+  annotation, so vfnn's bracket-based VF labels hold no VT. vfdb has no brackets, so its VF
+  comes from the rhythm notes alone, which epicmp would not count.
 - vfdb record 418 has no VT, yet the network flags 1,393 of its 1,530 negative windows in the
   VT-positive run. The signal has not been looked at.
 - The raw-input ablation (no filter, LDIAED style) is listed in `DESIGN.md` but not built. The

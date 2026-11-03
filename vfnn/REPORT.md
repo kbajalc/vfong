@@ -214,9 +214,14 @@ Sp 0.999 and F1 0.960 on ahadb against the notebook's 95.1%, 99.9% and 96.4%. On
 0.773, 0.957 and 0.795 against 76.6%, 95.9% and 79.3%, and on mitdb 0.902, 1.000 and 0.935
 against 91.0%, 100.0% and 94.0%. vfdb agrees less well (F1 0.458 against 37.6%); the
 notebook's last run left vfdb out of its database list, so its vfdb row may come from an
-earlier configuration. The same run with VT positive changes vfdb and mitdb a lot, which
-suggests the notebook's label list (`"#VT"`) does not match the VT episodes, so its table is
-in effect VF and VFL only. This was not checked further.
+earlier configuration. The notebook's table is VF and VFL only by design: `"#VT"` in its
+label list marks VT as excluded.
+
+vfnn counts every `[ ]` span as VF, and in some databases such a span could hold VT. A check
+of the annotations as `pxg` reads them finds no case of that. mitdb's six spans (record 207,
+2.4 min) contain only `(VFL` rhythm notes and `!` flutter waves, and none of the spans in
+mitdb, cudb or ahadb contains a single beat annotation, as a bracketed VT run would. vfdb has
+no brackets. The VF labels used here are therefore VF and VFL in all four databases.
 
 ### Network against baseline
 
