@@ -263,16 +263,7 @@ def _main() -> None:
     print(f"epochs {args.epochs} x {args.per_epoch or len(win)} windows, batch {args.batch}, "
           f"patience 6, augment {not args.no_augment}, seed {args.seed}", flush=True)
 
-    if args.split == "random":
-        folds = data.random_folds(len(win), args.folds or 10, args.seed)
-        labels = [f"r{i}" for i in range(len(folds))]
-    elif args.split == "group":
-        folds = data.group_folds(win.groups(), win.y, args.folds or 5, args.seed)
-        labels = [f"g{i}" for i in range(len(folds))]
-    else:
-        folds = data.leave_db_out(win.databases())
-        labels = sorted(set(win.databases()))
-    pass #if
+    folds, labels = data.make_folds(win, args.split, args.folds, args.seed)
     if args.only is not None:
         folds, labels = [folds[args.only]], [labels[args.only]]
     pass #if

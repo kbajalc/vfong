@@ -303,6 +303,20 @@ def leave_db_out(dbs: np.ndarray):
 pass #def
 
 
+def make_folds(win: "Windows", split: str, k: int | None = None, seed: int = 0):
+    """Folds and their labels for one split protocol: ``random``, ``group`` or ``lodo``."""
+    if split == "random":
+        folds = random_folds(len(win), k or 10, seed)
+        return folds, [f"r{i}" for i in range(len(folds))]
+    pass #if
+    if split == "group":
+        folds = group_folds(win.groups(), win.y, k or 5, seed)
+        return folds, [f"g{i}" for i in range(len(folds))]
+    pass #if
+    return leave_db_out(win.databases()), sorted(set(win.databases()))
+pass #def
+
+
 def flat_windows(rec: Rec, seconds: float = 8.0, step_s: float = 1.0, tol: float = 1e-6) -> int:
     """Number of windows whose standard deviation is below ``tol`` (a dead lead or a gap)."""
     n = int(seconds * FS)

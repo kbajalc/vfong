@@ -4,7 +4,8 @@ First real results of `vfnn`, run on 2026-11-03. `DESIGN.md` describes the model
 protocol, and `NOTES.md` the state of the work. This report covers research question 1 of
 the design: how much of the near-perfect accuracy reported for small CNNs on VF detection
 survives when random segment folds are replaced by record-wise and leave-one-database-out
-splits.
+splits. Section 7 sets the network against the JEKOVA band-pass detector on the same windows
+and folds.
 
 ## 1. Setup
 
@@ -137,12 +138,9 @@ from the protocol: the same network reaches 99% accuracy on random folds and has
 0.60 when the test patients are new. On strict splits it is a good detector (AUC 0.985 on
 unseen records), and its errors concentrate on VT and on databases it was not trained on.
 
-The results do not show that the network is better than a handcrafted detector. The paper in
-`paper/PAPER.md` reports a single-feature AUC of 0.986 for JEKOVA's band-pass count jc2 on
-the same four databases, which equals the network's record-wise AUC without any training.
-The numbers are not comparable: the paper counts VT as shockable, uses different window
-labels and has no train/test split. A baseline scored inside `vfnn` on the same windows,
-labels and folds is needed before the network's 286k parameters can be justified.
+The results do not show that the network is better than a handcrafted detector. Section 7
+scores the JEKOVA band-pass detector on the same windows, labels and folds, and the network
+does not beat it on any strict split.
 
 Further limits:
 
@@ -152,14 +150,137 @@ Further limits:
   run.
 - The dev-set F1 threshold is a design choice. A fixed-sensitivity operating point may be the
   better reporting rule, given how poorly the threshold transfers.
-- The VT-positive replication of LDIAED's task (`--vt-positive`) has not been run, so the
-  closest comparison with its 99% is still missing.
+- The VT-positive replication of LDIAED's task (`--vt-positive`) has not been run on random
+  folds, so the closest comparison with its 99% is still missing. Section 6 runs the
+  VT-positive task under leave-one-database-out instead.
 
-## 6. Next steps
+## 6. VT positive at 85% coverage, leave-one-database-out
 
-1. Add a baseline inside `vfnn`: a JEKOVA-style band-pass count, or a logistic regression on a
-   few spectral features, scored on the same windows and record-wise folds. Report the AUC on
-   VF and VT windows alone as well, since that is where a learned model should gain the most.
+A second labelling moves closer to the benchmark convention used in `paper/PAPER.md`. VT, VFL
+and VF all count as positive, a window is positive when they cover at least 85% of it, and
+windows that a positive episode covers only partly (more than 0% and less than 85%) are
+dropped from training, dev and test. `--vt-positive` keeps only the 10 annotated ahadb
+8-series records, because series 1–7 have no rhythm labels and series 7 holds wide-complex
+tachycardia that would count as negative. The corpus is 115 records and 164,749 windows,
+16,688 of them positive (10.1%). Everything else is as in section 1.
+
+| Held out | Epochs | Threshold | AUC | Se | Sp | PPV | F1 | Accuracy | Positive windows |
+|---|---|---|---|---|---|---|---|---|---|
+| ahadb | 15 | 0.10 | 0.999 | 0.994 | 0.987 | 0.970 | 0.982 | 0.989 | 5,458 |
+| cudb | 19 | 0.70 | 0.923 | 0.755 | 0.901 | 0.668 | 0.709 | 0.871 | 3,534 |
+| mitdb | 8 | 0.99 | 0.634 | 0.507 | 1.000 | 1.000 | 0.673 | 0.999 | 203 |
+| vfdb | 16 | 0.91 | 0.972 | 0.921 | 0.896 | 0.643 | 0.757 | 0.900 | 7,493 |
+
+Pooled over the four folds: accuracy 0.958, Se 0.905, Sp 0.964, PPV 0.739.
+
+The ahadb fold alone matches the published 99%, on a split where no ahadb record was seen in
+training. It does not carry over. Accuracy is 0.87 with cudb held out and 0.90 with vfdb held
+out, so the ahadb result says more about ahadb than about the detector. The ahadb 8-series
+holds no annotated VT, its positives are long VF episodes, and with mixed windows removed its
+negatives are clean, which makes it the easiest of the four test sets.
+
+Compared with the VF-only labelling of section 3, held-out AUC is unchanged on cudb (0.921 to
+0.923) and rises on vfdb (0.943 to 0.972), because vfdb's VT is now a positive and no longer
+the main source of false alarms. The errors that remain concentrate in a few records:
+
+- vfdb: records 418 and 419 hold 2,493 of the 3,836 false-positive windows, with 1,393 of
+  418's 1,530 negative windows flagged. Record 611 holds 285 of the 589 missed windows.
+- cudb: cu03, cu11 and cu06 hold 970 of the 1,329 false positives, and cu20 and cu30 hold
+  436 of the 865 misses.
+- mitdb: the 203 positive windows are its few sustained VT and VFL episodes, and the model
+  finds half of them (AUC 0.634). Training on vfdb, cudb and ahadb did not prepare it for
+  mitdb's ventricular runs. The fold has almost no positives, so its 0.999 accuracy reflects
+  the negatives.
+
+Dropping the mixed windows makes this task easier than the one in section 2: a deployed
+detector sees every window, episode edges included. These numbers are therefore an upper
+bound for this labelling, and even so the strict split stays well below 99% on three of the
+four databases.
+
+## 7. JEKOVA baseline
+
+`vfnn/jekova.py` implements the detector of `jekova/JEKOVA5.ipynb`. It needs no training.
+Jekova's 14.6 Hz band-pass (Jekova 2004, eq. 1) runs once over each filtered record, which is
+the same baseline-removed, 40 ms Lynn low-passed signal the network reads. The output is
+rectified and cut into 1 s segments, and in each segment `cnt2` counts the samples at or above
+the segment mean. A window sums `cnt2` over its eight segments. The published cascade reduces
+to a single rule (`jekova/FINDINGS.md` section 1): shockable when `cnt2` exceeds 950 per 10 s,
+which is 760 for an 8 s window. `cnt2` is the score for AUC, and two thresholds are reported:
+the published one, and the one that maximises F1 on the same dev records the network used.
+
+The implementation reproduces the JEKOVA5 table. On the notebook's protocol (VF and VFL
+positive at 85%, mixed windows scored as negatives, published threshold), it gives Se 0.951,
+Sp 0.999 and F1 0.960 on ahadb against the notebook's 95.1%, 99.9% and 96.4%. On cudb it gives
+0.773, 0.957 and 0.795 against 76.6%, 95.9% and 79.3%, and on mitdb 0.902, 1.000 and 0.935
+against 91.0%, 100.0% and 94.0%. vfdb agrees less well (F1 0.458 against 37.6%); the
+notebook's last run left vfdb out of its database list, so its vfdb row may come from an
+earlier configuration. The same run with VT positive changes vfdb and mitdb a lot, which
+suggests the notebook's label list (`"#VT"`) does not match the VT episodes, so its table is
+in effect VF and VFL only. This was not checked further.
+
+### Network against baseline
+
+Means over folds. Accuracy is pooled over folds. "Dev" is the baseline with the dev-F1
+threshold.
+
+| Split | Detector | AUC | Se | Sp | PPV | F1 | Accuracy |
+|---|---|---|---|---|---|---|---|
+| Random 10-fold | CNN | 0.998 | 0.954 | 0.991 | 0.827 | 0.886 | 0.990 |
+| | JEKOVA published | 0.985 | 0.875 | 0.977 | 0.628 | 0.731 | 0.973 |
+| | JEKOVA dev | 0.985 | 0.833 | 0.981 | 0.660 | 0.736 | 0.975 |
+| Record-wise 5-fold | CNN | 0.985 | 0.912 | 0.972 | 0.600 | 0.722 | 0.969 |
+| | JEKOVA published | 0.985 | 0.874 | 0.977 | 0.636 | 0.734 | 0.973 |
+| | JEKOVA dev | 0.985 | 0.851 | 0.978 | 0.648 | 0.730 | 0.973 |
+| Leave-one-database-out | CNN | 0.966 | 0.835 | 0.938 | 0.733 | 0.739 | 0.972 |
+| | JEKOVA published | 0.970 | 0.824 | 0.957 | 0.785 | 0.762 | 0.973 |
+| | JEKOVA dev | 0.970 | 0.867 | 0.946 | 0.740 | 0.759 | 0.970 |
+| VT positive, 85%, leave-one-database-out | CNN | 0.882 | 0.794 | 0.946 | 0.820 | 0.780 | 0.958 |
+| | JEKOVA published | 0.955 | 0.765 | 0.978 | 0.906 | 0.814 | 0.972 |
+| | JEKOVA dev | 0.955 | 0.794 | 0.970 | 0.888 | 0.818 | 0.972 |
+
+Leave-one-database-out by held-out database (AUC, then F1; the baseline at the published
+threshold):
+
+| Held out | CNN, VF only | JEKOVA, VF only | CNN, VT positive 85% | JEKOVA, VT positive 85% |
+|---|---|---|---|---|
+| ahadb | 1.000, 0.962 | 0.999, 0.960 | 0.999, 0.982 | 0.997, 0.966 |
+| cudb | 0.921, 0.706 | 0.949, 0.799 | 0.923, 0.709 | 0.953, 0.813 |
+| mitdb | 1.000, 0.774 | 0.999, 0.819 | 0.634, 0.673 | 0.895, 0.664 |
+| vfdb | 0.943, 0.515 | 0.934, 0.468 | 0.972, 0.757 | 0.977, 0.810 |
+
+### What the comparison shows
+
+The network wins only under random folds. There its AUC is 0.998 against 0.985 and its F1
+0.886 against 0.731. On record-wise folds the two have the same AUC (0.985) and the baseline
+has a slightly higher F1 (0.734 against 0.722). With whole databases held out the baseline is
+ahead on AUC and F1 under both labellings. The clearest gaps are cudb (AUC 0.949 against
+0.921 with VF only) and mitdb's ventricular runs (0.895 against 0.634 with VT positive). The
+network is ahead only on vfdb with VF-only labels (AUC 0.943 against 0.934), where it has
+learned to reject some of vfdb's VT.
+
+The baseline also measures the leakage directly. It has no parameters to fit, so its AUC is
+0.985 under random folds and under record-wise folds alike. The network gains 0.013 AUC and
+0.16 F1 from random folds. That gain is the leakage: the network has learned the test
+records' own windows.
+
+The two cost very different amounts. The baseline is a three-coefficient recursive filter
+and a few comparisons per sample, on the order of ten thousand operations per 8 s window.
+The network takes 48.5 million multiply-accumulates for the same window.
+
+On this corpus, then, the network does not earn its 286k parameters. Its one strong number,
+99% accuracy, comes from the protocol that lets it see its test records. Under every split
+that keeps patients or databases apart, a one-feature detector from 2004 does as well or
+better, at a small fraction of the cost.
+
+Two checks remain open. Both detectors come from one configuration (one seed, B-lite only),
+and the network's per-window predictions were not saved, so the VF-against-VT AUC on those
+windows alone, where a learned model should gain the most, could not be computed for the
+network.
+
+## 8. Next steps
+
+1. Save the network's per-window predictions and compare it with the baseline on VF and VT
+   windows alone, since that split is where a learned model should gain the most.
 2. Run a size ablation: a tiny network (about 10k parameters) and B-mid, under record-wise
    folds.
 3. Run 3 to 5 seeds of the record-wise experiment.
@@ -171,7 +292,7 @@ Two fixes come before these runs: stop training once the learning rate falls bel
 1e-6 (the random folds spent 10 to 15 epochs below it), and repair the concurrency limit in
 `data/vfnn/results/queue.sh`, which ran all 14 jobs at once.
 
-## 7. Runs and files
+## 9. Runs and files
 
 All results are under `data/vfnn/results/` (git-ignored).
 
@@ -179,8 +300,13 @@ All results are under `data/vfnn/results/` (git-ignored).
 |---|---|---|---|
 | Record-wise 5-fold | 5 in parallel | about 18 min | `group8_lite.csv`, `group8_lite_records.csv`, `group8_lite/` |
 | Random 10-fold and leave-one-database-out | 14 in parallel | about 81 min | `random8_lite*.csv`, `lodo8_lite*.csv`, their folders, `queue.log` |
+| VT positive at 85%, leave-one-database-out (section 6) | ahadb alone, then 3 in parallel | about 3 min, then 6 min | `lodo8_vtpos85*.csv`, `lodo8_vtpos85/` |
+| JEKOVA baseline, all protocols (section 7) | all folds, no training | seconds per run | `jekova/<split>_<published or dev>.csv`, `jekova/nbcheck.csv` |
 
 Each folder holds one log and one CSV pair per fold. Each run used
 `python -m vfnn.train --split <split> --only <k> --dbs vfdb cudb mitdb ahadb --epochs 30 --batch 256`,
-with `--folds 5` or `--folds 10` where needed. `run.sh` and `queue.sh` start the folds, and
-`merge.py` combines the per-fold CSVs.
+with `--folds 5` or `--folds 10` where needed, and with
+`--vt-positive --min-frac 0.85 --exclude-mixed` for section 6. `run.sh` and `queue.sh` start the folds, and
+`merge.py` combines the per-fold CSVs. The baseline runs with
+`python -m vfnn.jekova` and the same data and split options plus `--threshold published` or
+`--threshold dev`.
