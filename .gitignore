@@ -17,3 +17,4 @@ vf_features.c
 
 # vfta dataset build artifacts
 data/
+jekova/aux/

@@ -378,3 +378,182 @@ lifts pooled F1 from 0.670 to 0.847, but applied to JEKOVA4's cudb data as publi
 it makes cudb worse, and re-tuned specifically for cudb it caps at the same ~80 every
 other route in this file finds. Two independent studies on two independent pipelines
 converge on the same ceiling for the same reason.
+
+## 10. Richer level statistics, shape features and VF-filter leakage (JEKOVA6)
+
+Goal: a cheap, causal marker of suspected VF/VFL for human review, still filters and counting statistics only. Section 6 left per-record calibration as the open headroom. This section tests whether a better count statistic or one extra independent channel closes part of it. Code is `jekova/JEKOVA6.ipynb` (the detector and a sample-level eval); the sweeps ran offline from per-second statistics cached for all five databases.
+
+### Protocol
+
+All numbers use 8 s windows, shockable = reference overlap >= 85%, wfon bracket mode. Sample F1 counts seconds of VF covered by marks. Episode scoring: a reference episode is caught when a mark overlaps it for >= 1 s, a mark is false when it lies more than 4 s from every reference episode, false marks per hour use non-VF hours. Anything fitted was fitted leave-one-database-out (thresholds and weights chosen on the other three of mitdb, ahadb, cudb, vfdb; criterion = mean of sample F1 and episode F1, averaged over the training databases). edb is never used for fitting; it gets the threshold fitted on all four.
+
+The published cascade reproduces here at pooled sample F1 69.9, episode F1 57.1, recall 91/97 (>= 5 s), 83/85 (>= 8 s), 70/70 (>= 15 s), edb 0.04 false marks/h. Per database my second-resolution scorer gives mitdb 93.7 (not 93.1), ahadb 97.0, cudb 80.6, vfdb 37.1.
+
+### What was tried
+
+About 110 per-window features were screened by AUC (cheap, per database), then the best went through threshold sweeps. Variants evaluated at some depth: about 100 single-feature thresholds (70 thresholds each), 8 feature sets x 2 models (logistic regression, depth-2 tree) leave-one-database-out, 864 hysteresis / gap-merge / minimum-length settings (two level statistics), and 7 finalists x 2 gap options x 40 thresholds. Roughly 10,000 evaluated settings in all, most of them cheap threshold points.
+
+**Level statistic (idea A, A-C).** Counting at a different reference level helps a little. Plain single-threshold leave-one-database-out, pooled sample F1: mean 70.2 (published level), RMS 72.2, L3-mean 73.6, 0.5 x mean 73.1, L4 73.2. A max-fraction count (>= 0.25 x max) 69.8. Median, trimmed mean, geometric mean and the 10th to 75th percentiles are worse or, for the median and percentiles, constant by construction (the count at the median is always half the samples). Other envelopes (smoothed |x|, Teager-Kaiser, first difference, squared) do not beat |x| and the smoothed one is clearly worse. Why RMS helps: a higher bar rejects the broad low-amplitude background of vfdb and cudb, at the cost of mitdb (87 to 94 depending on level).
+
+**Shape statistics.** Crest factor, form factor and kurtosis of the band output have inverted AUC 0.90 to 0.99, about as good as c2 on mitdb and ahadb and 0.86 to 0.95 on cudb and vfdb. They are cheap (running sums of |x|, x^2, x^4, max) but largely redundant with the count: adding crest to the count+leakage model changes pooled F1 by -0.4 to +0.4 and lowers episode F1 once gap-merged.
+
+**Other bands (idea D).** 2.5 to 7.5 Hz, 3 to 6 Hz and 6.5 to 30 Hz counts and band-energy ratios have AUC 0.80 to 0.99, not better than the 14.6 Hz band. The 2.5 to 7.5 Hz count and the 6.5 to 30 Hz count come out in a similar league to c2 (wt count at mean: cudb 82.6 held out, vfdb 36.4) but none helps vfdb. Not kept.
+
+**VF-filter leakage (idea E).** Kuo-Dillman leakage computed on the Lynn-filtered signal (no band-pass) over 8 s, with the half period taken from `T = 2*pi*sum|V|/sum|dV|`, clipped to 8..60 samples. Low leakage means quasi-sinusoidal. Inverted AUC: mitdb 0.999, ahadb 0.996, cudb 0.89, vfdb 0.89. Alone it gives high episode sensitivity (95% pooled) but broad marks, sample F1 only 55.0. On the band-passed 2.5 to 7.5 Hz signal it is slightly worse. As a second feature next to the RMS count it is the one clear gain.
+
+**Hysteresis and gap handling (idea G).** On a plain RMS or L3 score, high/low hysteresis, gap filling and minimum length trade sample F1 against episode F1 without a stable leave-one-database-out gain (mean criterion 75.6 with hysteresis vs 76.1 plain at RMS; 71.1 vs 74.0 at L3). Filling gaps of 15 s or less is kept only because it helps once the leakage channel is in (below).
+
+**Not retried** (listed in the task as known to fail): label-free per-record calibration, persistence of window decisions, shorter windows, amplitude gates. Idea F (a reference-window selector from QRS trains) was not built, so it is still open.
+
+### Result
+
+Leave-one-database-out, gap filling optional (chosen on the training databases). Rows are the published cascade and the finalists; gap 15 means short gaps filled.
+
+| detector | mitdb F1 | ahadb F1 | cudb F1 | vfdb F1 | pooled F1 | episode F1 | recall >= 5 s | >= 8 s | >= 15 s | false/h (4 DBs) | edb false/h |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| published cascade | 93.7 | 97.0 | 80.6 | 37.1 | 69.9 | 57.1 | 91/97 | 83/85 | 70/70 | 1.74 | 0.04 |
+| cnt at mean, one threshold | 92.2 | 97.0 | 80.4 | 39.9 | 72.6 | 51.2 | 78/97 | 76/85 | 68/70 | 1.42 | 0.04 |
+| cnt at RMS | 91.4 | 96.3 | 81.2 | 43.5 | 74.4 | 57.0 | 87/97 | 81/85 | 70/70 | 1.27 | 0.01 |
+| cnt at L3 mean | 85.8 | 95.8 | 80.8 | 44.5 | 74.2 | 62.4 | 95/97 | 85/85 | 70/70 | 1.34 | 0.01 |
+| LR(cnt RMS, leakage) | 93.1 | 96.5 | 82.6 | 46.5 | 75.5 | 73.5 | 95/97 | 84/85 | 70/70 | 0.97 | 0.00 |
+| **LR(cnt RMS, leakage) + gap 15 s** | 92.2 | 97.1 | 83.2 | 45.6 | **75.4** | **75.1** | 95/97 | 84/85 | 70/70 | **0.55** | **0.00** |
+| LR(cnt RMS, leakage, crest) + gap 15 s | 92.5 | 97.0 | 83.5 | 46.0 | 75.8 | 69.7 | 95/97 | 84/85 | 70/70 | 0.95 | 0.00 |
+| leakage alone + gap | 82.5 | 76.0 | 72.1 | 32.3 | 55.0 | 76.4 | 92/97 | 80/85 | n/a | 0.71 | 0.00 |
+
+Episode F1 and false marks per hour per database for the bold row: mitdb 80.0 / 0.00, ahadb 92.5 / 0.03, cudb 89.9 / 2.58, vfdb 61.0 / 2.63 (published: cudb 10.0/h and vfdb 7.2/h). The small recall of sub-5 s bursts also improves, 42/74 caught versus 24/74.
+
+Final parameters (fitted on the four databases pooled; the held-out numbers above come from refits without the evaluated database): `score = 0.022395 * crms - 4.0570 * leak - 7.6289`, mark when score > 3.379, fill gaps <= 15 s. `crms` is the 8 s sum of the per-second count of band-pass samples >= that second's RMS (max 2000). Applied as fixed constants to the four databases (in-sample) it gives pooled sample F1 75.1, episode F1 65.8, 0.53 false marks/h, recall 91/97, 82/85, 69/70. The episode F1 spread (65.8 in-sample at one threshold, 73.5 to 75.1 held out) is mostly vfdb, where small threshold moves swap many short marks. Treat episode F1 on vfdb as +-10.
+
+### What this does and does not show
+
+- The gain is real but modest on sample F1 (+5.5 pooled, mostly vfdb +8 and cudb +3) and large on mark quality (episode F1 57 to 75, false marks 1.7 to 0.55 per hour, cudb 10 to 2.6, vfdb 7 to 2.6). A reviewer sees about a third of the false marks, and sub-5 s VFL recall goes from 32% to 57%.
+- The leakage channel is independent evidence in the sense section 9 expected: the count measures "no isoelectric baseline", leakage measures "single dominant frequency". The RMS level does what the oracle needed only in part: it lifts the bar where the background is high, but does not calibrate per record. Per-record headroom (oracle F1 ~88) is still mostly open.
+- mitdb loses 1.5 to 2 points of sample F1 against the cascade (small VF mass, 6 episodes), which fails the "do not trade databases" test narrowly on that one; ahadb is unchanged (97.0 vs 97.1), cudb and vfdb gain. Pooled across all four it passes both pooled sample F1 and episode F1, and edb false marks go down (0 vs 8 marks over 180 h).
+- Known weak records are unchanged in kind: the slow/coarse VF in cu20 and ahadb 8206 are still the main misses, and vfdb remains low-PPV (45.6 held out) because its non-VF background looks fibrillatory to every count.
+- Selection used pooled LODO with a mixed criterion; with four databases and one fitted threshold per fold there is selection noise of a couple of points. The ranking leakage-plus-count over count alone holds in every fold's episode F1 but ahadb and mitdb are within noise.
+
+### Cost for a causal Go port
+
+Everything is a running sum on the 250 Hz Lynn output and the band-pass output, with per-second accumulators and an 8 s ring.
+
+| piece | cost |
+|---|---|
+| RMS count | per second: one sum of squares, one second pass to count |x| >= rms (needs the 250 samples buffered once per second, same as cnt2 today) |
+| leakage | running sums of |v| and |dv| per second; then for each of 53 lags the per-second sums of |v_i + v_(i-h)| and |v_i|+|v_(i-h)|, which is 53 x 2 multiply-free passes per second at 250 Hz (about 26,000 adds/s), or compute only the lag for the current period estimate once per second from the buffered 8 s (about 2,000 samples x 2) |
+| score | 3 multiplies per window |
+| marks | threshold and a 15 s gap fill, which delays a mark's end by at most 15 s |
+
+The cheaper leakage variant (compute at the window's own half period from the buffered window, one pass per second) is what I would port. I did not test it numerically against the 53-lag version except through the notebook code, which agrees with the cached values to 1e-6 on cu20 and 0.05 on vfdb 418 (float32 rounding at a lag boundary).
+
+### Follow-up: simple window baselines, TCSC, leakage without a period, spectral concentration
+
+After the main sweep we ran four small, deliberately simple experiments to see what the counts and shape statistics do without the extra machinery. All of them score a single threshold on one feature, chosen leave-one-database-out (on the other three of mitdb, ahadb, cudb, vfdb, mean sample F1), with the same sample and episode scorer as above. Nothing here beat the RMS count plus leakage detector; this part is mostly a record of what does not work and why we think so.
+
+#### A. Window-level statistics on the Lynn-filtered signal, no Jekova band-pass
+
+Sliding 5 s window, 1 s stride, on the Lynn-filtered signal only. Features per window: mean |x|, RMS, cnt2 as the fraction of the window's samples at or above the window's own mean |x|, the same count at RMS and at the L3 mean, and the crest factor.
+
+AUC inside each database (mitdb, ahadb, cudb, vfdb): mean 0.79, 0.76, 0.70, 0.36; RMS 0.54, 0.64, 0.60, 0.28; cnt2 0.975, 0.968, 0.83, 0.85; count at RMS 0.98, 0.97, 0.82, 0.85; crest (inverted) 0.98, 0.94, 0.78, 0.84. Amplitude alone is useless and in vfdb it points the wrong way, which agrees with section 7.
+
+Leave-one-database-out, single threshold:
+
+| feature | pooled sample F1 | episode F1 | false marks/h | edb false/h |
+|---|---|---|---|---|
+| cnt2 (count at mean) | 43.0 | 49.1 | 11.5 | 4.4 |
+| count at RMS | 37.7 | 56.4 | 8.0 | 0.73 |
+| count at L3 mean | 33.3 | 56.9 | 7.2 | n/a |
+| crest factor | 40.6 | 62.4 | 7.2 | n/a |
+| mean \|x\| | 25.2 | 39.8 | 8.0 | n/a |
+| RMS | 16.9 | 27.0 | 12.1 | n/a |
+
+The AUC looks fine and the F1 does not. Mitdb has 36k VF samples in 21M, and ahadb is similar, so a small false-positive rate ruins precision; in mitdb the best own threshold for the RMS count gives F1 64 and the best global threshold 9.5. Without the 14.6 Hz band-pass the signal still holds QRS, T wave and baseline residue, so "evenly spread activity" is not specific to VF. The band-pass is the load-bearing step, as section 3 says. This is the floor: a window-level count on the Lynn signal is not a detector.
+
+#### B. The same window statistics on the Jekova band-pass output
+
+Same windows, applied to the band-pass output. Single threshold, leave-one-database-out:
+
+| window | level | sample F1 (mitdb / ahadb / cudb / vfdb) | pooled F1 | episode F1 | false marks/h | recall >= 5 s |
+|---|---|---|---|---|---|---|
+| 5 s | mean | 83 / 95 / 80 / 38 | 70.2 | 50.9 | 3.0 | 86/97 |
+| 5 s | (RMS + mean)/2 | 85 / 95 / 79 / 42 | 72.0 | 55.3 | 2.9 | 93/97 |
+| 5 s | RMS | 86 / 95 / 78 / 44 | 72.6 | 57.1 | 3.1 | 94/97 |
+| 5 s | L3 mean | 72 / 95 / 72 / 44 | 70.4 | 61.4 | 3.7 | 96/97 |
+| 5 s | crest | 62 / 71 / 54 / 39 | 56.0 | 57.2 | 6.7 | 91/97 |
+| 8 s | mean | 91 / 96 / 81 / 38 | 71.0 | 51.7 | 1.6 | 78/97 |
+| 8 s | (RMS + mean)/2 | 89 / 96 / 79 / 41 | 72.2 | 57.8 | 1.6 | 89/97 |
+| 8 s | RMS | 88 / 96 / 78 / 43 | 72.5 | 60.5 | 1.7 | 94/97 |
+| 8 s | L3 mean | 78 / 94 / 70 / 44 | 69.4 | 66.2 | 2.2 | 95/97 |
+| 8 s | crest | 48 / 66 / 51 / 38 | 52.2 | 58.7 | 4.5 | 89/97 |
+
+The question was whether a level computed over the whole window instead of per 1 s chunk helps. It does not. At 8 s the mean count gives pooled F1 71.0, the same as the cascade (69.9) within noise, and the RMS count gives 72.5, slightly below the per-second RMS version (74.4). The chunk-boundary jitter we worried about, where a QRS split across two chunks lowers both means, costs nothing measurable.
+
+Every level statistic lands on one plateau (pooled F1 70 to 73, episode F1 51 to 60 for the counts) and moves along the same trade-off: a higher level gives up sample F1 on mitdb and cudb for recall and episode F1 on vfdb. The (RMS + mean)/2 blend sits between its two ends on every column and is not worth an extra statistic. The best per-database thresholds are always above the global one, so what limits all of these is calibration, not the choice of level. 8 s beats 5 s on false marks (1.6 against 3.0 per hour) at about equal sample F1.
+
+#### C. TCSC (threshold crossing sample count)
+
+TCSC as in `vftx/tcsc.py`: 3 s Tukey sub-windows, step 1 s, fraction of |x| above `th * max`, averaged over the six sub-windows of an 8 s window. Single threshold, leave-one-database-out, 8 s windows:
+
+| signal, th | pooled sample F1 | episode F1 | episode sens | false marks/h | recall >= 5 s, >= 8 s |
+|---|---|---|---|---|---|
+| Jekova 0.1 | 68.3 | 63.0 | 67 | 1.57 | 93/97, 84/85 |
+| Jekova 0.2 | 68.4 | 65.8 | 74 | 1.49 | 95/97, 85/85 |
+| Jekova 0.3 | 69.5 | 62.0 | 67 | 1.74 | 94/97, 84/85 |
+| Jekova 0.4 | 65.2 | 60.8 | 77 | 2.74 | 94/97, 83/85 |
+| Jekova 0.5 | 54.8 | 64.5 | 73 | 2.75 | 90/97, 79/85 |
+| Lynn only 0.2 | 56.8 | 68.5 | 95 | 2.65 | 95/97, 84/85 |
+
+On the Jekova output TCSC at 0.2 has the cascade's sample F1 and a better episode picture (episode F1 65.8 against 57.1, recall 95/97 and 85/85), the best single-count result on the episode metrics. On the Lynn signal alone the episode numbers look good (sensitivity 95%) but sample F1 is poor: the marks are in the right places and over-extend.
+
+Replacing the max by the window RMS (a Tukey-tapered window, fraction above `m * RMS`) was tried at 5 s and 8 s:
+
+| signal, m | window | pooled sample F1 | episode F1 | false marks/h |
+|---|---|---|---|---|
+| Jekova 0.5 | 8 s | 71.3 | 48.9 | 1.75 |
+| Jekova 0.75 | 8 s | 71.8 | 51.5 | 1.40 |
+| Jekova 1.0 | 5 s / 8 s | 72.4 / 72.5 | 56.2 / 59.2 | 3.2 / 1.75 |
+| Jekova 1.25 | 5 s / 8 s | 70.7 / 71.1 | 64.2 / 66.2 | 3.8 / 2.0 |
+| Jekova 1.5 | 5 s / 8 s | 48.2 / 47.4 | 63.1 / 62.1 | 8.0 / 5.1 |
+| Jekova 2.0 | 5 s / 8 s | 2.4 / 1.8 | 16.1 / 16.4 | 47.8 / 24.6 |
+| Lynn only, best (0.75) | 5 s / 8 s | 45.1 / 48.5 | 58.4 / 63.5 | 7.7 / 3.9 |
+
+At m = 1.0 this is the plain RMS count: pooled F1 72.4 to 72.5, within noise of the count at RMS, so the Tukey taper changes nothing measurable. m of 1.5 and above leaves too few samples above the bar in a VF window. The RMS-normalized version is no better than the max-normalized one, perhaps because the maximum follows burst amplitude that the RMS partly absorbs (a hypothesis; we did not test it). The Lynn-only TCSC variants are poor for the same reason as in A. We did not run the edb check for TCSC.
+
+#### D. Leakage without the period estimate
+
+Concern: `T = 2*pi*sum|V| / sum|dV|` assumes one clean sine. Noise inflates `sum|dV|`, so T comes out too short, and in a harmonic-rich or noisy window the half period `h` is simply wrong. The period-based version still tested best, so this is a design objection that the data do not confirm as a failure. To remove it we took the minimum leakage over the lags 12 to 47 samples instead of reading the lag from T:
+
+| detector (gap 15 s) | pooled sample F1 | episode F1 | false marks/h | recall >= 5 s | sub-5 s bursts | edb false/h |
+|---|---|---|---|---|---|---|
+| RMS count + period-based leakage | 75.4 | 75.1 | 0.55 | 95/97 | 42/74 | 0.000 |
+| RMS count + minimum leakage | 75.5 | 68.0 | 0.62 | 94/97 | 23/74 | 0.006 |
+| minimum leakage alone | 52.5 | 71.6 | 0.88 | 92/97 | 70/74 | 0.011 |
+
+Sample F1 is unchanged, so the period is not needed for the main gain. Episode F1 drops by 7 points (vfdb 51 against 61, ahadb 90 against 93), and short bursts are caught half as often. A plausible reason is that a minimum over 36 lags is biased low for every window, noise included, since some lag cancels by chance; the correctly read period gives a sharper test. The vfdb episode figures move by about +-10 with small threshold changes, so the size of the gap is uncertain though its direction is consistent. The minimum is the version to port if the period estimate is judged too fragile, and it costs more (36 to 53 lag sums per second). Autocorrelation at the half period is a close relative of it; we did not run it.
+
+#### E. Spectral concentration (frequency-domain), dropped
+
+A dense bank of DFT bins (2.5 to 8 Hz in 0.25 Hz steps) over the 8 s window, built from causal per-second partial sums. Features: the peak bin's share of the window energy, the peak and its two neighbours, and the energy share of the whole band. AUC inside each database (mitdb, ahadb, cudb, vfdb): Lynn signal peak +-1 bin 0.92, 0.74, 0.65, 0.81; Jekova output peak +-1 bin 0.96, 0.93, 0.73, 0.88; Jekova output band share 0.95, 0.96, 0.75, 0.88. Period-based leakage (inverted) is 0.999, 0.996, 0.89, 0.89.
+
+| detector (gap 15 s) | pooled sample F1 | episode F1 | false marks/h | edb false/h |
+|---|---|---|---|---|
+| concentration alone, Lynn | 35.9 | 42.7 | 4.2 | 2.8 |
+| concentration alone, Jekova | 47.9 | 61.0 | 2.1 | 0.64 |
+| RMS count + concentration, Lynn | 74.7 | 58.0 | 0.69 | 0.011 |
+| RMS count + concentration, Jekova | 74.6 | 57.7 | 0.73 | 0.017 |
+| RMS count + period-based leakage | 75.4 | 75.1 | 0.55 | 0.000 |
+
+Next to the RMS count it adds nothing: sample F1 is the count's own 74.4 to 74.7, episode F1 stays at 58, and short-burst recall is 6/74 against 42/74 with leakage. An 8 s window of VF is not a clean sine, so its energy spreads over many bins and the peak is often a baseline or T-wave component on the Lynn signal. It only works at all on the band-passed signal, where the time-domain filter is doing the selection. Our working conclusion is that a frequency-domain feature does not suit this signal: the A2, M and FM group of the vftx list belongs to the same family and was not carried forward. Leakage measures something different, that the waveform repeats at its own half period, which is why it helps and concentration does not.
+
+### What we would not repeat
+
+- Any level statistic for the count (mean, RMS, L3, a blend, a trimmed or geometric mean), at 1 s, 5 s or 8 s: all land on the same pooled F1 plateau of 70 to 75 and trade vfdb for mitdb and cudb.
+- Median and percentile counts: constant by construction.
+- Counts on the Lynn-only signal: far below the floor; the band-pass is required.
+- Crest factor, form factor and kurtosis as stand-alone detectors: AUC is high, F1 is not (pooled 52 to 56 on the Jekova output, 41 on Lynn).
+- TCSC with either normalization as a replacement for the count: it shifts the trade-off toward episode metrics without improving sample F1.
+- Hysteresis and minimum-length rules on a single score: no stable leave-one-database-out gain.
+- Spectral concentration: see E.
+
+### Open
+
+Idea F (reference windows picked by a confident narrow-QRS train) was not built. It is the next cheapest thing to try for the per-record calibration gap. A leakage taken at the dominant spectral peak (as in vftx `vf_leak`) is no longer worth building after E. Autocorrelation at the half period, as a period-free relative of minimum leakage, was not run.
