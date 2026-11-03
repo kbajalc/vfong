@@ -277,7 +277,23 @@ and the network's per-window predictions were not saved, so the VF-against-VT AU
 windows alone, where a learned model should gain the most, could not be computed for the
 network.
 
-## 8. Next steps
+## 8. Conclusion
+
+On these four databases, under splits that keep patients and databases apart, the CNN does
+not improve on a single band-pass count. Record-wise, the two have the same AUC (0.985) and
+the baseline has a slightly higher F1 (0.734 against 0.722). With a database held out, the
+baseline is level or ahead under both labellings. The network's only clear win is under
+random segment folds, and the baseline shows that this win is leakage: with nothing to fit,
+it scores the same under random and record-wise folds. The near-perfect accuracy reported for
+small CNNs on VF detection is therefore explained by the evaluation protocol. The baseline
+also costs roughly four thousand times less per window.
+
+The claim holds for what was tested: one seed, one architecture (B-lite) and 52 VF records.
+A gain smaller than the fold spread (0.13 F1 record-wise) could not be detected, and the
+VF-against-VT comparison on those windows alone, where a learned model could still help, is
+untested.
+
+## 9. Next steps
 
 1. Save the network's per-window predictions and compare it with the baseline on VF and VT
    windows alone, since that split is where a learned model should gain the most.
@@ -292,7 +308,7 @@ Two fixes come before these runs: stop training once the learning rate falls bel
 1e-6 (the random folds spent 10 to 15 epochs below it), and repair the concurrency limit in
 `data/vfnn/results/queue.sh`, which ran all 14 jobs at once.
 
-## 9. Runs and files
+## 10. Runs and files
 
 All results are under `data/vfnn/results/` (git-ignored).
 

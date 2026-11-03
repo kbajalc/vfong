@@ -1,25 +1,27 @@
 # vfnn handoff notes
 
-Status as of 2026-11-03, written on a MacBook Air M4 before moving to a bigger machine.
-`DESIGN.md` is the design and the reasons for it. This file says where the work stands and
-what to do next.
+Status as of 2026-11-03 (evening), after the first experiments on an Apple M5 Max. `DESIGN.md`
+is the design and the reasons for it, `REPORT.md` holds the results. This file says where the
+work stands and what to do next.
 
 ## 1. Where we are
 
-The package is written, tested and working end to end. No real experiment has been run yet.
-The only runs so far are small smoke tests (3 epochs of 3,000 windows on one fold), so none of
-their numbers should be quoted.
+The main experiments are done and written up in `REPORT.md`. The conclusion: on these four
+databases, under splits that keep patients and databases apart, the CNN does not improve on
+the JEKOVA band-pass count (record-wise AUC 0.985 for both, F1 0.722 against 0.734). Its only
+clear win is under random segment folds, and that win is leakage.
 
 | Piece | State |
 |---|---|
 | `filters.py` baseline removal (moving median, then moving mean) and 40 ms Lynn low-pass | done, matches `vfta.filters.signal_filter` (tested) |
 | `model.py` B-lite and B-mid residual CNN, pooled binary head | done, sizes match the design |
-| `data.py` pxg.cbor reading, cache, 50% window labels, `Store` for GPU batching, three split types | done |
-| `train.py` training loop, fold runner, verbose progress, command line | done |
+| `data.py` pxg.cbor reading, cache, window labels (`min_frac`, `vt_positive`, `exclude_mixed`), `Store` for GPU batching, `make_folds` for the three split types | done |
+| `train.py` training loop, fold runner, verbose progress, command line (`--min-frac`, `--exclude-mixed`) | done |
 | `eval.py` metrics, F1-optimal threshold on dev, per-fold and false-positive tables | done |
-| `tests/test_vfnn_*.py` | 25 tests, all pass |
+| `jekova.py` JEKOVA5 band-pass baseline on the same windows and folds, published or dev threshold | done, reproduces the JEKOVA5 table within about a point on ahadb, cudb, mitdb |
+| `tests/test_vfnn_*.py` | 31 tests, all pass |
 | Data preparation run (`python -m vfnn.data --rebuild`) | done, 184 records cached, no bad data |
-| Full experiments | not started |
+| Experiments: record-wise, random 10-fold, leave-one-database-out, VT-positive 85% leave-one-database-out, baseline on all of them | done, see `REPORT.md` |
 
 ## 2. Decisions that are settled
 
@@ -73,73 +75,71 @@ Sources are in `hannun/` (see its README). Details are in `DESIGN.md` section 2.
 - The question this work answers is how much of those numbers survives record-wise and
   leave-one-database-out splits.
 
-## 5. Setting up on the new machine
+## 5. Setting up a machine
 
-1. Clone or copy the repo. The `vfnn/`, `hannun/` and `tests/test_vfnn_*.py` files are not
-   committed yet (see section 8). Commit and push them first, or copy the folders.
-2. `pxg` comes from the separate `exg-rad` repo (`pip show pxg` here reports version 0.1.0).
-   Install it in the new environment, for example `pip install -e ../exg-rad`.
-3. The signals come from the cbor store. In the repo, `work` is a symlink to `../exg-work`, and
+1. `pxg` comes from the separate `exg-rad` repo. Install it as an editable package, for
+   example `pip install -e ../exg-rad`.
+2. The signals come from the cbor store. In the repo, `work` is a symlink to `../exg-work`, and
    the store is `../exg-work/cbor` (8.1 GB, not in git). Copy `exg-work` next to the repo, or
    recreate the symlink.
-4. Python environment: here it is the conda env `dev` (Python 3.14.8) with torch 2.14.1, numpy,
-   scipy, scikit-learn, joblib, cbor2 and pytest.
-5. Check: `python -m pytest tests/test_vfnn_*.py -q` (25 pass in about 10 s), then
-   `python -m vfnn.data --rebuild` (about 20 s here, builds the 262 MB cache under `data/vfnn`,
-   which is git-ignored), then the 30 s smoke run in `DESIGN.md` section 8.
-6. Run everything from the repo root, because the cache path and the cbor path are relative.
+3. Python environment: the conda env `dev` (Python 3.14) with torch 2.14.1, numpy, scipy,
+   scikit-learn, joblib, cbor2 and pytest. Install packages with `mamba install -n dev`.
+4. Check: `python -m pytest tests/test_vfnn_*.py -q` (31 pass in about 10 s), then
+   `python -m vfnn.data --rebuild` (about 10 s on the M5 Max, builds the 262 MB cache under
+   `data/vfnn`, which is git-ignored), then the smoke run in section 9.
+5. Run everything from the repo root, because the cache path and the cbor path are relative.
+
+Speed on the M5 Max (48 GB, MPS): B-lite trains at about 4,500 windows/s at batch 64,
+10,400 at batch 256 and 12,600 at batch 512 in one process. Running 5 folds as parallel
+processes (`--only k`) gives about 18,000 windows/s in total, and 14 at once about 13,000. A
+record-wise 5-fold run at batch 256 with full-pass epochs takes about 18 minutes. The
+JEKOVA baseline needs no training and runs in seconds.
 
 ## 6. Next steps, in order
 
-1. Run the main experiment, 5-fold record-wise at 8 s with B-lite. This is the first real number.
-   On the Air M4 the estimate was about an hour. Use the bigger machine to run it with the
-   settings below.
-2. Run the same model under random 10-fold segment splits (`--split random --folds 10`) to
-   measure the leakage gap, and leave-one-database-out (`--split lodo`). Together with step 1
-   these answer research question 1.
-3. Repeat step 1 with `--seconds 4` and with `--net mid`.
-4. Run the VT-positive replication (`--split random --folds 10 --vt-positive`) to compare with
-   LDIAED's reported 99% on its own kind of protocol.
-5. Check variance. Run 3 to 5 seeds of the record-wise run (`--seed`) and report mean and spread
-   over folds and seeds. With 52 positive records, one seed is not enough.
-6. Write the results table (the same model under three splits, set next to the LDIAED and Hai
-   figures and labelled as different protocols), plus parameters and MACs per window.
+The main question is answered (see `REPORT.md` section 8). What is left would only narrow
+the claim, not change it:
 
-Suggested starting settings for a much stronger GPU (all untested, tune after the first run):
-batch 256 instead of 64, a larger `--per-epoch` (a full pass over about 200,000 training
-windows is feasible, though neighbouring windows overlap by 87.5%), and two runs in parallel
-if memory allows. On the Air M4, B-lite trained at about 1,900 windows per second and scored
-about 8,700. Re-measure on the new machine before planning run times.
+1. Save the network's per-window predictions and compare it with the baseline on VF and VT
+   windows alone. This is the one place a learned model could still show an advantage.
+2. Run 3 to 5 seeds of the record-wise experiment, so the spread covers seeds as well as folds.
+3. Size ablation under record-wise folds: a tiny network (about 10k parameters) and B-mid.
+4. The VT-positive replication on random folds, the 4 s windows, and the raw-input ablation.
+5. A fixed-sensitivity operating point next to the dev-F1 threshold.
+
+Before more training runs: stop once the learning rate falls below about 1e-6 (the random
+folds spent 10 to 15 epochs below it), and fix the concurrency limit in
+`data/vfnn/results/queue.sh` (`jobs -r` inside `$(...)` sees no jobs, so all 14 jobs started
+at once).
 
 ## 7. Open items and things not yet verified
 
+- The runs used batch 256 and a full pass per epoch instead of batch 64 and 40,000 windows.
+  No batch-64 control was run.
+- `jekova/JEKOVA5.ipynb` labels VT as `"#VT"`. Its table matches the vfnn baseline only with
+  VT as negative, which suggests that name does not match the VT episodes. Not checked.
+- vfdb record 418 has no VT, yet the network flags 1,393 of its 1,530 negative windows in the
+  VT-positive run. The signal has not been looked at.
 - The raw-input ablation (no filter, LDIAED style) is listed in `DESIGN.md` but not built. The
   cache stores the filtered signal only. It needs a flag in `data.py` and a second cache.
-- The MIT-BIH ablation is just a run without `mitdb` in `--dbs`. Because `pxg` resamples
-  360 Hz to 250 Hz, the sampling-rate shortcut that LDIAED may have is probably weaker here, but
-  this has not been tested.
+- The MIT-BIH ablation is just a run without `mitdb` in `--dbs`. Not run.
 - The window grid starts at sample 0 with a 1 s step and keeps full windows only. It was not
-  compared against the `vfta` TSV grid because `data/s8` does not exist on the Air. The
-  `vfta` label table also lacks a `(VFIB` entry, so its labels differ from `vfnn` on vfdb.
+  compared against the `vfta` TSV grid. The `vfta` label table also lacks a `(VFIB` entry, so
+  its labels differ from `vfnn` on vfdb.
 - Series 1 to 7 of ahadb are assumed free of VF. The beat-annotation evidence supports that,
-  but it was not checked against the AHA documentation, and the annotators' conventions are
-  assumed to be the same across series.
+  but it was not checked against the AHA documentation.
 - LDIAED's real channel plan, stride placement and how its outputs become one decision are
   unknown, so the replication is an approximation. Section 7 of `DESIGN.md` says so.
-- The F1-optimal dev threshold is my choice. A fixed sensitivity or specificity operating point
-  may suit the paper better.
-- The loop prints "fold 1/1" for `--only`, which is cosmetic.
-- The smoke runs gave AUC 0.97 to 0.98 and large false-positive counts in vfdb records 421, 423,
-  607 and 612. With 3 tiny epochs that says nothing about the real result.
+- The loop prints "fold 1/1" for `--only`, and the run header prints the whole window count
+  where it means the training windows per epoch. Both are cosmetic.
+- `--min-frac` compares with `>=`, so "85%" means at least 85%, not more than 85%.
 
 ## 8. Git state
 
-Nothing from this work is committed. `hannun/` is staged (including the `awni-ecg` snapshot,
-which is GPL-3.0, so keep it as reference only). `vfnn/` and `tests/test_vfnn_*.py` are
-untracked. The repo also has unrelated staged changes in `jekova/` and `PAPER.ipynb` from
-earlier. Decide what to commit before switching machines. `data/` (cache and results) is
-git-ignored and does not travel, so copy `data/vfnn/results` by hand if you want the smoke
-outputs (not needed).
+The code, tests and `REPORT.md` are committed on the `vfnn` branch. `hannun/` holds the
+`awni-ecg` snapshot, which is GPL-3.0, so keep it as reference only. `data/` (cache, results,
+the launcher scripts `run.sh`, `queue.sh` and `merge.py`) is git-ignored and does not travel:
+copy `data/vfnn/results` by hand to keep the run logs and per-record tables.
 
 ## 9. Useful commands
 
@@ -147,10 +147,10 @@ outputs (not needed).
 python -m pytest tests/test_vfnn_*.py -q
 python -m vfnn.data --rebuild --records        # prepare, cache and summarise
 python -m vfnn.train --split group --dbs vfdb cudb mitdb ahadb --folds 5 --only 0 \
-    --epochs 3 --per-epoch 3000                # 30 s smoke test
-python -m vfnn.train --split group --dbs vfdb cudb mitdb ahadb --folds 5 \
-    --epochs 30 --per-epoch 40000 --out data/vfnn/results/group8_lite.csv \
-    --detail-out data/vfnn/results/group8_lite_records.csv \
-    2>&1 | tee data/vfnn/results/group8_lite.log   # the main run
+    --epochs 3 --per-epoch 3000                # smoke test
+python -m vfnn.train --split group --dbs vfdb cudb mitdb ahadb --folds 5 --only 0 \
+    --epochs 30 --batch 256 --out data/vfnn/results/group8_lite/fold0.csv \
+    --detail-out data/vfnn/results/group8_lite/fold0_records.csv   # one fold of the main run
+python -m vfnn.jekova --split group --dbs vfdb cudb mitdb ahadb --threshold published
 python docs/tools/close_blocks.py --check vfnn tests/test_vfnn_*.py   # house style check
 ```
