@@ -225,6 +225,10 @@ def _main() -> None:
     ap.add_argument("--seconds", type=float, default=8.0)
     ap.add_argument("--net", choices=["lite", "mid"], default="lite")
     ap.add_argument("--vt-positive", action="store_true", help="count VT as positive (LDIAED task)")
+    ap.add_argument("--min-frac", type=float, default=0.5,
+                    help="positive when positive rhythm covers at least this fraction of the window")
+    ap.add_argument("--exclude-mixed", action="store_true",
+                    help="drop windows a positive episode only partly covers (0 < cover < min-frac)")
     ap.add_argument("--ahadb-8-only", action="store_true",
                     help="keep only the annotated 8-series of ahadb (forced with --vt-positive)")
     ap.add_argument("--folds", type=int, default=None, help="number of folds (random 10, group 5)")
@@ -247,12 +251,15 @@ def _main() -> None:
     t_start = time.time()
     print(f"loading and windowing {', '.join(args.dbs)} ...", flush=True)
     recs = data.load_records(tuple(args.dbs), ahadb_8_only=only8)
-    win = data.make_windows(recs, args.seconds, vt_positive=args.vt_positive)
+    win = data.make_windows(recs, args.seconds, min_frac=args.min_frac, vt_positive=args.vt_positive,
+                            exclude_mixed=args.exclude_mixed)
     model = VFNet(cfg)
     print(f"{len(recs)} records, {len(win)} windows, {int(win.y.sum())} positive "
           f"({win.y.mean():.3f}); net {args.net}: {n_params(model)} params, "
           f"{macs(model, win.size) / 1e6:.1f} MMAC/window; device {pick_device()}; "
           f"setup took {time.time() - t_start:.0f}s", flush=True)
+    print(f"labels: {'VT+VF+VFL' if args.vt_positive else 'VF+VFL'} positive at >= {args.min_frac:g} "
+          f"cover, mixed windows {'excluded' if args.exclude_mixed else 'negative'}", flush=True)
     print(f"epochs {args.epochs} x {args.per_epoch or len(win)} windows, batch {args.batch}, "
           f"patience 6, augment {not args.no_augment}, seed {args.seed}", flush=True)
 

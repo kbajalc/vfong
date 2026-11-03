@@ -4,6 +4,8 @@ Records are read through ``pxg.cbor`` at 250 Hz (cbor resamples on read) and fil
 with :func:`vfnn.filters.filter_record`. Rhythm episodes become per-sample masks, and a
 window is positive when VF and VFL together cover at least ``min_frac`` (50%) of it. The
 alternative labeling ``vt_positive=True`` also counts VT, for the LDIAED replication arm.
+With ``exclude_mixed=True`` the windows that a positive episode only partly covers
+(``0 < frac < min_frac``) are dropped, as the paper's MIX class is.
 
 Filtered records are cached as ``.npz`` under ``data/vfnn`` (git-ignored).
 """
@@ -153,8 +155,13 @@ def make_windows(
     step_s: float = 1.0,
     min_frac: float = 0.5,
     vt_positive: bool = False,
+    exclude_mixed: bool = False,
 ) -> Windows:
-    """Slide windows over every record. Positive when positive rhythm covers >= min_frac."""
+    """Slide windows over every record. Positive when positive rhythm covers >= min_frac.
+
+    With ``exclude_mixed`` only windows with no positive rhythm or at least ``min_frac`` of
+    it are kept.
+    """
     n = int(seconds * FS)
     step = int(step_s * FS)
     ri, st, fr = [], [], []
@@ -167,10 +174,12 @@ def make_windows(
         fr.append(((cs[starts + n] - cs[starts]) / n).astype(np.float32))
     pass #for
     frac = np.concatenate(fr)
-    return Windows(
-        recs, np.concatenate(ri), np.concatenate(st), frac,
-        (frac >= min_frac).astype(np.uint8), n,
-    )
+    ri, st = np.concatenate(ri), np.concatenate(st)
+    if exclude_mixed:
+        keep = (frac == 0) | (frac >= min_frac)
+        ri, st, frac = ri[keep], st[keep], frac[keep]
+    pass #if
+    return Windows(recs, ri, st, frac, (frac >= min_frac).astype(np.uint8), n)
 pass #def
 
 

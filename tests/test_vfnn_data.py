@@ -152,3 +152,14 @@ def test_store_batch_matches_windowset():
     xa, _ = store.batch(win, idx, augment=True)          # stays in range and normalised
     assert xa.shape == x.shape and abs(xa.mean().item()) < 1e-3
 pass #def
+
+
+def test_exclude_mixed_drops_partial_windows():
+    r = synthetic("d", "r", 30, vf=[(10, 20)])       # 10 s of VF, 8 s windows, 1 s step
+    w = data.make_windows([r], seconds=8.0, step_s=1.0, min_frac=0.85, exclude_mixed=True)
+    by_start = dict(zip((w.start // FS).tolist(), w.y.tolist()))
+    assert {k for k, y in by_start.items() if y == 1} == set(range(9, 14))     # >= 7 of 8 s
+    assert {k for k, y in by_start.items() if y == 0} == {0, 1, 2, 20, 21, 22}  # no VF at all
+    full = data.make_windows([r], seconds=8.0, step_s=1.0, min_frac=0.85)
+    assert full.y.sum() == 5 and len(full) == 23 and len(w) == 11             # 12 mixed dropped
+pass #def
